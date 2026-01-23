@@ -116,12 +116,6 @@ public class MealPrepDbContext : DbContext
             .WithMany(a => a.HealthProfiles)
             .UsingEntity(j => j.ToTable("HealthProfileAllergies"));
         
-        // Many-to-many: HealthProfile to FoodPreferences
-        modelBuilder.Entity<HealthProfile>()
-            .HasMany(h => h.FoodPreferences)
-            .WithMany(f => f.HealthProfiles)
-            .UsingEntity(j => j.ToTable("HealthProfileFoodPreferences"));
-        
         // One-to-many: Account to UserSubscriptions
         modelBuilder.Entity<Account>()
             .HasMany(a => a.Subscriptions)

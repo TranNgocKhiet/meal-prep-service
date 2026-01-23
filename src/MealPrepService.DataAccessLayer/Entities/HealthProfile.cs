@@ -11,10 +11,10 @@ public class HealthProfile : BaseEntity
     
     // AI Recommendation fields
     public string? DietaryRestrictions { get; set; }  // e.g., "vegetarian", "vegan", "keto", "low-carb", "high-protein"
+    public string? FoodPreferences { get; set; }  // Free-text field for food preferences (e.g., "loves chicken, prefers spicy food, dislikes mushrooms")
     public int? CalorieGoal { get; set; }  // Daily calorie target
     
     // Navigation properties
     public Account Account { get; set; } = null!;
     public ICollection<Allergy> Allergies { get; set; } = new List<Allergy>();
-    public ICollection<FoodPreference> FoodPreferences { get; set; } = new List<FoodPreference>();
 }

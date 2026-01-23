@@ -36,6 +36,11 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         [DataType(DataType.MultilineText)]
         public string? DietaryRestrictions { get; set; }
 
+        [StringLength(500, ErrorMessage = "Food preferences cannot exceed 500 characters")]
+        [Display(Name = "Food Preferences")]
+        [DataType(DataType.MultilineText)]
+        public string? FoodPreferences { get; set; }
+
         [Range(800, 5000, ErrorMessage = "Calorie goal must be between 800 and 5000")]
         [Display(Name = "Daily Calorie Goal")]
         public int? CalorieGoal { get; set; }
@@ -43,14 +48,9 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         [Display(Name = "Selected Allergies")]
         public List<Guid> SelectedAllergyIds { get; set; } = new List<Guid>();
 
-        [Display(Name = "Selected Food Preferences")]
-        public List<Guid> SelectedFoodPreferenceIds { get; set; } = new List<Guid>();
-
         // For display purposes
         public List<AllergyViewModel> AvailableAllergies { get; set; } = new List<AllergyViewModel>();
-        public List<FoodPreferenceViewModel> AvailableFoodPreferences { get; set; } = new List<FoodPreferenceViewModel>();
         public List<string> CurrentAllergies { get; set; } = new List<string>();
-        public List<string> CurrentFoodPreferences { get; set; } = new List<string>();
 
         // Gender options for dropdown
         public static List<string> GenderOptions => new List<string> { "Male", "Female", "Other" };
@@ -63,13 +63,6 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         public bool IsSelected { get; set; }
     }
 
-    public class FoodPreferenceViewModel
-    {
-        public Guid Id { get; set; }
-        public string PreferenceName { get; set; } = string.Empty;
-        public bool IsSelected { get; set; }
-    }
-
     public class AddAllergyViewModel
     {
         public Guid HealthProfileId { get; set; }
@@ -79,16 +72,5 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         public Guid AllergyId { get; set; }
         
         public List<AllergyViewModel> AvailableAllergies { get; set; } = new List<AllergyViewModel>();
-    }
-
-    public class AddFoodPreferenceViewModel
-    {
-        public Guid HealthProfileId { get; set; }
-        
-        [Required(ErrorMessage = "Please select a food preference")]
-        [Display(Name = "Food Preference")]
-        public Guid FoodPreferenceId { get; set; }
-        
-        public List<FoodPreferenceViewModel> AvailableFoodPreferences { get; set; } = new List<FoodPreferenceViewModel>();
     }
 }

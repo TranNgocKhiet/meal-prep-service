@@ -52,15 +52,8 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     context.MissingDataWarnings.Add("No allergies recorded");
                 }
 
-                // Get food preferences from health profile
-                if (context.HealthProfile.FoodPreferences != null && context.HealthProfile.FoodPreferences.Any())
-                {
-                    context.Preferences = context.HealthProfile.FoodPreferences.ToList();
-                }
-                else
-                {
-                    context.MissingDataWarnings.Add("No food preferences recorded");
-                }
+                // Note: Food preferences are now stored as free text in HealthProfile.FoodPreferences
+                // No need to populate context.Preferences list
             }
 
             // Get order history
@@ -78,8 +71,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
             // Determine if profile is complete
             context.HasCompleteProfile = context.HealthProfile != null 
-                && context.Allergies.Any() 
-                && context.Preferences.Any();
+                && context.Allergies.Any();
 
             _logger.LogInformation("Customer profile analyzed for {CustomerId}. Complete: {IsComplete}, Warnings: {WarningCount}", 
                 customerId, context.HasCompleteProfile, context.MissingDataWarnings.Count);
