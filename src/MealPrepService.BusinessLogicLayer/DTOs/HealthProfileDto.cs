@@ -10,8 +10,8 @@ namespace MealPrepService.BusinessLogicLayer.DTOs
         public string Gender { get; set; } = string.Empty;
         public string HealthNotes { get; set; } = string.Empty;
         public string? DietaryRestrictions { get; set; }
+        public string? FoodPreferences { get; set; }
         public int? CalorieGoal { get; set; }
         public List<string> Allergies { get; set; } = new List<string>();
-        public List<string> FoodPreferences { get; set; } = new List<string>();
     }
 }

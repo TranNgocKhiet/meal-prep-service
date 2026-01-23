@@ -74,6 +74,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 existingProfile.Gender = dto.Gender;
                 existingProfile.HealthNotes = dto.HealthNotes;
                 existingProfile.DietaryRestrictions = dto.DietaryRestrictions;
+                existingProfile.FoodPreferences = dto.FoodPreferences;
                 existingProfile.CalorieGoal = dto.CalorieGoal;
                 existingProfile.UpdatedAt = DateTime.UtcNow;
 
@@ -97,6 +98,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     Gender = dto.Gender,
                     HealthNotes = dto.HealthNotes,
                     DietaryRestrictions = dto.DietaryRestrictions,
+                    FoodPreferences = dto.FoodPreferences,
                     CalorieGoal = dto.CalorieGoal,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -122,7 +124,6 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
             // Explicitly load navigation properties
             await _context.Entry(profile).Collection(p => p.Allergies).LoadAsync();
-            await _context.Entry(profile).Collection(p => p.FoodPreferences).LoadAsync();
 
             return await MapToDtoAsync(profile);
         }
@@ -181,60 +182,6 @@ namespace MealPrepService.BusinessLogicLayer.Services
             _logger.LogInformation("Allergy {AllergyId} removed from profile {ProfileId}", allergyId, profileId);
         }
 
-        public async Task AddFoodPreferenceAsync(Guid profileId, Guid preferenceId)
-        {
-            var profile = await _unitOfWork.HealthProfiles.GetByIdAsync(profileId);
-            if (profile == null)
-            {
-                throw new BusinessException($"Health profile with ID {profileId} not found");
-            }
-
-            var preference = await _unitOfWork.FoodPreferences.GetByIdAsync(preferenceId);
-            if (preference == null)
-            {
-                throw new BusinessException($"Food preference with ID {preferenceId} not found");
-            }
-
-            // Check if preference is already linked
-            if (profile.FoodPreferences.Any(fp => fp.Id == preferenceId))
-            {
-                _logger.LogWarning("Food preference {PreferenceId} already linked to profile {ProfileId}", preferenceId, profileId);
-                return;
-            }
-
-            profile.FoodPreferences.Add(preference);
-            profile.UpdatedAt = DateTime.UtcNow;
-
-            await _unitOfWork.HealthProfiles.UpdateAsync(profile);
-            await _unitOfWork.SaveChangesAsync();
-
-            _logger.LogInformation("Food preference {PreferenceId} added to profile {ProfileId}", preferenceId, profileId);
-        }
-
-        public async Task RemoveFoodPreferenceAsync(Guid profileId, Guid preferenceId)
-        {
-            var profile = await _unitOfWork.HealthProfiles.GetByIdAsync(profileId);
-            if (profile == null)
-            {
-                throw new BusinessException($"Health profile with ID {profileId} not found");
-            }
-
-            var preference = profile.FoodPreferences.FirstOrDefault(fp => fp.Id == preferenceId);
-            if (preference == null)
-            {
-                _logger.LogWarning("Food preference {PreferenceId} not found in profile {ProfileId}", preferenceId, profileId);
-                return;
-            }
-
-            profile.FoodPreferences.Remove(preference);
-            profile.UpdatedAt = DateTime.UtcNow;
-
-            await _unitOfWork.HealthProfiles.UpdateAsync(profile);
-            await _unitOfWork.SaveChangesAsync();
-
-            _logger.LogInformation("Food preference {PreferenceId} removed from profile {ProfileId}", preferenceId, profileId);
-        }
-
         private async Task<HealthProfileDto> MapToDtoAsync(HealthProfile profile)
         {
             return new HealthProfileDto
@@ -247,9 +194,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 Gender = profile.Gender,
                 HealthNotes = profile.HealthNotes,
                 DietaryRestrictions = profile.DietaryRestrictions,
+                FoodPreferences = profile.FoodPreferences,
                 CalorieGoal = profile.CalorieGoal,
-                Allergies = profile.Allergies.Select(a => a.AllergyName).ToList(),
-                FoodPreferences = profile.FoodPreferences.Select(fp => fp.PreferenceName).ToList()
+                Allergies = profile.Allergies.Select(a => a.AllergyName).ToList()
             };
         }
     }

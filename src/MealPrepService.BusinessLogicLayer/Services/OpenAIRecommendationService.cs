@@ -168,24 +168,17 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 sb.AppendLine($"Calorie Goal: {context.HealthProfile.CalorieGoal ?? 2000} cal/day");
                 sb.AppendLine($"Dietary Restrictions: {context.HealthProfile.DietaryRestrictions ?? "None"}");
                 sb.AppendLine($"Health Notes: {context.HealthProfile.HealthNotes ?? "General wellness"}");
+                
+                if (!string.IsNullOrWhiteSpace(context.HealthProfile.FoodPreferences))
+                {
+                    sb.AppendLine($"Food Preferences: {context.HealthProfile.FoodPreferences}");
+                }
             }
             
             if (context.Allergies.Any())
             {
                 sb.AppendLine($"Allergies: {string.Join(", ", context.Allergies.Select(a => a.AllergyName))}");
                 sb.AppendLine("⚠️ CRITICAL: Never recommend recipes containing these allergens!");
-            }
-            
-            if (context.Preferences.Any())
-            {
-                var preferredIngredients = context.Preferences
-                    .Select(p => p.PreferenceName)
-                    .ToList();
-                
-                if (preferredIngredients.Any())
-                {
-                    sb.AppendLine($"Preferred Ingredients: {string.Join(", ", preferredIngredients)}");
-                }
             }
             
             sb.AppendLine();
@@ -292,16 +285,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 sb.AppendLine("⚠️ CRITICAL: Never recommend recipes containing these allergens!");
             }
             
-            if (context.Preferences.Any())
+            if (context.HealthProfile != null && !string.IsNullOrWhiteSpace(context.HealthProfile.FoodPreferences))
             {
-                var preferredIngredients = context.Preferences
-                    .Select(p => p.PreferenceName)
-                    .ToList();
-                
-                if (preferredIngredients.Any())
-                {
-                    sb.AppendLine($"Preferred Ingredients: {string.Join(", ", preferredIngredients)}");
-                }
+                sb.AppendLine($"Food Preferences: {context.HealthProfile.FoodPreferences}");
             }
             
             sb.AppendLine();

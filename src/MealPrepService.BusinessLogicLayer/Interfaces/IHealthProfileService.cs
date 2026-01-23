@@ -8,7 +8,5 @@ namespace MealPrepService.BusinessLogicLayer.Interfaces
         Task<HealthProfileDto> GetByAccountIdAsync(Guid accountId);
         Task AddAllergyAsync(Guid profileId, Guid allergyId);
         Task RemoveAllergyAsync(Guid profileId, Guid allergyId);
-        Task AddFoodPreferenceAsync(Guid profileId, Guid preferenceId);
-        Task RemoveFoodPreferenceAsync(Guid profileId, Guid preferenceId);
     }
 }

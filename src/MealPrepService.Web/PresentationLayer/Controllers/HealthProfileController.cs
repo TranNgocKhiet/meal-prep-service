@@ -72,8 +72,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 var viewModel = new HealthProfileViewModel
                 {
                     AccountId = accountId,
-                    AvailableAllergies = await GetAvailableAllergiesAsync(),
-                    AvailableFoodPreferences = await GetAvailableFoodPreferencesAsync()
+                    AvailableAllergies = await GetAvailableAllergiesAsync()
                 };
 
                 return View(viewModel);
@@ -93,7 +92,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             if (!ModelState.IsValid)
             {
                 model.AvailableAllergies = await GetAvailableAllergiesAsync();
-                model.AvailableFoodPreferences = await GetAvailableFoodPreferencesAsync();
                 return View(model);
             }
 
@@ -105,9 +103,8 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 var healthProfileDto = MapToDto(model);
                 var createdProfile = await _healthProfileService.CreateOrUpdateAsync(healthProfileDto);
 
-                // Add selected allergies and food preferences
+                // Add selected allergies
                 await AddSelectedAllergiesAsync(createdProfile.Id, model.SelectedAllergyIds);
-                await AddSelectedFoodPreferencesAsync(createdProfile.Id, model.SelectedFoodPreferenceIds);
 
                 _logger.LogInformation("Health profile created for account {AccountId}", accountId);
                 TempData["SuccessMessage"] = "Health profile created successfully!";
@@ -118,7 +115,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
                 model.AvailableAllergies = await GetAvailableAllergiesAsync();
-                model.AvailableFoodPreferences = await GetAvailableFoodPreferencesAsync();
                 return View(model);
             }
             catch (Exception ex)
@@ -126,7 +122,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 _logger.LogError(ex, "Error creating health profile for account {AccountId}", GetCurrentAccountId());
                 ModelState.AddModelError(string.Empty, "An error occurred while creating your health profile.");
                 model.AvailableAllergies = await GetAvailableAllergiesAsync();
-                model.AvailableFoodPreferences = await GetAvailableFoodPreferencesAsync();
                 return View(model);
             }
         }
@@ -168,7 +163,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
                 
                 model.AvailableAllergies = await GetAvailableAllergiesAsync();
-                model.AvailableFoodPreferences = await GetAvailableFoodPreferencesAsync();
                 return View(model);
             }
 
@@ -194,7 +188,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 _logger.LogError(ex, "Business exception updating health profile for account {AccountId}", GetCurrentAccountId());
                 ModelState.AddModelError(string.Empty, ex.Message);
                 model.AvailableAllergies = await GetAvailableAllergiesAsync();
-                model.AvailableFoodPreferences = await GetAvailableFoodPreferencesAsync();
                 return View(model);
             }
             catch (Exception ex)
@@ -202,7 +195,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 _logger.LogError(ex, "Error updating health profile for account {AccountId}", GetCurrentAccountId());
                 ModelState.AddModelError(string.Empty, "An error occurred while updating your health profile.");
                 model.AvailableAllergies = await GetAvailableAllergiesAsync();
-                model.AvailableFoodPreferences = await GetAvailableFoodPreferencesAsync();
                 return View(model);
             }
         }
@@ -273,72 +265,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddFoodPreference(Guid foodPreferenceId)
-        {
-            try
-            {
-                var accountId = GetCurrentAccountId();
-                var healthProfileDto = await _healthProfileService.GetByAccountIdAsync(accountId);
-                
-                await _healthProfileService.AddFoodPreferenceAsync(healthProfileDto.Id, foodPreferenceId);
-                
-                _logger.LogInformation("Food preference {FoodPreferenceId} added to health profile for account {AccountId}", foodPreferenceId, accountId);
-                TempData["SuccessMessage"] = "Food preference added successfully!";
-            }
-            catch (BusinessException ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error adding food preference {FoodPreferenceId} for account {AccountId}", foodPreferenceId, GetCurrentAccountId());
-                TempData["ErrorMessage"] = "An error occurred while adding the food preference.";
-            }
-
-            // Check if we're on the edit page by looking at the referer
-            var referer = Request.Headers["Referer"].ToString();
-            if (referer.Contains("/Edit"))
-            {
-                return RedirectToAction("Edit");
-            }
-            return RedirectToAction("Index");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveFoodPreference(Guid foodPreferenceId)
-        {
-            try
-            {
-                var accountId = GetCurrentAccountId();
-                var healthProfileDto = await _healthProfileService.GetByAccountIdAsync(accountId);
-                
-                await _healthProfileService.RemoveFoodPreferenceAsync(healthProfileDto.Id, foodPreferenceId);
-                
-                _logger.LogInformation("Food preference {FoodPreferenceId} removed from health profile for account {AccountId}", foodPreferenceId, accountId);
-                TempData["SuccessMessage"] = "Food preference removed successfully!";
-            }
-            catch (BusinessException ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error removing food preference {FoodPreferenceId} for account {AccountId}", foodPreferenceId, GetCurrentAccountId());
-                TempData["ErrorMessage"] = "An error occurred while removing the food preference.";
-            }
-
-            // Check if we're on the edit page by looking at the referer
-            var referer = Request.Headers["Referer"].ToString();
-            if (referer.Contains("/Edit"))
-            {
-                return RedirectToAction("Edit");
-            }
-            return RedirectToAction("Index");
-        }
-
         #region Helper Methods
 
         private Guid GetCurrentAccountId()
@@ -363,6 +289,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 Gender = viewModel.Gender,
                 HealthNotes = viewModel.HealthNotes,
                 DietaryRestrictions = viewModel.DietaryRestrictions,
+                FoodPreferences = viewModel.FoodPreferences,
                 CalorieGoal = viewModel.CalorieGoal
             };
         }
@@ -370,7 +297,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
         private async Task<HealthProfileViewModel> MapToViewModelAsync(HealthProfileDto dto)
         {
             var availableAllergies = await GetAvailableAllergiesAsync();
-            var availableFoodPreferences = await GetAvailableFoodPreferencesAsync();
 
             return new HealthProfileViewModel
             {
@@ -382,11 +308,10 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 Gender = dto.Gender,
                 HealthNotes = dto.HealthNotes,
                 DietaryRestrictions = dto.DietaryRestrictions,
+                FoodPreferences = dto.FoodPreferences,
                 CalorieGoal = dto.CalorieGoal,
                 CurrentAllergies = dto.Allergies,
-                CurrentFoodPreferences = dto.FoodPreferences,
-                AvailableAllergies = availableAllergies,
-                AvailableFoodPreferences = availableFoodPreferences
+                AvailableAllergies = availableAllergies
             };
         }
 
@@ -397,17 +322,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             {
                 Id = a.Id,
                 AllergyName = a.AllergyName,
-                IsSelected = false
-            }).ToList();
-        }
-
-        private async Task<List<FoodPreferenceViewModel>> GetAvailableFoodPreferencesAsync()
-        {
-            var foodPreferences = await _unitOfWork.FoodPreferences.GetAllAsync();
-            return foodPreferences.Select(fp => new FoodPreferenceViewModel
-            {
-                Id = fp.Id,
-                PreferenceName = fp.PreferenceName,
                 IsSelected = false
             }).ToList();
         }
@@ -426,25 +340,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     {
                         _logger.LogWarning("Failed to add allergy {AllergyId} to profile {ProfileId}: {Message}", 
                             allergyId, profileId, ex.Message);
-                    }
-                }
-            }
-        }
-
-        private async Task AddSelectedFoodPreferencesAsync(Guid profileId, List<Guid> selectedFoodPreferenceIds)
-        {
-            if (selectedFoodPreferenceIds?.Any() == true)
-            {
-                foreach (var foodPreferenceId in selectedFoodPreferenceIds)
-                {
-                    try
-                    {
-                        await _healthProfileService.AddFoodPreferenceAsync(profileId, foodPreferenceId);
-                    }
-                    catch (BusinessException ex)
-                    {
-                        _logger.LogWarning("Failed to add food preference {FoodPreferenceId} to profile {ProfileId}: {Message}", 
-                            foodPreferenceId, profileId, ex.Message);
                     }
                 }
             }

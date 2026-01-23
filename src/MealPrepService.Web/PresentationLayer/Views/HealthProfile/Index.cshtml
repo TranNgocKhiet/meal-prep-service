@@ -100,16 +100,9 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            @if (Model.CurrentFoodPreferences?.Any() == true)
+                            @if (!string.IsNullOrWhiteSpace(Model.FoodPreferences))
                             {
-                                <div class="d-flex flex-wrap gap-2">
-                                    @foreach (var preference in Model.CurrentFoodPreferences)
-                                    {
-                                        <span class="badge bg-success fs-6">
-                                            @preference
-                                        </span>
-                                    }
-                                </div>
+                                <p class="mb-0">@Model.FoodPreferences</p>
                             }
                             else
                             {
