@@ -662,6 +662,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
                 // Consume ingredients
                 var updatedCount = 0;
+                var removedCount = 0;
                 foreach (var required in requiredIngredients)
                 {
                     var ingredientId = required.Key;
@@ -672,7 +673,17 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                         var fridgeItem = fridgeInventory[ingredientId];
                         var newAmount = Math.Max(0, fridgeItem.CurrentAmount - requiredAmount);
                         
-                        await _fridgeService.UpdateItemQuantityAsync(fridgeItem.Id, newAmount);
+                        if (newAmount == 0)
+                        {
+                            // Remove item from fridge when quantity reaches 0
+                            await _fridgeService.RemoveItemAsync(fridgeItem.Id);
+                            removedCount++;
+                        }
+                        else
+                        {
+                            // Update quantity if still > 0
+                            await _fridgeService.UpdateItemQuantityAsync(fridgeItem.Id, newAmount);
+                        }
                         updatedCount++;
                     }
                 }
@@ -680,11 +691,17 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 // Mark meal as finished in database
                 await _mealPlanService.MarkMealAsFinishedAsync(mealId, accountId, true);
 
-                _logger.LogInformation("Meal {MealId} marked as finished. {Count} fridge items updated for account {AccountId}", 
-                    mealId, updatedCount, accountId);
+                _logger.LogInformation("Meal {MealId} marked as finished. {Count} fridge items updated ({Removed} removed) for account {AccountId}", 
+                    mealId, updatedCount, removedCount, accountId);
                 
+                var successMessage = $"Meal finished! {updatedCount} ingredients consumed from your fridge";
+                if (removedCount > 0)
+                {
+                    successMessage += $" ({removedCount} item{(removedCount > 1 ? "s" : "")} completely used up and removed)";
+                }
+                successMessage += ".";
                 
-                TempData["SuccessMessage"] = $"Meal finished! {updatedCount} ingredients consumed from your fridge.";
+                TempData["SuccessMessage"] = successMessage;
                 return RedirectToAction(nameof(Details), new { id = planId });
             }
             catch (Exception ex)
