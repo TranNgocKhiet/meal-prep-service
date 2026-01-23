@@ -629,6 +629,13 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return RedirectToAction(nameof(Details), new { id = planId });
                 }
 
+                // Check if meal is already finished
+                if (meal.MealFinished)
+                {
+                    TempData["InfoMessage"] = "This meal has already been finished.";
+                    return RedirectToAction(nameof(Details), new { id = planId });
+                }
+
                 // Get fridge items
                 var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
                 var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => new { f.Id, f.CurrentAmount });
@@ -669,6 +676,9 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                         updatedCount++;
                     }
                 }
+
+                // Mark meal as finished in database
+                await _mealPlanService.MarkMealAsFinishedAsync(mealId, accountId, true);
 
                 _logger.LogInformation("Meal {MealId} marked as finished. {Count} fridge items updated for account {AccountId}", 
                     mealId, updatedCount, accountId);
