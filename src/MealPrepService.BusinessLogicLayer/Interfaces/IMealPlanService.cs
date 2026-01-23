@@ -14,5 +14,6 @@ namespace MealPrepService.BusinessLogicLayer.Interfaces
         Task DeleteAsync(Guid planId, Guid requestingAccountId);
         Task SetActivePlanAsync(Guid planId, Guid accountId);
         Task RemoveRecipeFromMealAsync(Guid mealId, Guid recipeId, Guid accountId);
+        Task MarkMealAsFinishedAsync(Guid mealId, Guid accountId, bool finished);
     }
 }
