@@ -168,8 +168,12 @@ namespace MealPrepService.BusinessLogicLayer.Services
             var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(accountId);
             var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => f.CurrentAmount);
 
-            // Calculate required ingredients from meal plan
+            // Calculate required ingredients from meal plan and track when they're needed
             var requiredIngredients = new Dictionary<Guid, float>();
+            var ingredientFirstNeededDate = new Dictionary<Guid, DateTime>();
+            
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
             
             foreach (var meal in mealPlan.Meals)
             {
@@ -179,7 +183,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     {
                         var ingredientId = recipeIngredient.IngredientId;
                         var amount = recipeIngredient.Amount;
+                        var mealDate = meal.ServeDate.Date;
 
+                        // Track total required amount
                         if (requiredIngredients.ContainsKey(ingredientId))
                         {
                             requiredIngredients[ingredientId] += amount;
@@ -187,6 +193,13 @@ namespace MealPrepService.BusinessLogicLayer.Services
                         else
                         {
                             requiredIngredients[ingredientId] = amount;
+                        }
+
+                        // Track earliest needed date
+                        if (!ingredientFirstNeededDate.ContainsKey(ingredientId) || 
+                            mealDate < ingredientFirstNeededDate[ingredientId])
+                        {
+                            ingredientFirstNeededDate[ingredientId] = mealDate;
                         }
                     }
                 }
@@ -206,6 +219,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     var ingredient = await _unitOfWork.Ingredients.GetByIdAsync(ingredientId);
                     if (ingredient != null)
                     {
+                        var earliestDate = ingredientFirstNeededDate.GetValueOrDefault(ingredientId, DateTime.MaxValue);
+                        var isNeededSoon = earliestDate == today || earliestDate == tomorrow;
+
                         groceryItems.Add(new GroceryItemDto
                         {
                             IngredientId = ingredientId,
@@ -213,7 +229,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                             Unit = ingredient.Unit,
                             RequiredAmount = requiredAmount,
                             CurrentAmount = currentAmount,
-                            NeededAmount = requiredAmount - currentAmount
+                            NeededAmount = requiredAmount - currentAmount,
+                            IsNeededSoon = isNeededSoon,
+                            EarliestNeededDate = earliestDate
                         });
                     }
                 }

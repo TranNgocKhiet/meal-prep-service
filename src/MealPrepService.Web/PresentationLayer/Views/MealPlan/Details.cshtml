@@ -205,9 +205,21 @@
                                             }
                                             @meal.MealType
                                         </h6>
-                                        <div class="text-end">
-                                            <small class="text-muted">Meal Total:</small>
-                                            <div class="fw-bold text-primary">@meal.MealCalories.ToString("F0") kcal</div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-success finish-meal-btn" 
+                                                    data-meal-id="@meal.Id" 
+                                                    data-plan-id="@Model.Id"
+                                                    data-meal-type="@meal.MealType">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-circle me-1" viewBox="0 0 16 16">
+                                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                                    <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                                </svg>
+                                                Finish Meal
+                                            </button>
+                                            <div class="text-end">
+                                                <small class="text-muted">Meal Total:</small>
+                                                <div class="fw-bold text-primary">@meal.MealCalories.ToString("F0") kcal</div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -533,3 +545,377 @@
         return formatted;
     }
 </script>
+
+<!-- Finish Meal Confirmation Modal -->
+<div class="modal fade" id="finishMealModal" tabindex="-1" aria-labelledby="finishMealModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="finishMealModalLabel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle me-2" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                    </svg>
+                    <span id="finishMealTitle">Finish Meal</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="finishMealContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Checking ingredients availability...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmFinishMealBtn" style="display:none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2 me-1" viewBox="0 0 16 16">
+                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                    </svg>
+                    Confirm & Finish Meal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="finishMealForm" asp-action="FinishMeal" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="mealId" id="finishMealId" />
+    <input type="hidden" name="planId" id="finishPlanId" />
+    <input type="hidden" name="forceComplete" id="finishForceComplete" value="false" />
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const finishMealModal = new bootstrap.Modal(document.getElementById('finishMealModal'));
+        let currentMealData = {};
+
+        // Load finished meals from localStorage and update button states
+        loadFinishedMealStates();
+
+        // Add event listeners to all finish meal buttons
+        document.querySelectorAll('.finish-meal-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const mealId = this.getAttribute('data-meal-id');
+                const planId = this.getAttribute('data-plan-id');
+                const mealType = this.getAttribute('data-meal-type');
+                
+                currentMealData = { mealId, planId, mealType, button: this };
+                
+                // Show modal with loading state
+                document.getElementById('finishMealTitle').textContent = `Finish ${mealType} Meal`;
+                document.getElementById('finishMealContent').innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Checking ingredients availability...</p>
+                    </div>
+                `;
+                document.getElementById('confirmFinishMealBtn').style.display = 'none';
+                
+                finishMealModal.show();
+                
+                // Check ingredients availability
+                checkMealIngredients(mealId, planId);
+            });
+        });
+
+        function loadFinishedMealStates() {
+            const finishedMeals = getFinishedMeals();
+            document.querySelectorAll('.finish-meal-btn').forEach(function(button) {
+                const mealId = button.getAttribute('data-meal-id');
+                if (finishedMeals.includes(mealId)) {
+                    markButtonAsFinished(button);
+                }
+            });
+        }
+
+        function getFinishedMeals() {
+            const stored = localStorage.getItem('finishedMeals');
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function addFinishedMeal(mealId) {
+            const finishedMeals = getFinishedMeals();
+            if (!finishedMeals.includes(mealId)) {
+                finishedMeals.push(mealId);
+                localStorage.setItem('finishedMeals', JSON.stringify(finishedMeals));
+            }
+        }
+
+        function markButtonAsFinished(button, animated = false) {
+            // Store original classes for animation
+            const originalClasses = button.className;
+            
+            if (animated) {
+                // Animate the transition
+                button.style.transition = 'all 0.5s ease';
+            }
+
+            // Update button appearance
+            button.classList.remove('btn-outline-success');
+            button.classList.add('btn-success');
+            button.disabled = true;
+            button.style.cursor = 'not-allowed';
+            
+            // Update button content
+            button.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-circle-fill me-1" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+                Finished
+            `;
+
+            if (animated) {
+                // Add pulse animation
+                button.style.animation = 'pulse-success 0.6s ease';
+            }
+        }
+
+        function checkMealIngredients(mealId, planId) {
+            const url = '@Url.Action("CheckMealIngredients", "MealPlan")' + `?mealId=${mealId}&planId=${planId}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    showError(data.message || 'Failed to check ingredients');
+                    return;
+                }
+
+                displayIngredientStatus(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('An error occurred while checking ingredients');
+            });
+        }
+
+        function displayIngredientStatus(data) {
+            const content = document.getElementById('finishMealContent');
+            let html = '';
+
+            if (!data.hasIssues) {
+                // All ingredients available
+                html = `
+                    <div class="alert alert-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle me-2" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                        </svg>
+                        <strong>All ingredients available!</strong> The following ingredients will be consumed from your fridge:
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Ingredient</th>
+                                    <th class="text-end">Amount to Consume</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                data.consumptionPlan.forEach(item => {
+                    html += `
+                        <tr>
+                            <td>${item.ingredientName}</td>
+                            <td class="text-end">${item.amount.toFixed(2)} ${item.unit}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('confirmFinishMealBtn').style.display = 'block';
+            } else {
+                // Missing or insufficient ingredients
+                html = `
+                    <div class="alert alert-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-exclamation-triangle me-2" viewBox="0 0 16 16">
+                            <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+                            <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+                        </svg>
+                        <strong>Warning:</strong> Some ingredients are missing or insufficient in your fridge.
+                    </div>
+                `;
+
+                if (data.missingIngredients.length > 0) {
+                    html += `
+                        <h6 class="text-danger mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle me-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                            Missing Ingredients:
+                        </h6>
+                        <ul class="list-group mb-3">
+                    `;
+                    data.missingIngredients.forEach(item => {
+                        html += `
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>${item.name}</span>
+                                <span class="badge bg-danger">${item.required.toFixed(2)} ${item.unit}</span>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+
+                if (data.insufficientIngredients.length > 0) {
+                    html += `
+                        <h6 class="text-warning mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle me-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                            </svg>
+                            Insufficient Ingredients:
+                        </h6>
+                        <ul class="list-group mb-3">
+                    `;
+                    data.insufficientIngredients.forEach(item => {
+                        html += `
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <span>${item.name}</span>
+                                    <span class="text-danger">
+                                        <span class="badge bg-secondary">${item.available.toFixed(2)} ${item.unit}</span>
+                                        /
+                                        <span class="badge bg-warning">${item.required.toFixed(2)} ${item.unit}</span>
+                                    </span>
+                                </div>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+
+                if (data.consumptionPlan.length > 0) {
+                    html += `
+                        <h6 class="text-success mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle me-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                            </svg>
+                            Available Ingredients (will be consumed):
+                        </h6>
+                        <ul class="list-group mb-3">
+                    `;
+                    data.consumptionPlan.forEach(item => {
+                        html += `
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>${item.ingredientName}</span>
+                                <span class="badge bg-success">${item.amount.toFixed(2)} ${item.unit}</span>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+
+                html += `
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> You can still finish this meal. Available ingredients will be consumed from your fridge.
+                    </div>
+                `;
+                
+                document.getElementById('confirmFinishMealBtn').style.display = 'block';
+            }
+
+            content.innerHTML = html;
+        }
+
+        function showError(message) {
+            const content = document.getElementById('finishMealContent');
+            content.innerHTML = `
+                <div class="alert alert-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-x-circle me-2" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+
+        // Handle confirm button click
+        document.getElementById('confirmFinishMealBtn').addEventListener('click', function() {
+            const button = currentMealData.button;
+            
+            // Disable the confirm button to prevent double submission
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+            
+            // Submit the form
+            document.getElementById('finishMealId').value = currentMealData.mealId;
+            document.getElementById('finishPlanId').value = currentMealData.planId;
+            
+            const form = document.getElementById('finishMealForm');
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected) {
+                    // Mark the meal as finished in localStorage
+                    addFinishedMeal(currentMealData.mealId);
+                    
+                    // Update the button immediately before redirect
+                    markButtonAsFinished(button, true);
+                    
+                    // Close modal
+                    finishMealModal.hide();
+                    
+                    // Show success animation
+                    setTimeout(() => {
+                        window.location.href = response.url;
+                    }, 800);
+                } else {
+                    throw new Error('Unexpected response');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while finishing the meal. Please try again.');
+                finishMealModal.hide();
+            });
+        });
+    });
+</script>
+
+<style>
+    @@keyframes pulse-success {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+    
+    .finish-meal-btn {
+        transition: all 0.3s ease;
+    }
+    
+    .finish-meal-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+</style>
+
+

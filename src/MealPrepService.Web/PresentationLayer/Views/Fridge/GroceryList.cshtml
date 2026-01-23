@@ -144,10 +144,11 @@
                         <form asp-action="GroceryList" method="post">
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Select Meal Plan</label>
-                                <select name="MealPlanId" class="form-select" required>
+                                <select name="MealPlanId" class="form-select" required data-placeholder="Search and select a meal plan...">
                                     <option value="">-- Choose a meal plan --</option>
                                     @* This would be populated by the controller *@
                                 </select>
+
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right-circle me-2" viewBox="0 0 16 16">
