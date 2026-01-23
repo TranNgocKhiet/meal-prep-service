@@ -722,6 +722,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 PlanId = dto.PlanId,
                 MealType = dto.MealType,
                 ServeDate = dto.ServeDate,
+                MealFinished = dto.MealFinished,
                 Recipes = dto.Recipes.Select(MapRecipeToViewModel).ToList()
             };
 
@@ -793,6 +794,41 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             }
 
             viewModel.DailyNutrition = dailyNutrition;
+        }
+
+        #endregion
+
+        #region Mark Meal as Finished
+
+        [HttpPost]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> MarkMealFinished(Guid mealId, Guid planId, bool finished)
+        {
+            try
+            {
+                var accountId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "");
+                
+                await _mealPlanService.MarkMealAsFinishedAsync(mealId, accountId, finished);
+                
+                TempData["SuccessMessage"] = finished ? "Meal marked as finished!" : "Meal marked as not finished.";
+                return RedirectToAction(nameof(Details), new { id = planId });
+            }
+            catch (NotFoundException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id = planId });
+            }
+            catch (AuthorizationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id = planId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error marking meal as finished");
+                TempData["ErrorMessage"] = "An error occurred while updating the meal status.";
+                return RedirectToAction(nameof(Details), new { id = planId });
+            }
         }
 
         #endregion

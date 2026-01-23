@@ -29,7 +29,6 @@ namespace MealPrepService.DataAccessLayer.Repositories
             // Initialize generic repositories
             HealthProfiles = new Repository<HealthProfile>(_context);
             Allergies = new Repository<Allergy>(_context);
-            FoodPreferences = new Repository<FoodPreference>(_context);
             SubscriptionPackages = new Repository<SubscriptionPackage>(_context);
             Meals = new Repository<Meal>(_context);
             Ingredients = new Repository<Ingredient>(_context);
@@ -52,7 +51,6 @@ namespace MealPrepService.DataAccessLayer.Repositories
         // Generic repositories
         public IRepository<HealthProfile> HealthProfiles { get; private set; }
         public IRepository<Allergy> Allergies { get; private set; }
-        public IRepository<FoodPreference> FoodPreferences { get; private set; }
         public IRepository<SubscriptionPackage> SubscriptionPackages { get; private set; }
         public IRepository<Meal> Meals { get; private set; }
         public IRepository<Ingredient> Ingredients { get; private set; }

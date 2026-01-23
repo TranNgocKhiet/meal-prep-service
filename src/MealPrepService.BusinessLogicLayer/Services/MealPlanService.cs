@@ -493,6 +493,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 PlanId = meal.PlanId,
                 MealType = meal.MealType,
                 ServeDate = meal.ServeDate,
+                MealFinished = meal.MealFinished,
                 Recipes = new List<RecipeDto>()
             };
 
@@ -528,6 +529,28 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     Unit = ri.Ingredient?.Unit ?? "unit"
                 }).ToList() ?? new List<RecipeIngredientDto>()
             };
+        }
+
+        public async Task MarkMealAsFinishedAsync(Guid mealId, Guid accountId, bool finished)
+        {
+            var meal = await _unitOfWork.Meals.GetByIdAsync(mealId);
+            if (meal == null)
+            {
+                throw new NotFoundException($"Meal with ID {mealId} not found");
+            }
+
+            // Verify the meal belongs to the account
+            var mealPlan = await _unitOfWork.MealPlans.GetByIdAsync(meal.PlanId);
+            if (mealPlan == null || mealPlan.AccountId != accountId)
+            {
+                throw new AuthorizationException("You don't have permission to modify this meal");
+            }
+
+            meal.MealFinished = finished;
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Meal {MealId} marked as {Status} by account {AccountId}", 
+                mealId, finished ? "finished" : "not finished", accountId);
         }
     }
 }

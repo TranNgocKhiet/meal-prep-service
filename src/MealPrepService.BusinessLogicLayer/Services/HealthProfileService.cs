@@ -74,7 +74,6 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 existingProfile.Gender = dto.Gender;
                 existingProfile.HealthNotes = dto.HealthNotes;
                 existingProfile.DietaryRestrictions = dto.DietaryRestrictions;
-                existingProfile.FoodPreferences = dto.FoodPreferences;
                 existingProfile.CalorieGoal = dto.CalorieGoal;
                 existingProfile.UpdatedAt = DateTime.UtcNow;
 
@@ -98,7 +97,6 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     Gender = dto.Gender,
                     HealthNotes = dto.HealthNotes,
                     DietaryRestrictions = dto.DietaryRestrictions,
-                    FoodPreferences = dto.FoodPreferences,
                     CalorieGoal = dto.CalorieGoal,
                     CreatedAt = DateTime.UtcNow
                 };

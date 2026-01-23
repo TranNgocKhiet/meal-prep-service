@@ -237,6 +237,23 @@
                                             <small class="text-muted">Carbs:</small>
                                             <div class="fw-bold">@meal.MealCarbsG.ToString("F1") g</div>
                                         </div>
+                                        <div class="col-3">
+                                            <form asp-action="MarkMealFinished" method="post" class="mark-finished-form">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="mealId" value="@meal.Id" />
+                                                <input type="hidden" name="planId" value="@Model.Id" />
+                                                <input type="hidden" name="finished" value="@(!meal.MealFinished)" />
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="finished_@meal.Id" 
+                                                           @(meal.MealFinished ? "checked" : "")
+                                                           onchange="this.form.submit()">
+                                                    <label class="form-check-label small" for="finished_@meal.Id">
+                                                        @(meal.MealFinished ? "✓ Finished" : "Mark as finished")
+                                                    </label>
+                                                </div>
+                                            </form>
+                                        </div>
                                     </div>
 
 

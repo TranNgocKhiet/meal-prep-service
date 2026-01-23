@@ -11,14 +11,21 @@ namespace MealPrepService.DataAccessLayer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "HealthProfileFoodPreferences");
+            // Drop junction table if it exists
+            migrationBuilder.Sql(@"
+                IF OBJECT_ID('HealthProfileFoodPreferences', 'U') IS NOT NULL
+                    DROP TABLE HealthProfileFoodPreferences;
+            ");
 
-            migrationBuilder.AddColumn<string>(
-                name: "FoodPreferences",
-                table: "HealthProfiles",
-                type: "nvarchar(max)",
-                nullable: true);
+            // Add FoodPreferences column if it doesn't exist
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT * FROM sys.columns 
+                              WHERE object_id = OBJECT_ID('HealthProfiles') 
+                              AND name = 'FoodPreferences')
+                BEGIN
+                    ALTER TABLE HealthProfiles ADD FoodPreferences nvarchar(max) NULL;
+                END
+            ");
         }
 
         /// <inheritdoc />

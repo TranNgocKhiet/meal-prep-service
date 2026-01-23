@@ -143,39 +143,26 @@ public class HealthProfileServicePropertyTests : IDisposable
                     CreatedAt = DateTime.UtcNow
                 };
                 unitOfWork.Allergies.AddAsync(allergy).Wait();
-
-                var foodPreference = new FoodPreference
-                {
-                    Id = Guid.NewGuid(),
-                    PreferenceName = "Vegetarian",
-                    CreatedAt = DateTime.UtcNow
-                };
-                unitOfWork.FoodPreferences.AddAsync(foodPreference).Wait();
                 unitOfWork.SaveChangesAsync().Wait();
 
-                // Act: Add allergy and food preference
+                // Act: Add allergy
                 healthProfileService.AddAllergyAsync(createdProfile.Id, allergy.Id).Wait();
-                healthProfileService.AddFoodPreferenceAsync(createdProfile.Id, foodPreference.Id).Wait();
 
                 // Retrieve profile with links
                 var profileWithLinks = healthProfileService.GetByAccountIdAsync(dto.AccountId).Result;
 
-                // Verify links were added
+                // Verify link was added
                 var hasAllergy = profileWithLinks.Allergies.Contains("Peanuts");
-                var hasPreference = profileWithLinks.FoodPreferences.Contains("Vegetarian");
 
-                // Remove allergy and food preference
+                // Remove allergy
                 healthProfileService.RemoveAllergyAsync(createdProfile.Id, allergy.Id).Wait();
-                healthProfileService.RemoveFoodPreferenceAsync(createdProfile.Id, foodPreference.Id).Wait();
 
                 // Retrieve profile after removal
                 var profileAfterRemoval = healthProfileService.GetByAccountIdAsync(dto.AccountId).Result;
 
-                // Assert: Links should be added and removed correctly
+                // Assert: Link should be added and removed correctly
                 return hasAllergy
-                    && hasPreference
-                    && !profileAfterRemoval.Allergies.Contains("Peanuts")
-                    && !profileAfterRemoval.FoodPreferences.Contains("Vegetarian");
+                    && !profileAfterRemoval.Allergies.Contains("Peanuts");
             });
     }
 

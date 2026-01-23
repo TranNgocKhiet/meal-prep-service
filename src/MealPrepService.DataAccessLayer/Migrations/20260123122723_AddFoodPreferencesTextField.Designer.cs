@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MealPrepService.DataAccessLayer.Migrations
 {
     [DbContext(typeof(MealPrepDbContext))]
-    [Migration("20260123121158_AddFoodPreferencesTextField")]
+    [Migration("20260123122723_AddFoodPreferencesTextField")]
     partial class AddFoodPreferencesTextField
     {
         /// <inheritdoc />

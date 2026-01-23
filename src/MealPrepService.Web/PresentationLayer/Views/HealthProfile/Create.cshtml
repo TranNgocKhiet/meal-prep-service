@@ -92,6 +92,16 @@
                                 <div class="form-text">Recommended: 1500-2500 calories per day</div>
                             </div>
                         </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="FoodPreferences" class="form-label"></label>
+                                <textarea asp-for="FoodPreferences" class="form-control" rows="3" 
+                                          placeholder="e.g., loves chicken, prefers spicy food, dislikes mushrooms, enjoys Italian cuisine..."></textarea>
+                                <span asp-validation-for="FoodPreferences" class="text-danger small"></span>
+                                <div class="form-text">Tell us about your food preferences to help AI generate better meal plans</div>
+                            </div>
+                        </div>
                         
                         <h5 class="border-bottom pb-2 mb-3 mt-4">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-exclamation-triangle me-2" viewBox="0 0 16 16">

@@ -107,6 +107,9 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         [Display(Name = "Meal Carbs (g)")]
         public float MealCarbsG { get; set; }
 
+        [Display(Name = "Meal Finished")]
+        public bool MealFinished { get; set; }
+
         // Meal type options
         public static List<string> MealTypeOptions => new List<string> { "Breakfast", "Lunch", "Dinner" };
         

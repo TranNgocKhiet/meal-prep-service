@@ -12,7 +12,6 @@ public class MealPrepDbContext : DbContext
     public DbSet<Account> Accounts { get; set; }
     public DbSet<HealthProfile> HealthProfiles { get; set; }
     public DbSet<Allergy> Allergies { get; set; }
-    public DbSet<FoodPreference> FoodPreferences { get; set; }
     public DbSet<SubscriptionPackage> SubscriptionPackages { get; set; }
     public DbSet<UserSubscription> UserSubscriptions { get; set; }
     public DbSet<MealPlan> MealPlans { get; set; }
@@ -57,7 +56,6 @@ public class MealPrepDbContext : DbContext
         modelBuilder.Entity<Account>().HasKey(e => e.Id).IsClustered(false);
         modelBuilder.Entity<HealthProfile>().HasKey(e => e.Id).IsClustered(false);
         modelBuilder.Entity<Allergy>().HasKey(e => e.Id).IsClustered(false);
-        modelBuilder.Entity<FoodPreference>().HasKey(e => e.Id).IsClustered(false);
         modelBuilder.Entity<SubscriptionPackage>().HasKey(e => e.Id).IsClustered(false);
         modelBuilder.Entity<UserSubscription>().HasKey(e => e.Id).IsClustered(false);
         modelBuilder.Entity<MealPlan>().HasKey(e => e.Id).IsClustered(false);
@@ -346,11 +344,6 @@ public class MealPrepDbContext : DbContext
         
         modelBuilder.Entity<Allergy>()
             .Property(a => a.AllergyName)
-            .IsRequired()
-            .HasMaxLength(100);
-        
-        modelBuilder.Entity<FoodPreference>()
-            .Property(fp => fp.PreferenceName)
             .IsRequired()
             .HasMaxLength(100);
         
