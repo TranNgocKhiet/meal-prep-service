@@ -96,13 +96,35 @@
             <!-- Fridge Items Table -->
             @if (Model.FridgeItems?.Any() == true)
             {
+                <!-- Search Bar -->
+                <div class="mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                            </svg>
+                        </span>
+                        <input type="text" 
+                               class="form-control" 
+                               id="fridgeSearch" 
+                               placeholder="Search ingredients by name..." 
+                               autocomplete="off">
+                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <small class="text-muted" id="searchResults"></small>
+                </div>
+
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">Fridge Inventory</h5>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-hover mb-0" id="fridgeTable">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Ingredient</th>
@@ -256,3 +278,73 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('fridgeSearch');
+            const clearButton = document.getElementById('clearSearch');
+            const searchResults = document.getElementById('searchResults');
+            const fridgeTable = document.getElementById('fridgeTable');
+            
+            if (!searchInput || !fridgeTable) return;
+            
+            const tableRows = fridgeTable.querySelectorAll('tbody tr');
+            const totalRows = tableRows.length;
+            
+            function filterTable() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                let visibleCount = 0;
+                
+                tableRows.forEach(function(row) {
+                    const ingredientCell = row.querySelector('td:first-child strong');
+                    if (!ingredientCell) return;
+                    
+                    const ingredientName = ingredientCell.textContent.toLowerCase();
+                    
+                    if (ingredientName.includes(searchTerm)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Update search results text
+                if (searchTerm) {
+                    if (visibleCount === 0) {
+                        searchResults.textContent = 'No ingredients found matching "' + searchInput.value + '"';
+                        searchResults.classList.add('text-danger');
+                        searchResults.classList.remove('text-muted');
+                    } else if (visibleCount === totalRows) {
+                        searchResults.textContent = 'Showing all ' + totalRows + ' ingredients';
+                        searchResults.classList.remove('text-danger');
+                        searchResults.classList.add('text-muted');
+                    } else {
+                        searchResults.textContent = 'Showing ' + visibleCount + ' of ' + totalRows + ' ingredients';
+                        searchResults.classList.remove('text-danger');
+                        searchResults.classList.add('text-muted');
+                    }
+                    clearButton.style.display = 'block';
+                } else {
+                    searchResults.textContent = '';
+                    clearButton.style.display = 'none';
+                }
+            }
+            
+            // Search as user types
+            searchInput.addEventListener('input', filterTable);
+            
+            // Clear search
+            clearButton.addEventListener('click', function() {
+                searchInput.value = '';
+                filterTable();
+                searchInput.focus();
+            });
+            
+            // Hide clear button initially
+            clearButton.style.display = 'none';
+        });
+    </script>
+}
+
