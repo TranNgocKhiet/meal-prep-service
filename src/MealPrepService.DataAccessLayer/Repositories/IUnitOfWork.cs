@@ -20,7 +20,6 @@ namespace MealPrepService.DataAccessLayer.Repositories
         // Generic repositories
         IRepository<HealthProfile> HealthProfiles { get; }
         IRepository<Allergy> Allergies { get; }
-        IRepository<FoodPreference> FoodPreferences { get; }
         IRepository<SubscriptionPackage> SubscriptionPackages { get; }
         IRepository<Meal> Meals { get; }
         IRepository<Ingredient> Ingredients { get; }

@@ -30,8 +30,6 @@ namespace MealPrepService.DataAccessLayer.Repositories
             return await _dbSet
                 .Include(a => a.HealthProfile)
                     .ThenInclude(hp => hp.Allergies)
-                .Include(a => a.HealthProfile)
-                    .ThenInclude(hp => hp.FoodPreferences)
                 .FirstOrDefaultAsync(a => a.Id == accountId);
         }
     }
