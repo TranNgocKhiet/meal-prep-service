@@ -1,0 +1,167 @@
+@model string
+
+@{
+    var status = Model?.ToLower() ?? "pending";
+    var steps = new List<(string name, string icon, bool active, bool completed)>
+    {
+        ("Order Placed", "bi-cart-check", false, false),
+        ("Payment", "bi-credit-card", false, false),
+        ("Confirmed", "bi-check-circle", false, false),
+        ("Delivered", "bi-box-seam", false, false)
+    };
+
+    // Determine which steps are active/completed based on status
+    switch (status)
+    {
+        case "pending":
+            steps[0] = (steps[0].name, steps[0].icon, true, false);
+            break;
+        case "pending_payment":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, true, false);
+            break;
+        case "payment_failed":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = ("Payment Failed", "bi-x-circle", true, false);
+            break;
+        case "confirmed":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, false, true);
+            steps[2] = (steps[2].name, steps[2].icon, true, false);
+            break;
+        case "delivered":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, false, true);
+            steps[2] = (steps[2].name, steps[2].icon, false, true);
+            steps[3] = (steps[3].name, steps[3].icon, true, true);
+            break;
+    }
+}
+
+<div class="order-progress">
+    <div class="progress-steps">
+        @for (int i = 0; i < steps.Count; i++)
+        {
+            var step = steps[i];
+            var stepClass = step.completed ? "completed" : (step.active ? "active" : "");
+            
+            <div class="progress-step @stepClass">
+                <div class="step-icon">
+                    <i class="@step.icon"></i>
+                </div>
+                <div class="step-label">@step.name</div>
+            </div>
+            
+            @if (i < steps.Count - 1)
+            {
+                <div class="progress-line @(step.completed ? "completed" : "")"></div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .order-progress {
+        padding: 20px 0;
+    }
+    
+    .progress-steps {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+    
+    .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        border: 3px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    
+    .progress-step.active .step-icon {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+        animation: pulse 2s infinite;
+    }
+    
+    .progress-step.completed .step-icon {
+        background-color: #198754;
+        color: white;
+        border-color: #198754;
+    }
+    
+    .step-label {
+        font-size: 0.875rem;
+        text-align: center;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .progress-step.active .step-label {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+    
+    .progress-step.completed .step-label {
+        color: #198754;
+    }
+    
+    .progress-line {
+        position: absolute;
+        top: 25px;
+        left: 50%;
+        width: 100%;
+        height: 3px;
+        background-color: #e9ecef;
+        z-index: 0;
+        transition: background-color 0.3s ease;
+    }
+    
+    .progress-line.completed {
+        background-color: #198754;
+    }
+    
+    @@keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .step-label {
+            font-size: 0.75rem;
+        }
+        
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+        
+        .progress-line {
+            top: 20px;
+        }
+    }
+</style>

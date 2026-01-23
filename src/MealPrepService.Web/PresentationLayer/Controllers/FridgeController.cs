@@ -1,0 +1,482 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using MealPrepService.BusinessLogicLayer.Interfaces;
+using MealPrepService.BusinessLogicLayer.DTOs;
+using MealPrepService.BusinessLogicLayer.Exceptions;
+using MealPrepService.Web.PresentationLayer.ViewModels;
+
+namespace MealPrepService.Web.PresentationLayer.Controllers
+{
+    [Authorize(Roles = "Customer")]
+    public class FridgeController : Controller
+    {
+        private readonly IFridgeService _fridgeService;
+        private readonly IIngredientService _ingredientService;
+        private readonly IMealPlanService _mealPlanService;
+        private readonly ILogger<FridgeController> _logger;
+
+        public FridgeController(
+            IFridgeService fridgeService,
+            IIngredientService ingredientService,
+            IMealPlanService mealPlanService,
+            ILogger<FridgeController> logger)
+        {
+            _fridgeService = fridgeService;
+            _ingredientService = ingredientService;
+            _mealPlanService = mealPlanService;
+            _logger = logger;
+        }
+
+        // GET: Fridge/Index - Display fridge items
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            try
+            {
+                var accountId = GetCurrentAccountId();
+                var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
+                var expiringItems = await _fridgeService.GetExpiringItemsAsync(accountId);
+                
+                var viewModel = new FridgeViewModel
+                {
+                    FridgeItems = fridgeItems.Select(MapToViewModel).ToList(),
+                    ExpiringItems = expiringItems.Where(item => item.IsExpiring && !item.IsExpired).Select(MapToViewModel).ToList(),
+                    ExpiredItems = expiringItems.Where(item => item.IsExpired).Select(MapToViewModel).ToList(),
+                    TotalItems = fridgeItems.Count(),
+                    ExpiringItemsCount = expiringItems.Count(item => item.IsExpiring && !item.IsExpired),
+                    ExpiredItemsCount = expiringItems.Count(item => item.IsExpired)
+                };
+                
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while retrieving fridge items for account {AccountId}", GetCurrentAccountId());
+                TempData["ErrorMessage"] = "An error occurred while loading your fridge items.";
+                return View(new FridgeViewModel());
+            }
+        }
+
+        // GET: Fridge/Add - Show add fridge item form
+        [HttpGet]
+        public async Task<IActionResult> Add()
+        {
+            try
+            {
+                var ingredients = await _ingredientService.GetAllAsync();
+                
+                var viewModel = new AddFridgeItemViewModel
+                {
+                    ExpiryDate = DateTime.Today.AddDays(7),
+                    AvailableIngredients = ingredients.Select(i => new IngredientSelectionViewModel
+                    {
+                        Id = i.Id,
+                        IngredientName = i.IngredientName,
+                        Unit = i.Unit,
+                        IsSelected = false
+                    }).ToList()
+                };
+                
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while loading add fridge item form for account {AccountId}", GetCurrentAccountId());
+                TempData["ErrorMessage"] = "An error occurred while loading the form.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: Fridge/Add - Add fridge item
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Add(AddFridgeItemViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Reload ingredients for the form
+                var ingredients = await _ingredientService.GetAllAsync();
+                model.AvailableIngredients = ingredients.Select(i => new IngredientSelectionViewModel
+                {
+                    Id = i.Id,
+                    IngredientName = i.IngredientName,
+                    Unit = i.Unit,
+                    IsSelected = i.Id == model.IngredientId
+                }).ToList();
+                
+                return View(model);
+            }
+
+            try
+            {
+                var accountId = GetCurrentAccountId();
+                var ingredient = await _ingredientService.GetByIdAsync(model.IngredientId);
+                
+                if (ingredient == null)
+                {
+                    ModelState.AddModelError(nameof(model.IngredientId), "Selected ingredient not found.");
+                    
+                    // Reload ingredients for the form
+                    var ingredients = await _ingredientService.GetAllAsync();
+                    model.AvailableIngredients = ingredients.Select(i => new IngredientSelectionViewModel
+                    {
+                        Id = i.Id,
+                        IngredientName = i.IngredientName,
+                        Unit = i.Unit,
+                        IsSelected = i.Id == model.IngredientId
+                    }).ToList();
+                    
+                    return View(model);
+                }
+
+                var fridgeItemDto = new FridgeItemDto
+                {
+                    AccountId = accountId,
+                    IngredientId = model.IngredientId,
+                    IngredientName = ingredient.IngredientName,
+                    Unit = ingredient.Unit,
+                    CurrentAmount = model.CurrentAmount,
+                    ExpiryDate = model.ExpiryDate
+                };
+
+                await _fridgeService.AddItemAsync(fridgeItemDto);
+                
+                _logger.LogInformation("Fridge item {IngredientName} added successfully for account {AccountId}", 
+                    ingredient.IngredientName, accountId);
+                
+                TempData["SuccessMessage"] = $"{ingredient.IngredientName} added to your fridge successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (BusinessException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                
+                // Reload ingredients for the form
+                var ingredients = await _ingredientService.GetAllAsync();
+                model.AvailableIngredients = ingredients.Select(i => new IngredientSelectionViewModel
+                {
+                    Id = i.Id,
+                    IngredientName = i.IngredientName,
+                    Unit = i.Unit,
+                    IsSelected = i.Id == model.IngredientId
+                }).ToList();
+                
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while adding fridge item for account {AccountId}", GetCurrentAccountId());
+                ModelState.AddModelError(string.Empty, "An error occurred while adding the item. Please try again.");
+                
+                // Reload ingredients for the form
+                var ingredients = await _ingredientService.GetAllAsync();
+                model.AvailableIngredients = ingredients.Select(i => new IngredientSelectionViewModel
+                {
+                    Id = i.Id,
+                    IngredientName = i.IngredientName,
+                    Unit = i.Unit,
+                    IsSelected = i.Id == model.IngredientId
+                }).ToList();
+                
+                return View(model);
+            }
+        }
+
+        // POST: Fridge/UpdateQuantity - Update fridge item quantity
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateQuantity(UpdateQuantityViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Invalid quantity value.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                await _fridgeService.UpdateItemQuantityAsync(model.FridgeItemId, model.NewAmount);
+                
+                _logger.LogInformation("Fridge item {FridgeItemId} quantity updated to {NewAmount} for account {AccountId}", 
+                    model.FridgeItemId, model.NewAmount, GetCurrentAccountId());
+                
+                TempData["SuccessMessage"] = $"{model.IngredientName} quantity updated successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (BusinessException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating fridge item quantity {FridgeItemId} for account {AccountId}", 
+                    model.FridgeItemId, GetCurrentAccountId());
+                TempData["ErrorMessage"] = "An error occurred while updating the quantity. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: Fridge/Remove - Remove fridge item
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Remove(Guid id)
+        {
+            try
+            {
+                await _fridgeService.RemoveItemAsync(id);
+                
+                _logger.LogInformation("Fridge item {FridgeItemId} removed successfully for account {AccountId}", 
+                    id, GetCurrentAccountId());
+                
+                TempData["SuccessMessage"] = "Item removed from your fridge successfully!";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (BusinessException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while removing fridge item {FridgeItemId} for account {AccountId}", 
+                    id, GetCurrentAccountId());
+                TempData["ErrorMessage"] = "An error occurred while removing the item. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // GET: Fridge/GroceryList - Show grocery list generation form or auto-generate from active plan
+        [HttpGet]
+        public async Task<IActionResult> GroceryList()
+        {
+            try
+            {
+                var accountId = GetCurrentAccountId();
+                
+                // Try to get active meal plan
+                var activePlan = await _mealPlanService.GetActivePlanAsync(accountId);
+                
+                if (activePlan != null)
+                {
+                    // Auto-generate grocery list from active plan
+                    try
+                    {
+                        var groceryListDto = await _fridgeService.GenerateGroceryListFromActivePlanAsync(accountId);
+                        
+                        var viewModel = new GroceryListViewModel
+                        {
+                            AccountId = groceryListDto.AccountId,
+                            MealPlanId = groceryListDto.MealPlanId,
+                            MealPlanName = groceryListDto.MealPlanName,
+                            GeneratedDate = groceryListDto.GeneratedDate,
+                            MissingIngredients = groceryListDto.MissingIngredients.Select(gi => new GroceryItemViewModel
+                            {
+                                IngredientId = gi.IngredientId,
+                                IngredientName = gi.IngredientName,
+                                Unit = gi.Unit,
+                                RequiredAmount = gi.RequiredAmount,
+                                CurrentAmount = gi.CurrentAmount,
+                                NeededAmount = gi.NeededAmount
+                            }).ToList()
+                        };
+                        
+                        _logger.LogInformation("Grocery list auto-generated from active plan for account {AccountId}", accountId);
+                        
+                        return View("GroceryListResult", viewModel);
+                    }
+                    catch (BusinessException ex)
+                    {
+                        TempData["ErrorMessage"] = ex.Message;
+                    }
+                }
+                
+                // No active plan or error - show meal plan selection form
+                var mealPlans = await _mealPlanService.GetByAccountIdAsync(accountId);
+                
+                var selectionViewModel = new GenerateGroceryListViewModel
+                {
+                    AvailableMealPlans = mealPlans.Select(mp => new MealPlanSelectionViewModel
+                    {
+                        Id = mp.Id,
+                        PlanName = mp.PlanName,
+                        StartDate = mp.StartDate,
+                        EndDate = mp.EndDate,
+                        IsAiGenerated = mp.IsAiGenerated,
+                        IsActive = mp.IsActive,
+                        IsSelected = false
+                    }).ToList()
+                };
+                
+                if (!mealPlans.Any())
+                {
+                    TempData["InfoMessage"] = "You don't have any meal plans yet. Create a meal plan first to generate a grocery list.";
+                }
+                else if (activePlan == null)
+                {
+                    TempData["InfoMessage"] = "No active meal plan set. Please select a meal plan below or set one as active from your meal plans.";
+                }
+                
+                return View(selectionViewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while loading grocery list for account {AccountId}", GetCurrentAccountId());
+                TempData["ErrorMessage"] = "An error occurred while loading the grocery list.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: Fridge/GroceryList - Generate grocery list
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GroceryList(GenerateGroceryListViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Reload meal plans for the form
+                var accountId = GetCurrentAccountId();
+                var mealPlans = await _mealPlanService.GetByAccountIdAsync(accountId);
+                model.AvailableMealPlans = mealPlans.Select(mp => new MealPlanSelectionViewModel
+                {
+                    Id = mp.Id,
+                    PlanName = mp.PlanName,
+                    StartDate = mp.StartDate,
+                    EndDate = mp.EndDate,
+                    IsAiGenerated = mp.IsAiGenerated,
+                    IsSelected = mp.Id == model.MealPlanId
+                }).ToList();
+                
+                return View(model);
+            }
+
+            try
+            {
+                var accountId = GetCurrentAccountId();
+                var groceryListDto = await _fridgeService.GenerateGroceryListAsync(accountId, model.MealPlanId);
+                
+                var viewModel = new GroceryListViewModel
+                {
+                    AccountId = groceryListDto.AccountId,
+                    MealPlanId = groceryListDto.MealPlanId,
+                    MealPlanName = groceryListDto.MealPlanName,
+                    GeneratedDate = groceryListDto.GeneratedDate,
+                    MissingIngredients = groceryListDto.MissingIngredients.Select(gi => new GroceryItemViewModel
+                    {
+                        IngredientId = gi.IngredientId,
+                        IngredientName = gi.IngredientName,
+                        Unit = gi.Unit,
+                        RequiredAmount = gi.RequiredAmount,
+                        CurrentAmount = gi.CurrentAmount,
+                        NeededAmount = gi.NeededAmount
+                    }).ToList()
+                };
+                
+                _logger.LogInformation("Grocery list generated successfully for account {AccountId} and meal plan {MealPlanId}", 
+                    accountId, model.MealPlanId);
+                
+                return View("GroceryListResult", viewModel);
+            }
+            catch (BusinessException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                
+                // Reload meal plans for the form
+                var accountId = GetCurrentAccountId();
+                var mealPlans = await _mealPlanService.GetByAccountIdAsync(accountId);
+                model.AvailableMealPlans = mealPlans.Select(mp => new MealPlanSelectionViewModel
+                {
+                    Id = mp.Id,
+                    PlanName = mp.PlanName,
+                    StartDate = mp.StartDate,
+                    EndDate = mp.EndDate,
+                    IsAiGenerated = mp.IsAiGenerated,
+                    IsSelected = mp.Id == model.MealPlanId
+                }).ToList();
+                
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while generating grocery list for account {AccountId} and meal plan {MealPlanId}", 
+                    GetCurrentAccountId(), model.MealPlanId);
+                ModelState.AddModelError(string.Empty, "An error occurred while generating the grocery list. Please try again.");
+                
+                // Reload meal plans for the form
+                var accountId = GetCurrentAccountId();
+                var mealPlans = await _mealPlanService.GetByAccountIdAsync(accountId);
+                model.AvailableMealPlans = mealPlans.Select(mp => new MealPlanSelectionViewModel
+                {
+                    Id = mp.Id,
+                    PlanName = mp.PlanName,
+                    StartDate = mp.StartDate,
+                    EndDate = mp.EndDate,
+                    IsAiGenerated = mp.IsAiGenerated,
+                    IsSelected = mp.Id == model.MealPlanId
+                }).ToList();
+                
+                return View(model);
+            }
+        }
+
+        // GET: Fridge/Stats - Show fridge statistics
+        [HttpGet]
+        public async Task<IActionResult> Stats()
+        {
+            try
+            {
+                var accountId = GetCurrentAccountId();
+                var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
+                var expiringItems = await _fridgeService.GetExpiringItemsAsync(accountId);
+                
+                var viewModel = new FridgeStatsViewModel
+                {
+                    TotalItems = fridgeItems.Count(),
+                    FreshItems = fridgeItems.Count(item => !item.IsExpiring && !item.IsExpired),
+                    ExpiringItems = expiringItems.Count(item => item.IsExpiring && !item.IsExpired),
+                    ExpiredItems = expiringItems.Count(item => item.IsExpired),
+                    LastUpdated = DateTime.Now
+                };
+                
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while retrieving fridge statistics for account {AccountId}", GetCurrentAccountId());
+                TempData["ErrorMessage"] = "An error occurred while loading fridge statistics.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        #region Private Helper Methods
+
+        private Guid GetCurrentAccountId()
+        {
+            var accountIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(accountIdClaim) || !Guid.TryParse(accountIdClaim, out var accountId))
+            {
+                throw new AuthenticationException("User account ID not found in claims.");
+            }
+            return accountId;
+        }
+
+        private FridgeItemViewModel MapToViewModel(FridgeItemDto dto)
+        {
+            return new FridgeItemViewModel
+            {
+                Id = dto.Id,
+                AccountId = dto.AccountId,
+                IngredientId = dto.IngredientId,
+                IngredientName = dto.IngredientName,
+                Unit = dto.Unit,
+                CurrentAmount = dto.CurrentAmount,
+                ExpiryDate = dto.ExpiryDate,
+                IsExpiring = dto.IsExpiring,
+                IsExpired = dto.IsExpired
+            };
+        }
+
+        #endregion
+    }
+}

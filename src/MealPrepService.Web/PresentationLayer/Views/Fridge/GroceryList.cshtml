@@ -1,0 +1,207 @@
+@model GroceryListViewModel
+@{
+    ViewData["Title"] = "Grocery List";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-cart-check me-2" viewBox="0 0 16 16">
+                        <path d="M11.354 6.354a.5.5 0 0 0-.708-.708L8 8.293 6.854 7.146a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0l3-3z"/>
+                        <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1H.5zm3.915 10L3.102 4h10.796l-1.313 7h-8.17zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                    </svg>
+                    Grocery List
+                </h2>
+                <div>
+                    <button onclick="window.print()" class="btn btn-secondary me-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-printer me-2" viewBox="0 0 16 16">
+                            <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+                            <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
+                        </svg>
+                        Print List
+                    </button>
+                    <a asp-action="Index" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-2" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                        </svg>
+                        Back to Fridge
+                    </a>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.MealPlanName))
+            {
+                <!-- Grocery List Info -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Shopping List Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-2"><strong>Meal Plan:</strong> @Model.MealPlanName</p>
+                                <p class="mb-2"><strong>Generated:</strong> @Model.GeneratedDate.ToString("MMM dd, yyyy 'at' hh:mm tt")</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <div class="display-6 text-success">@Model.TotalMissingItems</div>
+                                <div class="text-muted">Items to Buy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.MissingIngredients?.Any() == true)
+                {
+                    <!-- Grocery Items Table -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-basket me-2" viewBox="0 0 16 16">
+                                    <path d="M5.757 1.071a.5.5 0 0 1 .172.686L3.383 6h9.234L10.07 1.757a.5.5 0 1 1 .858-.514L13.783 6H15a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1v4.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 13.5V9a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h1.217L5.07 1.243a.5.5 0 0 1 .686-.172zM2 9v4.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V9H2zM1 7v1h14V7H1zm3 3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 4 10zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 6 10zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 8 10zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 1 .5-.5zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 1 .5-.5z"/>
+                                </svg>
+                                Shopping List
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th width="5%">
+                                                <input type="checkbox" id="checkAll" class="form-check-input" />
+                                            </th>
+                                            <th>Ingredient</th>
+                                            <th>Current Amount</th>
+                                            <th>Required Amount</th>
+                                            <th>Need to Buy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.MissingIngredients.OrderBy(i => i.IngredientName))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <input type="checkbox" class="form-check-input item-checkbox" />
+                                                </td>
+                                                <td>
+                                                    <strong>@item.IngredientName</strong>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary">@item.CurrentAmountDisplay</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info text-dark">@item.RequiredAmountDisplay</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-success fs-6">@item.NeededAmountDisplay</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Print-friendly version -->
+                    <div class="d-none d-print-block mt-4">
+                        <h3>Shopping List</h3>
+                        <p><strong>Meal Plan:</strong> @Model.MealPlanName</p>
+                        <p><strong>Date:</strong> @Model.GeneratedDate.ToString("MMM dd, yyyy")</p>
+                        <ul class="list-unstyled">
+                            @foreach (var item in Model.MissingIngredients.OrderBy(i => i.IngredientName))
+                            {
+                                <li class="mb-2">
+                                    <input type="checkbox" /> <strong>@item.IngredientName</strong> - @item.NeededAmountDisplay
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-success text-center py-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-check-circle mb-3" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                        </svg>
+                        <h4>You're All Set!</h4>
+                        <p class="text-muted">You have all the ingredients needed for this meal plan in your fridge.</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- Generate Grocery List Form -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Generate Grocery List</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Select a meal plan to generate a grocery list based on your current fridge inventory.</p>
+                        <form asp-action="GroceryList" method="post">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Select Meal Plan</label>
+                                <select name="MealPlanId" class="form-select" required>
+                                    <option value="">-- Choose a meal plan --</option>
+                                    @* This would be populated by the controller *@
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right-circle me-2" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
+                                </svg>
+                                Generate List
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            <div class="alert alert-info mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-info-circle me-2" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </svg>
+                <strong>How it works:</strong> The grocery list compares ingredients needed for your meal plan with what's currently in your fridge. Only missing or insufficient items are shown.
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Check all functionality
+        document.getElementById('checkAll')?.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.item-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        // Strike through checked items
+        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const row = this.closest('tr');
+                if (this.checked) {
+                    row.style.textDecoration = 'line-through';
+                    row.style.opacity = '0.6';
+                } else {
+                    row.style.textDecoration = 'none';
+                    row.style.opacity = '1';
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    @@media print {
+        .btn, .alert, .card-header, nav, footer {
+            display: none !important;
+        }
+        .d-print-block {
+            display: block !important;
+        }
+    }
+</style>

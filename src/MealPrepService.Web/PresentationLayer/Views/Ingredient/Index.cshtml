@@ -1,0 +1,236 @@
+@model MealPrepService.Web.PresentationLayer.ViewModels.IngredientListViewModel
+
+@{
+    ViewData["Title"] = "Ingredients";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-egg"></i> Ingredient Management</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create New Ingredient
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.TotalIngredients</h3>
+                    <p class="mb-0">Total Ingredients</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.AllergenCount</h3>
+                    <p class="mb-0">Allergens (@Model.AllergenPercentage)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.SafeIngredientCount</h3>
+                    <p class="mb-0">Safe Ingredients</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-8">
+                    <label for="searchTerm" class="form-label">Search Ingredients</label>
+                    <input type="text" class="form-control" id="searchTerm" name="searchTerm" 
+                           value="@Model.SearchTerm" placeholder="Search by name or unit...">
+                </div>
+                <div class="col-md-4">
+                    <label for="showOnlyAllergens" class="form-label">Filter by Type</label>
+                    <select class="form-select" id="showOnlyAllergens" name="showOnlyAllergens">
+                        <option value="">All Ingredients</option>
+                        @if (Model.ShowOnlyAllergens == true)
+                        {
+                            <option value="true" selected>Allergens Only</option>
+                        }
+                        else
+                        {
+                            <option value="true">Allergens Only</option>
+                        }
+                        @if (Model.ShowOnlyAllergens == false)
+                        {
+                            <option value="false" selected>Safe Ingredients Only</option>
+                        }
+                        else
+                        {
+                            <option value="false">Safe Ingredients Only</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ingredients Table -->
+    @if (Model.HasIngredients)
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ingredient Name</th>
+                                <th>Unit</th>
+                                <th>Calories per Unit</th>
+                                <th>Allergen Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ingredient in Model.Ingredients)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@ingredient.IngredientName</strong>
+                                        @if (ingredient.IsAllergen)
+                                        {
+                                            <i class="bi bi-exclamation-triangle-fill text-danger ms-1" 
+                                               title="Allergen"></i>
+                                        }
+                                    </td>
+                                    <td>@ingredient.Unit</td>
+                                    <td>@ingredient.CaloPerUnit.ToString("F1") cal</td>
+                                    <td>
+                                        <span class="@ingredient.AllergenBadge">
+                                            @ingredient.AllergenText
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Details" asp-route-id="@ingredient.Id" 
+                                               class="btn btn-outline-primary" title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@ingredient.Id" 
+                                               class="btn btn-outline-secondary" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal-@ingredient.Id"
+                                                    title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Delete Confirmation Modal -->
+                                        <div class="modal fade" id="deleteModal-@ingredient.Id" tabindex="-1" 
+                                             aria-labelledby="deleteModalLabel-@ingredient.Id" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="deleteModalLabel-@ingredient.Id">
+                                                            Confirm Delete
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" 
+                                                                aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        Are you sure you want to delete <strong>@ingredient.IngredientName</strong>?
+                                                        <br /><br />
+                                                        <small class="text-muted">
+                                                            This action cannot be undone. Ingredients used in recipes cannot be deleted.
+                                                        </small>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                            Cancel
+                                                        </button>
+                                                        <form asp-action="Delete" asp-route-id="@ingredient.Id" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="bi bi-trash"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-egg" style="font-size: 4rem; color: #ccc;"></i>
+                <h4 class="mt-3">No Ingredients Found</h4>
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.ShowOnlyAllergens.HasValue)
+                {
+                    <p class="text-muted">Try adjusting your search criteria or filters.</p>
+                    <a asp-action="Index" class="btn btn-primary mt-2">
+                        <i class="bi bi-arrow-clockwise"></i> View All Ingredients
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted">Get started by creating your first ingredient.</p>
+                    <a asp-action="Create" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-circle"></i> Create Ingredient
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+<style>
+    .table tbody tr {
+        transition: background-color 0.2s;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>

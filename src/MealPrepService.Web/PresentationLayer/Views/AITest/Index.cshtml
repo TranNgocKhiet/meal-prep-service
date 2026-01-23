@@ -1,0 +1,197 @@
+@model MealPrepService.Web.PresentationLayer.Controllers.AITestViewModel
+
+@{
+    ViewData["Title"] = "AI Integration Test";
+}
+
+<div class="container mt-4">
+    <h2>🤖 AI Integration Test</h2>
+    <p class="text-muted">Test your AI integration and verify it's working correctly</p>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Success!</strong> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error!</strong> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Configuration Status</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <td><strong>AI Feature Enabled:</strong></td>
+                                <td>
+                                    @if (Model.IsAIEnabled)
+                                    {
+                                        <span class="badge bg-success">✓ Enabled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">✗ Disabled</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>LLM Service Available:</strong></td>
+                                <td>
+                                    @if (Model.LLMServiceAvailable)
+                                    {
+                                        <span class="badge bg-success">✓ Registered</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">✗ Not Registered</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>LLM Service Health:</strong></td>
+                                <td>
+                                    @if (Model.LLMServiceHealthy)
+                                    {
+                                        <span class="badge bg-success">✓ Healthy</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">✗ Unhealthy</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Model Name:</strong></td>
+                                <td><code>@Model.ModelName</code></td>
+                            </tr>
+                            @if (!string.IsNullOrEmpty(Model.ConfigurationStatus))
+                            {
+                                <tr>
+                                    <td><strong>Configuration:</strong></td>
+                                    <td><small class="text-muted">@Model.ConfigurationStatus</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <strong>Health Check Error:</strong><br />
+                            <code>@Model.ErrorMessage</code>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="TestRecommendations" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                            <i class="fas fa-magic"></i> Test AI Recommendations
+                        </button>
+                    </form>
+
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> This will generate AI-powered meal recommendations for your account.
+                        Make sure you have:
+                        <ul class="mb-0 mt-2">
+                            <li>Created a health profile</li>
+                            <li>Set dietary preferences</li>
+                            <li>Configured your API key</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["RecommendationDetails"] != null)
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Recommendation Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-light p-3 rounded"><code>@TempData["RecommendationDetails"]</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Setup Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <h6>If AI is not working, follow these steps:</h6>
+                    <ol>
+                        <li>
+                            <strong>Get an OpenAI API Key</strong>
+                            <ul>
+                                <li>Go to <a href="https://platform.openai.com/" target="_blank">https://platform.openai.com/</a></li>
+                                <li>Sign up or log in</li>
+                                <li>Create a new API key</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <strong>Configure the API Key</strong>
+                            <pre class="bg-light p-2 rounded mt-2"><code>cd src/MealPrepService.Web
+dotnet user-secrets set "AI:OpenAI:ApiKey" "your-api-key-here"
+dotnet user-secrets set "AI:UseRealAI" "true"</code></pre>
+                        </li>
+                        <li>
+                            <strong>Restart the application</strong>
+                        </li>
+                        <li>
+                            <strong>Refresh this page</strong>
+                        </li>
+                    </ol>
+
+                    <div class="alert alert-warning mt-3">
+                        <strong>Cost Warning:</strong> Using OpenAI API incurs costs. Estimated cost per recommendation: $0.0005 - $0.002 (less than 1 cent).
+                        Monitor your usage at <a href="https://platform.openai.com/usage" target="_blank">OpenAI Dashboard</a>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    </script>
+}

@@ -1,0 +1,202 @@
+@model MealPrepService.Web.PresentationLayer.ViewModels.RecipeListViewModel
+
+@{
+    ViewData["Title"] = "Recipes";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-book"></i> Recipe Management</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create New Recipe
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Search and Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-8">
+                    <label for="searchTerm" class="form-label">Search Recipes</label>
+                    <input type="text" class="form-control" id="searchTerm" name="searchTerm" 
+                           value="@Model.SearchTerm" placeholder="Search by name or instructions...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label d-block">&nbsp;</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="showOnlyWithIngredients" 
+                               name="showOnlyWithIngredients" value="true" 
+                               @(Model.ShowOnlyWithIngredients ? "checked" : "")>
+                        <label class="form-check-label" for="showOnlyWithIngredients">
+                            Show only recipes with ingredients
+                        </label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Recipe Count Summary -->
+    <div class="mb-3">
+        <p class="text-muted">
+            <strong>@Model.TotalRecipes</strong> recipe@(Model.TotalRecipes != 1 ? "s" : "") found
+        </p>
+    </div>
+
+    <!-- Recipes List -->
+    @if (Model.HasRecipes)
+    {
+        <div class="row">
+            @foreach (var recipe in Model.Recipes)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 recipe-card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">@recipe.RecipeName</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6 class="text-muted">Nutrition Information</h6>
+                                <div class="row text-center">
+                                    <div class="col-6 mb-2">
+                                        <div class="nutrition-badge">
+                                            <strong>@recipe.TotalCalories.ToString("F0")</strong>
+                                            <small class="d-block text-muted">Calories</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <div class="nutrition-badge">
+                                            <strong>@recipe.ProteinG.ToString("F1")g</strong>
+                                            <small class="d-block text-muted">Protein</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="nutrition-badge">
+                                            <strong>@recipe.FatG.ToString("F1")g</strong>
+                                            <small class="d-block text-muted">Fat</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="nutrition-badge">
+                                            <strong>@recipe.CarbsG.ToString("F1")g</strong>
+                                            <small class="d-block text-muted">Carbs</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="bi bi-list-ul"></i> 
+                                    @recipe.Ingredients.Count ingredient@(recipe.Ingredients.Count != 1 ? "s" : "")
+                                </small>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(recipe.Instructions))
+                            {
+                                <p class="card-text text-muted small recipe-instructions-preview">
+                                    @{
+                                        var truncatedInstructions = recipe.Instructions.Length > 100 
+                                            ? recipe.Instructions.Substring(0, 100) + "..." 
+                                            : recipe.Instructions;
+                                    }
+                                    @Html.Raw(truncatedInstructions
+                                        .Replace("&#xA;", "<br>")
+                                        .Replace("&#10;", "<br>")
+                                        .Replace("\\n", "<br>")
+                                        .Replace("\n", "<br>")
+                                        .Replace("\r\n", "<br>")
+                                        .Replace("\r", "<br>"))
+                                </p>
+                            }
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between gap-2">
+                                <a asp-action="Details" asp-route-id="@recipe.Id" class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@recipe.Id" class="btn btn-sm btn-outline-secondary flex-fill">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-book" style="font-size: 4rem; color: #ccc;"></i>
+                <h4 class="mt-3">No Recipes Found</h4>
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.ShowOnlyWithIngredients)
+                {
+                    <p class="text-muted">Try adjusting your search criteria or filters.</p>
+                    <a asp-action="Index" class="btn btn-primary mt-2">
+                        <i class="bi bi-arrow-clockwise"></i> View All Recipes
+                    </a>
+                }
+                else
+                {
+                    <p class="text-muted">Get started by creating your first recipe.</p>
+                    <a asp-action="Create" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-circle"></i> Create Recipe
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+<style>
+    .recipe-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .recipe-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .nutrition-badge {
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+    }
+    
+    .card-footer .btn {
+        font-size: 0.875rem;
+    }
+</style>

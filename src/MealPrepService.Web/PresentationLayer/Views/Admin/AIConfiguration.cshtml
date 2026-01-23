@@ -1,0 +1,116 @@
+@model MealPrepService.Web.PresentationLayer.ViewModels.AIConfigurationViewModel
+@{
+    ViewData["Title"] = "AI Configuration";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>AI Configuration</h2>
+            <p class="text-muted">Manage AI features and settings for the Meal Prep Service</p>
+            <hr />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">AI Model Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Current Model Version:</strong>
+                            <p class="mb-0">@Model.CurrentModelVersion</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Last Updated:</strong>
+                            <p class="mb-0">@Model.LastUpdated.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <strong>Status:</strong>
+                            <span class="badge @(Model.AIFeaturesEnabled ? "bg-success" : "bg-danger")">
+                                @(Model.AIFeaturesEnabled ? "Enabled" : "Disabled")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">AI Features</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" @(Model.MealPlanGenerationEnabled ? "checked" : "") disabled>
+                        <label class="form-check-label">
+                            <strong>Meal Plan Generation</strong>
+                            <p class="text-muted mb-0">AI-powered personalized meal plan recommendations</p>
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" @(Model.NutritionCalculationEnabled ? "checked" : "") disabled>
+                        <label class="form-check-label">
+                            <strong>Nutrition Calculation</strong>
+                            <p class="text-muted mb-0">Automated nutritional analysis for recipes</p>
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" @(Model.PriceAdjustmentEnabled ? "checked" : "") disabled>
+                        <label class="form-check-label">
+                            <strong>Dynamic Price Adjustment</strong>
+                            <p class="text-muted mb-0">AI-based pricing optimization (Coming Soon)</p>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Note:</strong> This is a placeholder for AI configuration features. Full AI integration will be available in future updates.
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Recent AI Operations</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentOperations != null && Model.RecentOperations.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var operation in Model.RecentOperations)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">@operation.Operation</h6>
+                                        <small>@operation.Timestamp.ToString("HH:mm")</small>
+                                    </div>
+                                    <p class="mb-1 small">@operation.Details</p>
+                                    <small class="@operation.StatusCssClass">@operation.Status</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recent operations</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <a asp-action="Dashboard" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>

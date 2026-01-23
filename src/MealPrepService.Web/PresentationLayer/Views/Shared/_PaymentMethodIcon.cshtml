@@ -1,0 +1,38 @@
+@model string
+
+@{
+    var paymentMethod = Model?.ToUpper() ?? "UNKNOWN";
+    var icon = "bi-question-circle";
+    var displayText = Model ?? "Unknown";
+    var colorClass = "text-secondary";
+
+    switch (paymentMethod)
+    {
+        case "COD":
+        case "CASH ON DELIVERY":
+            icon = "bi-cash-coin";
+            displayText = "Cash on Delivery";
+            colorClass = "text-success";
+            break;
+        case "VNPAY":
+            icon = "bi-credit-card";
+            displayText = "VNPAY";
+            colorClass = "text-primary";
+            break;
+        case "CREDIT CARD":
+        case "CARD":
+            icon = "bi-credit-card-2-front";
+            displayText = "Credit Card";
+            colorClass = "text-info";
+            break;
+        case "BANK TRANSFER":
+            icon = "bi-bank";
+            displayText = "Bank Transfer";
+            colorClass = "text-warning";
+            break;
+    }
+}
+
+<span class="@colorClass" title="Payment Method: @displayText">
+    <i class="@icon"></i> @displayText
+</span>

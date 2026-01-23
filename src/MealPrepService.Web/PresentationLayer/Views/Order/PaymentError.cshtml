@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Payment Error";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark text-center">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
+                    <h3 class="mt-2">Payment Error</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <p class="lead">An error occurred while processing your payment.</p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        <strong>Error Details:</strong>
+                        <br />
+                        @ViewBag.ErrorMessage
+                    </div>
+
+                    <h5 class="mb-3">What can you do?</h5>
+                    <ul class="mb-4">
+                        <li>Check your internet connection and try again</li>
+                        <li>Verify your payment information is correct</li>
+                        <li>Try a different payment method</li>
+                        <li>Contact support if the problem persists</li>
+                    </ul>
+
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">Next Steps</h6>
+                            <div class="d-grid gap-2">
+                                <a asp-action="Index" class="btn btn-primary">
+                                    <i class="bi bi-list"></i> View My Orders
+                                </a>
+                                <a asp-controller="PublicMenu" asp-action="Today" class="btn btn-outline-primary">
+                                    <i class="bi bi-calendar-day"></i> View Today's Menu
+                                </a>
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-house"></i> Back to Home
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        <strong>Need Assistance?</strong> Our support team is here to help. Please contact us if you need further assistance with your payment.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

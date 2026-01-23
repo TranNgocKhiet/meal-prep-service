@@ -1,0 +1,58 @@
+@model MealPrepService.Web.PresentationLayer.ViewModels.MealPlanViewModel
+@{
+    ViewData["Title"] = "Delete Meal Plan";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Delete Meal Plan</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <strong>Warning:</strong> This action cannot be undone. All meals and recipes associated with this plan will be removed.
+                    </div>
+
+                    <dl class="row">
+                        <dt class="col-sm-3">Plan Name:</dt>
+                        <dd class="col-sm-9">@Model.PlanName</dd>
+
+                        <dt class="col-sm-3">Date Range:</dt>
+                        <dd class="col-sm-9">@Model.StartDate.ToString("yyyy-MM-dd") to @Model.EndDate.ToString("yyyy-MM-dd")</dd>
+
+                        <dt class="col-sm-3">Type:</dt>
+                        <dd class="col-sm-9">
+                            @if (Model.IsAiGenerated)
+                            {
+                                <span class="badge bg-info">AI Generated</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Manual</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">Total Meals:</dt>
+                        <dd class="col-sm-9">@Model.Meals.Count</dd>
+                    </dl>
+
+                    <form asp-action="DeleteConfirmed" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete Meal Plan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
