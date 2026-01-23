@@ -34,7 +34,7 @@
                             
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Gender" class="form-label"></label>
-                                <select asp-for="Gender" class="form-select">
+                                <select asp-for="Gender" class="form-select" data-placeholder="Select your gender...">
                                     <option value="">-- Select Gender --</option>
                                     @foreach (var gender in HealthProfileViewModel.GenderOptions)
                                     {
@@ -43,6 +43,7 @@
                                 </select>
                                 <span asp-validation-for="Gender" class="text-danger small"></span>
                             </div>
+
                         </div>
                         
                         <div class="row">

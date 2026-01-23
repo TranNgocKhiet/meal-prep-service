@@ -22,7 +22,7 @@
 
                         <div class="mb-4">
                             <label asp-for="IngredientId" class="form-label fw-bold"></label>
-                            <select asp-for="IngredientId" class="form-select form-select-lg" required>
+                            <select asp-for="IngredientId" class="form-select form-select-lg" required data-placeholder="Search and select an ingredient...">
                                 <option value="">-- Select an ingredient --</option>
                                 @if (Model.AvailableIngredients?.Any() == true)
                                 {
@@ -34,6 +34,8 @@
                             </select>
                             <span asp-validation-for="IngredientId" class="text-danger"></span>
                         </div>
+
+
 
                         <div class="mb-4">
                             <label asp-for="CurrentAmount" class="form-label fw-bold"></label>

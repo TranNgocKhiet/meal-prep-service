@@ -36,7 +36,7 @@
             <form asp-action="Revenue" method="get" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label for="year" class="form-label">Select Year</label>
-                    <select class="form-select" id="year" name="year" onchange="this.form.submit()">
+                    <select class="form-select" id="year" name="year" onchange="this.form.submit()" data-placeholder="Select a year...">
                         @foreach (var year in Model.AvailableYears)
                         {
                             if (year == Model.SelectedYear)
@@ -50,6 +50,7 @@
                         }
                     </select>
                 </div>
+
                 <div class="col-md-8">
                     <form asp-action="GenerateMonthlyReport" method="post" class="d-inline">
                         @Html.AntiForgeryToken()

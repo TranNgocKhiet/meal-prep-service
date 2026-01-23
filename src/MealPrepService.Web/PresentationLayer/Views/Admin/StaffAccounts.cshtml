@@ -66,13 +66,14 @@
             <form method="get" asp-action="StaffAccounts" class="row g-3">
                 <div class="col-md-4">
                     <label for="role" class="form-label">Filter by Role</label>
-                    <select name="role" id="role" class="form-select" onchange="this.form.submit()">
+                    <select name="role" id="role" class="form-select" onchange="this.form.submit()" data-placeholder="Select a role...">
                         <option value="">All Staff</option>
                         <option value="Manager" selected="@(Model.FilterRole == "Manager")">Managers</option>
                         <option value="DeliveryMan" selected="@(Model.FilterRole == "DeliveryMan")">Delivery Men</option>
                     </select>
                 </div>
             </form>
+
         </div>
     </div>
 
