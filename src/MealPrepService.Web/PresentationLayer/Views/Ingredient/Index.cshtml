@@ -111,7 +111,7 @@
                                 <th>Ingredient Name</th>
                                 <th>Unit</th>
                                 <th>Calories per Unit</th>
-                                <th>Allergen Status</th>
+                                <th>Allergy Name</th>
                                 <th class="text-end">Actions</th>
                             </tr>
                         </thead>
@@ -130,9 +130,20 @@
                                     <td>@ingredient.Unit</td>
                                     <td>@ingredient.CaloPerUnit.ToString("F1") cal</td>
                                     <td>
-                                        <span class="@ingredient.AllergenBadge">
-                                            @ingredient.AllergenText
-                                        </span>
+                                        @if (ingredient.Allergies != null && ingredient.Allergies.Any())
+                                        {
+                                            @foreach (var allergy in ingredient.Allergies)
+                                            {
+                                                <span class="badge bg-danger me-1 mb-1">
+                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                                    @allergy.AllergyName
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">None</span>
+                                        }
                                     </td>
                                     <td class="text-end">
                                         <div class="btn-group btn-group-sm" role="group">

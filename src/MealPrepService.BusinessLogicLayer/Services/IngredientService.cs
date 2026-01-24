@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using MealPrepService.BusinessLogicLayer.DTOs;
 using MealPrepService.BusinessLogicLayer.Exceptions;
 using MealPrepService.BusinessLogicLayer.Interfaces;
+using MealPrepService.DataAccessLayer.Data;
 using MealPrepService.DataAccessLayer.Entities;
 using MealPrepService.DataAccessLayer.Repositories;
 
@@ -14,11 +15,13 @@ namespace MealPrepService.BusinessLogicLayer.Services
     public class IngredientService : IIngredientService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly MealPrepDbContext _context;
         private readonly ILogger<IngredientService> _logger;
 
-        public IngredientService(IUnitOfWork unitOfWork, ILogger<IngredientService> logger)
+        public IngredientService(IUnitOfWork unitOfWork, MealPrepDbContext context, ILogger<IngredientService> logger)
         {
             _unitOfWork = unitOfWork;
+            _context = context;
             _logger = logger;
         }
 
@@ -62,7 +65,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
         public async Task<IngredientDto> GetByIdAsync(Guid ingredientId)
         {
-            var ingredient = await _unitOfWork.Ingredients.GetByIdAsync(ingredientId);
+            var ingredient = await _context.Ingredients
+                .Include(i => i.Allergies)
+                .FirstOrDefaultAsync(i => i.Id == ingredientId);
             
             if (ingredient == null)
             {
@@ -74,7 +79,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
         public async Task<IEnumerable<IngredientDto>> GetAllAsync()
         {
-            var ingredients = await _unitOfWork.Ingredients.GetAllAsync();
+            var ingredients = await _context.Ingredients
+                .Include(i => i.Allergies)
+                .ToListAsync();
             return ingredients.Select(MapToDto);
         }
 
@@ -98,7 +105,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException("Calories per unit must be non-negative");
             }
 
-            var ingredient = await _unitOfWork.Ingredients.GetByIdAsync(ingredientId);
+            var ingredient = await _context.Ingredients
+                .Include(i => i.Allergies)
+                .FirstOrDefaultAsync(i => i.Id == ingredientId);
             
             if (ingredient == null)
             {
@@ -111,8 +120,27 @@ namespace MealPrepService.BusinessLogicLayer.Services
             ingredient.IsAllergen = dto.IsAllergen;
             ingredient.UpdatedAt = DateTime.UtcNow;
 
-            await _unitOfWork.Ingredients.UpdateAsync(ingredient);
-            await _unitOfWork.SaveChangesAsync();
+            // Update allergies if provided
+            if (dto.AllergyIds != null)
+            {
+                // Clear existing allergies
+                ingredient.Allergies.Clear();
+
+                // Add new allergies
+                if (dto.AllergyIds.Any())
+                {
+                    var allergies = await _context.Allergies
+                        .Where(a => dto.AllergyIds.Contains(a.Id))
+                        .ToListAsync();
+                    
+                    foreach (var allergy in allergies)
+                    {
+                        ingredient.Allergies.Add(allergy);
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
 
             _logger.LogInformation("Ingredient updated successfully with ID: {IngredientId}", ingredientId);
 
@@ -159,7 +187,12 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 IngredientName = ingredient.IngredientName,
                 Unit = ingredient.Unit,
                 CaloPerUnit = ingredient.CaloPerUnit,
-                IsAllergen = ingredient.IsAllergen
+                IsAllergen = ingredient.IsAllergen,
+                Allergies = ingredient.Allergies?.Select(a => new AllergyDto
+                {
+                    Id = a.Id,
+                    AllergyName = a.AllergyName
+                }).ToList() ?? new List<AllergyDto>()
             };
         }
     }

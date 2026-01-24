@@ -6,4 +6,5 @@ public class Allergy : BaseEntity
     
     // Navigation properties
     public ICollection<HealthProfile> HealthProfiles { get; set; } = new List<HealthProfile>();
+    public ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
 }

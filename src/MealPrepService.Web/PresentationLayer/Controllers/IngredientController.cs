@@ -154,13 +154,24 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return NotFound("Ingredient not found.");
                 }
 
+                // Get all allergies for selection
+                var allergyService = HttpContext.RequestServices.GetRequiredService<IAllergyService>();
+                var allAllergies = await allergyService.GetAllAsync();
+
                 var viewModel = new EditIngredientViewModel
                 {
                     Id = ingredientDto.Id,
                     IngredientName = ingredientDto.IngredientName,
                     Unit = ingredientDto.Unit,
                     CaloPerUnit = ingredientDto.CaloPerUnit,
-                    IsAllergen = ingredientDto.IsAllergen
+                    IsAllergen = ingredientDto.IsAllergen,
+                    SelectedAllergyIds = ingredientDto.Allergies.Select(a => a.Id).ToList(),
+                    AvailableAllergies = allAllergies.Select(a => new AllergyViewModel
+                    {
+                        Id = a.Id,
+                        AllergyName = a.AllergyName,
+                        IsSelected = ingredientDto.Allergies.Any(ia => ia.Id == a.Id)
+                    }).ToList()
                 };
 
                 return View(viewModel);
@@ -185,6 +196,15 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
             if (!ModelState.IsValid)
             {
+                // Reload allergies for the form
+                var allergyService = HttpContext.RequestServices.GetRequiredService<IAllergyService>();
+                var allAllergies = await allergyService.GetAllAsync();
+                viewModel.AvailableAllergies = allAllergies.Select(a => new AllergyViewModel
+                {
+                    Id = a.Id,
+                    AllergyName = a.AllergyName,
+                    IsSelected = viewModel.SelectedAllergyIds.Contains(a.Id)
+                }).ToList();
                 return View(viewModel);
             }
 
@@ -195,7 +215,8 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     IngredientName = viewModel.IngredientName,
                     Unit = viewModel.Unit,
                     CaloPerUnit = viewModel.CaloPerUnit,
-                    IsAllergen = viewModel.IsAllergen
+                    IsAllergen = viewModel.IsAllergen,
+                    AllergyIds = viewModel.SelectedAllergyIds ?? new List<Guid>()
                 };
 
                 var updatedIngredient = await _ingredientService.UpdateIngredientAsync(id, updateDto);
@@ -212,18 +233,48 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             {
                 _logger.LogWarning(ex, "Validation error while updating ingredient {IngredientId}", id);
                 ModelState.AddModelError(string.Empty, ex.Message);
+                
+                // Reload allergies for the form
+                var allergyService = HttpContext.RequestServices.GetRequiredService<IAllergyService>();
+                var allAllergies = await allergyService.GetAllAsync();
+                viewModel.AvailableAllergies = allAllergies.Select(a => new AllergyViewModel
+                {
+                    Id = a.Id,
+                    AllergyName = a.AllergyName,
+                    IsSelected = viewModel.SelectedAllergyIds.Contains(a.Id)
+                }).ToList();
                 return View(viewModel);
             }
             catch (BusinessException ex)
             {
                 _logger.LogWarning(ex, "Business error while updating ingredient {IngredientId}", id);
                 ModelState.AddModelError(string.Empty, ex.Message);
+                
+                // Reload allergies for the form
+                var allergyService = HttpContext.RequestServices.GetRequiredService<IAllergyService>();
+                var allAllergies = await allergyService.GetAllAsync();
+                viewModel.AvailableAllergies = allAllergies.Select(a => new AllergyViewModel
+                {
+                    Id = a.Id,
+                    AllergyName = a.AllergyName,
+                    IsSelected = viewModel.SelectedAllergyIds.Contains(a.Id)
+                }).ToList();
                 return View(viewModel);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while updating ingredient {IngredientId}", id);
                 ModelState.AddModelError(string.Empty, "An error occurred while updating the ingredient.");
+                
+                // Reload allergies for the form
+                var allergyService = HttpContext.RequestServices.GetRequiredService<IAllergyService>();
+                var allAllergies = await allergyService.GetAllAsync();
+                viewModel.AvailableAllergies = allAllergies.Select(a => new AllergyViewModel
+                {
+                    Id = a.Id,
+                    AllergyName = a.AllergyName,
+                    IsSelected = viewModel.SelectedAllergyIds.Contains(a.Id)
+                }).ToList();
                 return View(viewModel);
             }
         }
@@ -279,7 +330,12 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 IngredientName = dto.IngredientName,
                 Unit = dto.Unit,
                 CaloPerUnit = dto.CaloPerUnit,
-                IsAllergen = dto.IsAllergen
+                IsAllergen = dto.IsAllergen,
+                Allergies = dto.Allergies?.Select(a => new AllergyViewModel
+                {
+                    Id = a.Id,
+                    AllergyName = a.AllergyName
+                }).ToList() ?? new List<AllergyViewModel>()
             };
         }
 

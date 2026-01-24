@@ -142,6 +142,7 @@ try
     builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IDeliveryService, MealPrepService.BusinessLogicLayer.Services.DeliveryService>();
     builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IRecipeService, MealPrepService.BusinessLogicLayer.Services.RecipeService>();
     builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IIngredientService, MealPrepService.BusinessLogicLayer.Services.IngredientService>();
+    builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IAllergyService, MealPrepService.BusinessLogicLayer.Services.AllergyService>();
     builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IRevenueService, MealPrepService.BusinessLogicLayer.Services.RevenueService>();
     builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IVnpayService, MealPrepService.BusinessLogicLayer.Services.VnpayService>();
     

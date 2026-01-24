@@ -21,10 +21,14 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         [Display(Name = "Is Allergen")]
         public bool IsAllergen { get; set; }
 
+        public List<Guid> SelectedAllergyIds { get; set; } = new List<Guid>();
+        public List<AllergyViewModel> Allergies { get; set; } = new List<AllergyViewModel>();
+
         // Display properties
         public string AllergenStatus => IsAllergen ? "Yes" : "No";
         public string AllergenBadge => IsAllergen ? "badge bg-danger" : "badge bg-success";
         public string AllergenText => IsAllergen ? "Allergen" : "Safe";
+        public string AllergyName => IsAllergen && Allergies.Any() ? string.Join(", ", Allergies.Select(a => a.AllergyName)) : (IsAllergen ? IngredientName : "None");
         public string CaloriesDisplay => $"{CaloPerUnit:F1} cal/{Unit}";
     }
 
@@ -76,6 +80,9 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
 
         [Display(Name = "Is Allergen")]
         public bool IsAllergen { get; set; }
+
+        public List<Guid> SelectedAllergyIds { get; set; } = new List<Guid>();
+        public List<AllergyViewModel> AvailableAllergies { get; set; } = new List<AllergyViewModel>();
     }
 
     /// <summary>

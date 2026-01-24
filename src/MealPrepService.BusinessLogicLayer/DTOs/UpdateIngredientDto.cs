@@ -9,5 +9,6 @@ namespace MealPrepService.BusinessLogicLayer.DTOs
         public string Unit { get; set; } = string.Empty;
         public float CaloPerUnit { get; set; }
         public bool IsAllergen { get; set; }
+        public List<Guid>? AllergyIds { get; set; }
     }
 }

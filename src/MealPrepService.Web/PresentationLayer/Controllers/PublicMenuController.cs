@@ -171,7 +171,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
         [HttpGet]
         public IActionResult PreviousWeek(DateTime currentWeekStart)
         {
-            var previousWeekStart = currentWeekStart.AddDays(-7);
+                var previousWeekStart = currentWeekStart.AddDays(-7);
             return RedirectToAction(nameof(Weekly), new { startDate = previousWeekStart });
         }
 
