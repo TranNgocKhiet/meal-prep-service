@@ -11,3 +11,4 @@ public class Meal : BaseEntity
     public MealPlan Plan { get; set; } = null!;
     public ICollection<MealRecipe> MealRecipes { get; set; } = new List<MealRecipe>();
 }
+

@@ -17,5 +17,7 @@ namespace MealPrepService.BusinessLogicLayer.DTOs
         public float RequiredAmount { get; set; }
         public float CurrentAmount { get; set; }
         public float NeededAmount { get; set; }
+        public bool IsNeededSoon { get; set; } // Needed for today or tomorrow's meals
+        public DateTime? EarliestNeededDate { get; set; } // When this ingredient is first needed
     }
 }

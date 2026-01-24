@@ -6,6 +6,7 @@ using MealPrepService.BusinessLogicLayer.DTOs;
 using MealPrepService.BusinessLogicLayer.Exceptions;
 using MealPrepService.Web.PresentationLayer.ViewModels;
 using MealPrepService.Web.PresentationLayer.Filters;
+using MealPrepService.DataAccessLayer.Repositories;
 
 namespace MealPrepService.Web.PresentationLayer.Controllers
 {
@@ -14,15 +15,21 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
     {
         private readonly IMealPlanService _mealPlanService;
         private readonly IRecipeService _recipeService;
+        private readonly IFridgeService _fridgeService;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<MealPlanController> _logger;
 
         public MealPlanController(
             IMealPlanService mealPlanService,
             IRecipeService recipeService,
+            IFridgeService fridgeService,
+            IUnitOfWork unitOfWork,
             ILogger<MealPlanController> logger)
         {
             _mealPlanService = mealPlanService;
             _recipeService = recipeService;
+            _fridgeService = fridgeService;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -482,6 +489,225 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 _logger.LogError(ex, "Error occurred while removing recipe {RecipeId} from meal {MealId}", 
                     recipeId, mealId);
                 TempData["ErrorMessage"] = "An error occurred while removing the recipe. Please try again.";
+                return RedirectToAction(nameof(Details), new { id = planId });
+            }
+        }
+
+        // GET: MealPlan/CheckMealIngredients - Check if ingredients are available for a meal
+        [HttpGet]
+        public async Task<IActionResult> CheckMealIngredients(Guid mealId, Guid planId)
+        {
+            try
+            {
+                var accountId = GetCurrentAccountId();
+                var mealPlan = await _mealPlanService.GetByIdAsync(planId);
+                
+                if (mealPlan == null || mealPlan.AccountId != accountId)
+                {
+                    return Json(new { success = false, message = "Meal plan not found or access denied." });
+                }
+
+                var meal = mealPlan.Meals.FirstOrDefault(m => m.Id == mealId);
+                if (meal == null)
+                {
+                    return Json(new { success = false, message = "Meal not found." });
+                }
+
+                // Get fridge items
+                var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
+                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => new { f.Id, f.CurrentAmount });
+
+                // Calculate required ingredients
+                var requiredIngredients = new Dictionary<Guid, float>();
+                var ingredientNames = new Dictionary<Guid, string>();
+                var ingredientUnits = new Dictionary<Guid, string>();
+
+                foreach (var recipe in meal.Recipes)
+                {
+                    if (recipe.Ingredients != null)
+                    {
+                        foreach (var ingredient in recipe.Ingredients)
+                        {
+                            if (requiredIngredients.ContainsKey(ingredient.IngredientId))
+                            {
+                                requiredIngredients[ingredient.IngredientId] += ingredient.Amount;
+                            }
+                            else
+                            {
+                                requiredIngredients[ingredient.IngredientId] = ingredient.Amount;
+                                ingredientNames[ingredient.IngredientId] = ingredient.IngredientName;
+                                ingredientUnits[ingredient.IngredientId] = ingredient.Unit;
+                            }
+                        }
+                    }
+                }
+
+                // Check availability
+                var missingIngredients = new List<object>();
+                var insufficientIngredients = new List<object>();
+                var consumptionPlan = new List<object>();
+
+                foreach (var required in requiredIngredients)
+                {
+                    var ingredientId = required.Key;
+                    var requiredAmount = required.Value;
+                    var ingredientName = ingredientNames[ingredientId];
+                    var unit = ingredientUnits[ingredientId];
+
+                    if (!fridgeInventory.ContainsKey(ingredientId))
+                    {
+                        missingIngredients.Add(new
+                        {
+                            name = ingredientName,
+                            required = requiredAmount,
+                            unit = unit
+                        });
+                    }
+                    else
+                    {
+                        var fridgeItem = fridgeInventory[ingredientId];
+                        if (fridgeItem.CurrentAmount < requiredAmount)
+                        {
+                            insufficientIngredients.Add(new
+                            {
+                                name = ingredientName,
+                                required = requiredAmount,
+                                available = fridgeItem.CurrentAmount,
+                                unit = unit
+                            });
+                        }
+                        else
+                        {
+                            consumptionPlan.Add(new
+                            {
+                                fridgeItemId = fridgeItem.Id,
+                                ingredientName = ingredientName,
+                                amount = requiredAmount,
+                                newAmount = fridgeItem.CurrentAmount - requiredAmount,
+                                unit = unit
+                            });
+                        }
+                    }
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    hasIssues = missingIngredients.Any() || insufficientIngredients.Any(),
+                    missingIngredients = missingIngredients,
+                    insufficientIngredients = insufficientIngredients,
+                    consumptionPlan = consumptionPlan
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking meal ingredients for meal {MealId}", mealId);
+                return Json(new { success = false, message = "An error occurred while checking ingredients." });
+            }
+        }
+
+        // POST: MealPlan/FinishMeal - Consume ingredients from fridge for a meal
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> FinishMeal(Guid mealId, Guid planId, bool forceComplete = false)
+        {
+            try
+            {
+                var accountId = GetCurrentAccountId();
+                var mealPlan = await _mealPlanService.GetByIdAsync(planId);
+                
+                if (mealPlan == null || mealPlan.AccountId != accountId)
+                {
+                    TempData["ErrorMessage"] = "Meal plan not found or access denied.";
+                    return RedirectToAction(nameof(Details), new { id = planId });
+                }
+
+                var meal = mealPlan.Meals.FirstOrDefault(m => m.Id == mealId);
+                if (meal == null)
+                {
+                    TempData["ErrorMessage"] = "Meal not found.";
+                    return RedirectToAction(nameof(Details), new { id = planId });
+                }
+
+                // Check if meal is already finished
+                if (meal.MealFinished)
+                {
+                    TempData["InfoMessage"] = "This meal has already been finished.";
+                    return RedirectToAction(nameof(Details), new { id = planId });
+                }
+
+                // Get fridge items
+                var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
+                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => new { f.Id, f.CurrentAmount });
+
+                // Calculate required ingredients
+                var requiredIngredients = new Dictionary<Guid, float>();
+                foreach (var recipe in meal.Recipes)
+                {
+                    if (recipe.Ingredients != null)
+                    {
+                        foreach (var ingredient in recipe.Ingredients)
+                        {
+                            if (requiredIngredients.ContainsKey(ingredient.IngredientId))
+                            {
+                                requiredIngredients[ingredient.IngredientId] += ingredient.Amount;
+                            }
+                            else
+                            {
+                                requiredIngredients[ingredient.IngredientId] = ingredient.Amount;
+                            }
+                        }
+                    }
+                }
+
+                // Consume ingredients
+                var updatedCount = 0;
+                var removedCount = 0;
+                foreach (var required in requiredIngredients)
+                {
+                    var ingredientId = required.Key;
+                    var requiredAmount = required.Value;
+
+                    if (fridgeInventory.ContainsKey(ingredientId))
+                    {
+                        var fridgeItem = fridgeInventory[ingredientId];
+                        var newAmount = Math.Max(0, fridgeItem.CurrentAmount - requiredAmount);
+                        
+                        if (newAmount == 0)
+                        {
+                            // Remove item from fridge when quantity reaches 0
+                            await _fridgeService.RemoveItemAsync(fridgeItem.Id);
+                            removedCount++;
+                        }
+                        else
+                        {
+                            // Update quantity if still > 0
+                            await _fridgeService.UpdateItemQuantityAsync(fridgeItem.Id, newAmount);
+                        }
+                        updatedCount++;
+                    }
+                }
+
+                // Mark meal as finished in database
+                await _mealPlanService.MarkMealAsFinishedAsync(mealId, accountId, true);
+
+                _logger.LogInformation("Meal {MealId} marked as finished. {Count} fridge items updated ({Removed} removed) for account {AccountId}", 
+                    mealId, updatedCount, removedCount, accountId);
+                
+                var successMessage = $"Meal finished! {updatedCount} ingredients consumed from your fridge";
+                if (removedCount > 0)
+                {
+                    successMessage += $" ({removedCount} item{(removedCount > 1 ? "s" : "")} completely used up and removed)";
+                }
+                successMessage += ".";
+                
+                TempData["SuccessMessage"] = successMessage;
+                return RedirectToAction(nameof(Details), new { id = planId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error finishing meal {MealId}", mealId);
+                TempData["ErrorMessage"] = "An error occurred while finishing the meal. Please try again.";
                 return RedirectToAction(nameof(Details), new { id = planId });
             }
         }

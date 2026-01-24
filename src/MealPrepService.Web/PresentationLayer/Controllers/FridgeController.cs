@@ -278,7 +278,9 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                                 Unit = gi.Unit,
                                 RequiredAmount = gi.RequiredAmount,
                                 CurrentAmount = gi.CurrentAmount,
-                                NeededAmount = gi.NeededAmount
+                                NeededAmount = gi.NeededAmount,
+                                IsNeededSoon = gi.IsNeededSoon,
+                                EarliestNeededDate = gi.EarliestNeededDate
                             }).ToList()
                         };
                         
@@ -369,7 +371,9 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                         Unit = gi.Unit,
                         RequiredAmount = gi.RequiredAmount,
                         CurrentAmount = gi.CurrentAmount,
-                        NeededAmount = gi.NeededAmount
+                        NeededAmount = gi.NeededAmount,
+                        IsNeededSoon = gi.IsNeededSoon,
+                        EarliestNeededDate = gi.EarliestNeededDate
                     }).ToList()
                 };
                 
@@ -446,6 +450,108 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 _logger.LogError(ex, "Error occurred while retrieving fridge statistics for account {AccountId}", GetCurrentAccountId());
                 TempData["ErrorMessage"] = "An error occurred while loading fridge statistics.";
                 return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: Fridge/SyncFridge - Synchronize purchased items with fridge
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SyncFridge(SyncFridgeViewModel model)
+        {
+            try
+            {
+                var accountId = GetCurrentAccountId();
+                
+                if (model.PurchasedIngredients == null || !model.PurchasedIngredients.Any())
+                {
+                    TempData["ErrorMessage"] = "No items were selected to purchase.";
+                    return RedirectToAction(nameof(GroceryList));
+                }
+
+                // Get the purchased items
+                var purchasedItems = model.PurchasedIngredients.Values
+                    .Where(p => p.IsPurchased)
+                    .ToList();
+
+                if (!purchasedItems.Any())
+                {
+                    TempData["ErrorMessage"] = "No items were selected to purchase.";
+                    return RedirectToAction(nameof(GroceryList));
+                }
+
+                // Get current fridge items
+                var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
+                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => f);
+
+                int itemsAdded = 0;
+                int itemsUpdated = 0;
+
+                foreach (var purchasedItem in purchasedItems)
+                {
+                    // Get ingredient details
+                    var ingredient = await _ingredientService.GetByIdAsync(purchasedItem.IngredientId);
+                    if (ingredient == null)
+                    {
+                        _logger.LogWarning("Ingredient {IngredientId} not found while syncing fridge", purchasedItem.IngredientId);
+                        continue;
+                    }
+
+                    if (fridgeInventory.ContainsKey(purchasedItem.IngredientId))
+                    {
+                        // Update existing fridge item
+                        var existingItem = fridgeInventory[purchasedItem.IngredientId];
+                        var newAmount = existingItem.CurrentAmount + purchasedItem.Amount;
+                        await _fridgeService.UpdateItemQuantityAsync(existingItem.Id, newAmount);
+                        itemsUpdated++;
+                        
+                        _logger.LogInformation("Updated fridge item {IngredientName} from {OldAmount} to {NewAmount} for account {AccountId}",
+                            ingredient.IngredientName, existingItem.CurrentAmount, newAmount, accountId);
+                    }
+                    else
+                    {
+                        // Add new fridge item with a default expiry date
+                        var fridgeItemDto = new FridgeItemDto
+                        {
+                            AccountId = accountId,
+                            IngredientId = purchasedItem.IngredientId,
+                            IngredientName = ingredient.IngredientName,
+                            Unit = ingredient.Unit,
+                            CurrentAmount = purchasedItem.Amount,
+                            ExpiryDate = DateTime.Today.AddDays(7) // Default 7 days expiry
+                        };
+                        
+                        await _fridgeService.AddItemAsync(fridgeItemDto);
+                        itemsAdded++;
+                        
+                        _logger.LogInformation("Added new fridge item {IngredientName} with amount {Amount} for account {AccountId}",
+                            ingredient.IngredientName, purchasedItem.Amount, accountId);
+                    }
+                }
+
+                var successMessage = $"Successfully updated your fridge! {itemsAdded} item(s) added";
+                if (itemsUpdated > 0)
+                {
+                    successMessage += $", {itemsUpdated} item(s) updated";
+                }
+                successMessage += ".";
+                
+                TempData["SuccessMessage"] = successMessage;
+                
+                _logger.LogInformation("Fridge sync completed for account {AccountId}: {ItemsAdded} added, {ItemsUpdated} updated", 
+                    accountId, itemsAdded, itemsUpdated);
+                
+                return RedirectToAction(nameof(Index));
+            }
+            catch (BusinessException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(GroceryList));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while syncing fridge for account {AccountId}", GetCurrentAccountId());
+                TempData["ErrorMessage"] = "An error occurred while updating your fridge. Please try again.";
+                return RedirectToAction(nameof(GroceryList));
             }
         }
 

@@ -144,10 +144,21 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         [Display(Name = "Needed Amount")]
         public float NeededAmount { get; set; }
 
+        [Display(Name = "Needed Soon")]
+        public bool IsNeededSoon { get; set; }
+
+        [Display(Name = "Needed By")]
+        public DateTime? EarliestNeededDate { get; set; }
+
         // Display properties
         public string RequiredAmountDisplay => $"{RequiredAmount:F2} {Unit}";
         public string CurrentAmountDisplay => $"{CurrentAmount:F2} {Unit}";
         public string NeededAmountDisplay => $"{NeededAmount:F2} {Unit}";
+        public string NeededByDisplay => EarliestNeededDate.HasValue 
+            ? EarliestNeededDate.Value.ToString("MMM dd") 
+            : "Unknown";
+        public string PriorityBadge => IsNeededSoon ? "badge bg-danger" : "badge bg-secondary";
+        public string PriorityText => IsNeededSoon ? "?? Urgent" : "Later";
     }
 
     public class GenerateGroceryListViewModel
@@ -187,5 +198,18 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         public double FreshPercentage => TotalItems > 0 ? (double)FreshItems / TotalItems * 100 : 0;
         public double ExpiringPercentage => TotalItems > 0 ? (double)ExpiringItems / TotalItems * 100 : 0;
         public double ExpiredPercentage => TotalItems > 0 ? (double)ExpiredItems / TotalItems * 100 : 0;
+    }
+
+    public class SyncFridgeViewModel
+    {
+        public Guid MealPlanId { get; set; }
+        public Dictionary<Guid, PurchasedIngredientViewModel> PurchasedIngredients { get; set; } = new Dictionary<Guid, PurchasedIngredientViewModel>();
+    }
+
+    public class PurchasedIngredientViewModel
+    {
+        public Guid IngredientId { get; set; }
+        public float Amount { get; set; }
+        public bool IsPurchased { get; set; }
     }
 }
