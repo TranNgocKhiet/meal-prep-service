@@ -149,6 +149,15 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
 
         [Display(Name = "Needed By")]
         public DateTime? EarliestNeededDate { get; set; }
+        
+        // Editable properties for purchase
+        [Display(Name = "Purchase Quantity")]
+        [Range(0.01, 10000, ErrorMessage = "Amount must be between 0.01 and 10000")]
+        public float PurchaseAmount { get; set; }
+        
+        [Display(Name = "Expiry Date")]
+        [DataType(DataType.Date)]
+        public DateTime PurchaseExpiryDate { get; set; } = DateTime.Today.AddDays(7);
 
         // Display properties
         public string RequiredAmountDisplay => $"{RequiredAmount:F2} {Unit}";
@@ -209,7 +218,17 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
     public class PurchasedIngredientViewModel
     {
         public Guid IngredientId { get; set; }
+        
+        [Required]
+        [Range(0.01, 10000, ErrorMessage = "Amount must be between 0.01 and 10000")]
         public float Amount { get; set; }
+        
         public bool IsPurchased { get; set; }
+        
+        [Required]
+        [DataType(DataType.Date)]
+        public DateTime ExpiryDate { get; set; } = DateTime.Today.AddDays(7);
+        
+        public string Unit { get; set; } = string.Empty;
     }
 }

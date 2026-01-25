@@ -481,7 +481,10 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
                 // Get current fridge items
                 var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
-                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => f);
+                // Group by both IngredientId and ExpiryDate to treat same ingredient with different expiry dates as separate items
+                var fridgeInventory = fridgeItems
+                    .GroupBy(f => new { f.IngredientId, ExpiryDate = f.ExpiryDate.Date })
+                    .ToDictionary(g => g.Key, g => g.First());
 
                 int itemsAdded = 0;
                 int itemsUpdated = 0;
@@ -496,20 +499,27 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                         continue;
                     }
 
-                    if (fridgeInventory.ContainsKey(purchasedItem.IngredientId))
+                    var expiryDate = purchasedItem.ExpiryDate != default(DateTime) 
+                        ? purchasedItem.ExpiryDate 
+                        : DateTime.Today.AddDays(7); // Fallback to default 7 days expiry
+                    
+                    // Check if item exists with the same ingredient AND expiry date
+                    var inventoryKey = new { IngredientId = purchasedItem.IngredientId, ExpiryDate = expiryDate.Date };
+
+                    if (fridgeInventory.ContainsKey(inventoryKey))
                     {
-                        // Update existing fridge item
-                        var existingItem = fridgeInventory[purchasedItem.IngredientId];
+                        // Update existing fridge item with same expiry date
+                        var existingItem = fridgeInventory[inventoryKey];
                         var newAmount = existingItem.CurrentAmount + purchasedItem.Amount;
                         await _fridgeService.UpdateItemQuantityAsync(existingItem.Id, newAmount);
                         itemsUpdated++;
                         
-                        _logger.LogInformation("Updated fridge item {IngredientName} from {OldAmount} to {NewAmount} for account {AccountId}",
-                            ingredient.IngredientName, existingItem.CurrentAmount, newAmount, accountId);
+                        _logger.LogInformation("Updated fridge item {IngredientName} (Expiry: {ExpiryDate}) from {OldAmount} to {NewAmount} for account {AccountId}",
+                            ingredient.IngredientName, expiryDate.ToShortDateString(), existingItem.CurrentAmount, newAmount, accountId);
                     }
                     else
                     {
-                        // Add new fridge item with a default expiry date
+                        // Add new fridge item with the expiry date from the form
                         var fridgeItemDto = new FridgeItemDto
                         {
                             AccountId = accountId,
@@ -517,14 +527,14 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                             IngredientName = ingredient.IngredientName,
                             Unit = ingredient.Unit,
                             CurrentAmount = purchasedItem.Amount,
-                            ExpiryDate = DateTime.Today.AddDays(7) // Default 7 days expiry
+                            ExpiryDate = expiryDate
                         };
                         
                         await _fridgeService.AddItemAsync(fridgeItemDto);
                         itemsAdded++;
                         
-                        _logger.LogInformation("Added new fridge item {IngredientName} with amount {Amount} for account {AccountId}",
-                            ingredient.IngredientName, purchasedItem.Amount, accountId);
+                        _logger.LogInformation("Added new fridge item {IngredientName} with amount {Amount} and expiry date {ExpiryDate} for account {AccountId}",
+                            ingredient.IngredientName, purchasedItem.Amount, expiryDate, accountId);
                     }
                 }
 
