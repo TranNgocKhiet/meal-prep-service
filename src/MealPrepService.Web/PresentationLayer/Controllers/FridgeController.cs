@@ -183,6 +183,79 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             }
         }
 
+        // POST: Fridge/UpdateItem - Update fridge item (quantity and/or expiry date)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateItem(UpdateFridgeItemViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Invalid input values.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var accountId = GetCurrentAccountId();
+                var fridgeItem = await _fridgeService.GetFridgeItemsAsync(accountId);
+                var item = fridgeItem.FirstOrDefault(f => f.Id == model.FridgeItemId);
+                
+                if (item == null)
+                {
+                    TempData["ErrorMessage"] = "Item not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                bool quantityChanged = Math.Abs(item.CurrentAmount - model.NewAmount) > 0.001f;
+                bool expiryChanged = item.ExpiryDate.Date != model.NewExpiryDate.Date;
+
+                if (!quantityChanged && !expiryChanged)
+                {
+                    TempData["InfoMessage"] = "No changes were made.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Update quantity if changed
+                if (quantityChanged)
+                {
+                    await _fridgeService.UpdateItemQuantityAsync(model.FridgeItemId, model.NewAmount);
+                    _logger.LogInformation("Fridge item {FridgeItemId} quantity updated from {OldAmount} to {NewAmount} for account {AccountId}", 
+                        model.FridgeItemId, item.CurrentAmount, model.NewAmount, accountId);
+                }
+
+                // Update expiry date if changed
+                if (expiryChanged)
+                {
+                    await _fridgeService.UpdateExpiryDateAsync(model.FridgeItemId, model.NewExpiryDate);
+                    _logger.LogInformation("Fridge item {FridgeItemId} expiry date updated from {OldDate} to {NewDate} for account {AccountId}", 
+                        model.FridgeItemId, item.ExpiryDate, model.NewExpiryDate, accountId);
+                }
+
+                // Build success message
+                var changes = new List<string>();
+                if (quantityChanged) changes.Add("quantity");
+                if (expiryChanged) changes.Add("expiry date");
+                
+                var changeText = string.Join(" and ", changes);
+                TempData["SuccessMessage"] = $"{model.IngredientName} {changeText} updated successfully!" + 
+                    (expiryChanged ? " Items with matching expiry dates have been merged." : "");
+                
+                return RedirectToAction(nameof(Index));
+            }
+            catch (BusinessException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating fridge item {FridgeItemId} for account {AccountId}", 
+                    model.FridgeItemId, GetCurrentAccountId());
+                TempData["ErrorMessage"] = "An error occurred while updating the item. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
         // POST: Fridge/UpdateQuantity - Update fridge item quantity
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -214,6 +287,41 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 _logger.LogError(ex, "Error occurred while updating fridge item quantity {FridgeItemId} for account {AccountId}", 
                     model.FridgeItemId, GetCurrentAccountId());
                 TempData["ErrorMessage"] = "An error occurred while updating the quantity. Please try again.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: Fridge/UpdateExpiryDate - Update fridge item expiry date
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateExpiryDate(UpdateExpiryDateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Invalid expiry date value.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                await _fridgeService.UpdateExpiryDateAsync(model.FridgeItemId, model.NewExpiryDate);
+                
+                _logger.LogInformation("Fridge item {FridgeItemId} expiry date updated to {NewExpiryDate} for account {AccountId}", 
+                    model.FridgeItemId, model.NewExpiryDate, GetCurrentAccountId());
+                
+                TempData["SuccessMessage"] = $"{model.IngredientName} expiry date updated successfully! Duplicate items with the same expiry date have been merged.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (BusinessException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating fridge item expiry date {FridgeItemId} for account {AccountId}", 
+                    model.FridgeItemId, GetCurrentAccountId());
+                TempData["ErrorMessage"] = "An error occurred while updating the expiry date. Please try again.";
                 return RedirectToAction(nameof(Index));
             }
         }

@@ -7,6 +7,7 @@ namespace MealPrepService.BusinessLogicLayer.Interfaces
         Task<IEnumerable<FridgeItemDto>> GetFridgeItemsAsync(Guid accountId);
         Task<FridgeItemDto> AddItemAsync(FridgeItemDto dto);
         Task UpdateItemQuantityAsync(Guid itemId, float newQuantity);
+        Task UpdateExpiryDateAsync(Guid itemId, DateTime newExpiryDate);
         Task RemoveItemAsync(Guid itemId);
         Task<IEnumerable<FridgeItemDto>> GetExpiringItemsAsync(Guid accountId);
         Task<GroceryListDto> GenerateGroceryListAsync(Guid accountId, Guid planId);
