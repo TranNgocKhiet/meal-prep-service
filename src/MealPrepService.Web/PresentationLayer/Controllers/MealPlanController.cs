@@ -187,10 +187,12 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
         // GET: MealPlan/AddMeal/{planId} - Show add meal form
         [HttpGet]
-        public async Task<IActionResult> AddMeal(Guid planId, string searchTerm = "")
+        public async Task<IActionResult> AddMeal(Guid planId, string searchTerm = "", bool showAll = false, int page = 1)
         {
             try
             {
+                const int pageSize = 30;
+                
                 var mealPlan = await _mealPlanService.GetByIdAsync(planId);
                 
                 if (mealPlan == null)
@@ -207,22 +209,46 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return Forbid("You don't have permission to modify this meal plan.");
                 }
 
-                // Only load recipes if search term is provided
+                // Load recipes if search term is provided OR showAll is true
                 var recipes = new List<RecipeDto>();
-                if (!string.IsNullOrWhiteSpace(searchTerm))
+                if (!string.IsNullOrWhiteSpace(searchTerm) || showAll)
                 {
                     var allRecipes = await _recipeService.GetAllWithIngredientsAsync();
-                    recipes = allRecipes
-                        .Where(r => r.RecipeName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
+                    
+                    // Apply search filter only if search term is provided
+                    if (!string.IsNullOrWhiteSpace(searchTerm))
+                    {
+                        recipes = allRecipes
+                            .Where(r => r.RecipeName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                            .ToList();
+                    }
+                    else if (showAll)
+                    {
+                        recipes = allRecipes.ToList();
+                    }
                 }
+
+                // Calculate pagination
+                var totalItems = recipes.Count;
+                var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+                
+                var pagedRecipes = recipes
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
                 
                 var viewModel = new AddMealToPlanViewModel
                 {
                     PlanId = planId,
                     ServeDate = mealPlan.StartDate,
                     SearchTerm = searchTerm,
-                    AvailableRecipes = recipes.Select(r => new RecipeSelectionViewModel
+                    ShowAll = showAll,
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    PageSize = pageSize,
+                    TotalItems = totalItems,
+                    AvailableRecipes = pagedRecipes.Select(r => new RecipeSelectionViewModel
                     {
                         Id = r.Id,
                         RecipeName = r.RecipeName,

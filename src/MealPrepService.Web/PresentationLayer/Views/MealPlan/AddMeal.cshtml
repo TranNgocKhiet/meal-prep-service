@@ -75,28 +75,30 @@
                                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                                     <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
                                 </svg>
-                                Search for recipes by name to add to your meal. Select one or more recipes and view their ingredients.
+                                Search for recipes by name to add to your meal, or click "Show All" to browse all available recipes.
                             </div>
                     </form>
 
                     <!-- Search Form (separate from main form) -->
                     <form asp-action="AddMeal" method="get" class="mb-4">
                         <input type="hidden" name="planId" value="@Model.PlanId" />
-                        <div class="input-group">
-                            <input type="text" 
-                                   name="searchTerm" 
-                                   class="form-control form-control-lg" 
-                                   placeholder="Search recipes by name..." 
-                                   value="@Model.SearchTerm"
-                                   autofocus />
-                            <button type="submit" class="btn btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search me-1" viewBox="0 0 16 16">
-                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                                </svg>
-                                Search
-                            </button>
-                            @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
-                            {
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="searchTerm" class="form-label">Search Recipes</label>
+                                <input type="text" 
+                                       name="searchTerm" 
+                                       class="form-control form-control-lg" 
+                                       placeholder="Search recipes by name..." 
+                                       value="@Model.SearchTerm"
+                                       autofocus />
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search me-1" viewBox="0 0 16 16">
+                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                    </svg>
+                                    Search
+                                </button>
                                 <a asp-action="AddMeal" asp-route-planId="@Model.PlanId" class="btn btn-secondary">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle me-1" viewBox="0 0 16 16">
                                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
@@ -104,21 +106,34 @@
                                     </svg>
                                     Clear
                                 </a>
-                            }
+                                <a asp-action="AddMeal" asp-route-planId="@Model.PlanId" asp-route-showAll="true" class="btn btn-success">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul me-1" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                                    </svg>
+                                    Show All
+                                </a>
+                            </div>
                         </div>
                     </form>
 
                     <!-- Recipe Results Section -->
-                    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.ShowAll)
                     {
-                        @if (Model.AvailableRecipes.Any())
+                        @if (Model.HasRecipes)
                         {
-                            <div class="alert alert-success">
+                            <div class="alert alert-success mb-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle me-2" viewBox="0 0 16 16">
                                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                                     <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
                                 </svg>
-                                Found <strong>@Model.AvailableRecipes.Count</strong> recipe@(Model.AvailableRecipes.Count != 1 ? "s" : "") matching "@Model.SearchTerm"
+                                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                                {
+                                    <text>Found <strong>@Model.TotalItems</strong> recipe@(Model.TotalItems != 1 ? "s" : "") matching "@Model.SearchTerm"</text>
+                                }
+                                else
+                                {
+                                    <text>Showing <strong>@Model.TotalItems</strong> recipe@(Model.TotalItems != 1 ? "s" : "")</text>
+                                }
                             </div>
 
                             <div class="row" id="recipeGrid">
@@ -193,6 +208,65 @@
                                     </div>
                                 }
                             </div>
+                            
+                            <!-- Pagination -->
+                            @if (Model.TotalPages > 1)
+                            {
+                                <nav aria-label="Page navigation" class="mt-4">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                                            <a class="page-link" asp-action="AddMeal" 
+                                               asp-route-planId="@Model.PlanId"
+                                               asp-route-searchTerm="@Model.SearchTerm" 
+                                               asp-route-showAll="@Model.ShowAll"
+                                               asp-route-page="@(Model.CurrentPage - 1)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                                                    <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+                                                </svg>
+                                                Previous
+                                            </a>
+                                        </li>
+                                        
+                                        @for (int i = 1; i <= Model.TotalPages; i++)
+                                        {
+                                            if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 2 && i <= Model.CurrentPage + 2))
+                                            {
+                                                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                                    <a class="page-link" asp-action="AddMeal" 
+                                                       asp-route-planId="@Model.PlanId"
+                                                       asp-route-searchTerm="@Model.SearchTerm" 
+                                                       asp-route-showAll="@Model.ShowAll"
+                                                       asp-route-page="@i">
+                                                        @i
+                                                    </a>
+                                                </li>
+                                            }
+                                            else if (i == Model.CurrentPage - 3 || i == Model.CurrentPage + 3)
+                                            {
+                                                <li class="page-item disabled">
+                                                    <span class="page-link">...</span>
+                                                </li>
+                                            }
+                                        }
+                                        
+                                        <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                                            <a class="page-link" asp-action="AddMeal" 
+                                               asp-route-planId="@Model.PlanId"
+                                               asp-route-searchTerm="@Model.SearchTerm" 
+                                               asp-route-showAll="@Model.ShowAll"
+                                               asp-route-page="@(Model.CurrentPage + 1)">
+                                                Next
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                                                    <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                                                </svg>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                    <p class="text-center text-muted">
+                                        Showing @((Model.CurrentPage - 1) * Model.PageSize + 1) to @Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems) of @Model.TotalItems recipes
+                                    </p>
+                                </nav>
+                            }
                         }
                         else
                         {
@@ -212,7 +286,7 @@
                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                             </svg>
                             <h5 class="text-muted">Search for recipes to add to your meal</h5>
-                            <p class="text-muted">Enter a recipe name in the search box above to get started.</p>
+                            <p class="text-muted">Enter a recipe name in the search box above or click "Show All" to browse all recipes.</p>
                         </div>
                     }
                 </div>
