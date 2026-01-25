@@ -12,15 +12,18 @@ namespace MealPrepService.BusinessLogicLayer.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<MealPlanService> _logger;
         private readonly IAIRecommendationService _aiRecommendationService;
+        private readonly ISystemConfigurationService _systemConfigService;
 
         public MealPlanService(
             IUnitOfWork unitOfWork,
             ILogger<MealPlanService> logger,
-            IAIRecommendationService aiRecommendationService)
+            IAIRecommendationService aiRecommendationService,
+            ISystemConfigurationService systemConfigService)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _aiRecommendationService = aiRecommendationService ?? throw new ArgumentNullException(nameof(aiRecommendationService));
+            _systemConfigService = systemConfigService ?? throw new ArgumentNullException(nameof(systemConfigService));
         }
 
         public async Task<MealPlanDto> CreateManualMealPlanAsync(MealPlanDto dto)
@@ -28,6 +31,14 @@ namespace MealPrepService.BusinessLogicLayer.Services
             if (dto == null)
             {
                 throw new ArgumentNullException(nameof(dto));
+            }
+
+            // Check meal plan limit
+            var maxMealPlans = await _systemConfigService.GetMaxMealPlansPerCustomerAsync();
+            var existingPlans = await _unitOfWork.MealPlans.GetByAccountIdAsync(dto.AccountId);
+            if (existingPlans.Count() >= maxMealPlans)
+            {
+                throw new BusinessException($"You have reached the maximum limit of {maxMealPlans} meal plans. Please delete an existing plan before creating a new one.");
             }
 
             // Validate required fields
@@ -363,6 +374,14 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
         public async Task<MealPlanDto> GenerateAiMealPlanAsync(Guid accountId, DateTime startDate, DateTime endDate, string? customPlanName)
         {
+            // Check meal plan limit
+            var maxMealPlans = await _systemConfigService.GetMaxMealPlansPerCustomerAsync();
+            var existingPlans = await _unitOfWork.MealPlans.GetByAccountIdAsync(accountId);
+            if (existingPlans.Count() >= maxMealPlans)
+            {
+                throw new BusinessException($"You have reached the maximum limit of {maxMealPlans} meal plans. Please delete an existing plan before creating a new one.");
+            }
+
             // Validate date range
             if (endDate < startDate)
             {

@@ -9,6 +9,7 @@ namespace MealPrepService.BusinessLogicLayer.Interfaces
     {
         Task<RecipeDto> CreateRecipeAsync(CreateRecipeDto dto);
         Task<RecipeDto> GetByIdAsync(Guid recipeId);
+        Task<RecipeDto> GetByIdWithIngredientsAsync(Guid recipeId);
         Task<IEnumerable<RecipeDto>> GetAllAsync();
         Task<IEnumerable<RecipeDto>> GetAllWithIngredientsAsync();
         Task<RecipeDto> UpdateRecipeAsync(Guid recipeId, UpdateRecipeDto dto);

@@ -43,6 +43,9 @@ public class DbSeeder
             // Seed admin account if not exists
             await SeedAdminAccountAsync();
 
+            // Seed system configuration defaults
+            await SeedSystemConfigurationAsync();
+
             // Import dataset from Excel files if available
             await ImportDatasetAsync();
 
@@ -80,6 +83,42 @@ public class DbSeeder
 
         await _context.Accounts.AddAsync(adminAccount);
         _logger.LogInformation("Admin account seeded: {Email}", adminAccount.Email);
+    }
+
+    private async Task SeedSystemConfigurationAsync()
+    {
+        if (await _context.SystemConfigurations.AnyAsync())
+        {
+            _logger.LogInformation("System configuration already exists, skipping seed");
+            return;
+        }
+
+        var configs = new[]
+        {
+            new SystemConfiguration
+            {
+                Id = Guid.NewGuid(),
+                ConfigKey = "MaxMealPlansPerCustomer",
+                ConfigValue = "5",
+                Description = "Maximum number of meal plans each customer can have",
+                UpdatedBy = "System",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new SystemConfiguration
+            {
+                Id = Guid.NewGuid(),
+                ConfigKey = "MaxFridgeItemsPerCustomer",
+                ConfigValue = "100",
+                Description = "Maximum number of items each customer can have in their fridge",
+                UpdatedBy = "System",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
+
+        await _context.SystemConfigurations.AddRangeAsync(configs);
+        _logger.LogInformation("System configuration defaults seeded");
     }
 
     private async Task ImportDatasetAsync()

@@ -29,6 +29,14 @@
         </div>
     }
 
+    @if (User.Identity.IsAuthenticated && User.IsInRole("Customer"))
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 
+            <strong>Note:</strong> Order and delivery features will be available in Checkpoint 2.
+        </div>
+    }
+
     @if (Model.DailyMenus.Any())
     {
         @foreach (var dailyMenu in Model.DailyMenus)
@@ -73,25 +81,17 @@
                                                 </div>
                                                 @if (User.Identity.IsAuthenticated && User.IsInRole("Customer"))
                                                 {
-                                                    <a asp-controller="Order" asp-action="Create" asp-route-menuDate="@dailyMenu.MenuDate" class="btn btn-sm btn-primary">
-                                                        Order
-                                                    </a>
+                                                    <button class="btn btn-sm btn-secondary" disabled title="Order feature coming in Checkpoint 2">
+                                                        Order (Soon)
+                                                    </button>
                                                 }
+                                                @* No order button for Admin, Manager, or DeliveryMan *@
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             }
                         </div>
-
-                        @if (User.Identity.IsAuthenticated && User.IsInRole("Customer"))
-                        {
-                            <div class="text-end mt-2">
-                                <a asp-controller="Order" asp-action="Create" asp-route-menuDate="@dailyMenu.MenuDate" class="btn btn-primary">
-                                    <i class="bi bi-cart-plus"></i> Order from this day
-                                </a>
-                            </div>
-                        }
                     }
                     else
                     {

@@ -192,6 +192,9 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         // For display purposes
         public List<RecipeSelectionViewModel> AvailableRecipes { get; set; } = new List<RecipeSelectionViewModel>();
         
+        [Display(Name = "Search Recipes")]
+        public string SearchTerm { get; set; } = string.Empty;
+        
         public static List<string> MealTypeOptions => MealViewModel.MealTypeOptions;
     }
 

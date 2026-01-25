@@ -344,6 +344,60 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             }
         }
 
+        // POST: Menu/Deactivate/{menuId} - Deactivate menu
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Deactivate(Guid menuId)
+        {
+            try
+            {
+                await _menuService.DeactivateMenuAsync(menuId);
+                
+                _logger.LogInformation("Menu {MenuId} deactivated successfully", menuId);
+                
+                TempData["SuccessMessage"] = "Menu deactivated successfully! It will no longer appear in public menus.";
+                return RedirectToAction(nameof(Details), new { id = menuId });
+            }
+            catch (BusinessException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id = menuId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deactivating menu {MenuId}", menuId);
+                TempData["ErrorMessage"] = "An error occurred while deactivating the menu. Please try again.";
+                return RedirectToAction(nameof(Details), new { id = menuId });
+            }
+        }
+
+        // POST: Menu/Reactivate/{menuId} - Reactivate menu
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reactivate(Guid menuId)
+        {
+            try
+            {
+                await _menuService.ReactivateMenuAsync(menuId);
+                
+                _logger.LogInformation("Menu {MenuId} reactivated successfully", menuId);
+                
+                TempData["SuccessMessage"] = "Menu reactivated successfully! It will now appear in public menus.";
+                return RedirectToAction(nameof(Details), new { id = menuId });
+            }
+            catch (BusinessException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id = menuId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while reactivating menu {MenuId}", menuId);
+                TempData["ErrorMessage"] = "An error occurred while reactivating the menu. Please try again.";
+                return RedirectToAction(nameof(Details), new { id = menuId });
+            }
+        }
+
         // GET: Menu/UpdateQuantity/{menuMealId} - Show update quantity form
         [HttpGet]
         public async Task<IActionResult> UpdateQuantity(Guid menuMealId)

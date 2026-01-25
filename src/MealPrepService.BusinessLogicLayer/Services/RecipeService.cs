@@ -69,6 +69,18 @@ namespace MealPrepService.BusinessLogicLayer.Services
             return MapToDto(recipe);
         }
 
+        public async Task<RecipeDto> GetByIdWithIngredientsAsync(Guid recipeId)
+        {
+            var recipe = await _unitOfWork.Recipes.GetByIdWithIngredientsAsync(recipeId);
+            
+            if (recipe == null)
+            {
+                throw new BusinessException("Recipe not found");
+            }
+
+            return MapToDtoWithIngredients(recipe);
+        }
+
         public async Task<IEnumerable<RecipeDto>> GetAllAsync()
         {
             var recipes = await _unitOfWork.Recipes.GetAllAsync();

@@ -161,17 +161,19 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
         // GET: PublicMenu/NextWeek - Navigate to next week
         [HttpGet]
-        public IActionResult NextWeek(DateTime currentWeekStart)
+        public IActionResult NextWeek(DateTime? currentWeekStart)
         {
-            var nextWeekStart = currentWeekStart.AddDays(7);
+            var weekStart = currentWeekStart ?? GetStartOfWeek(DateTime.Today);
+            var nextWeekStart = weekStart.AddDays(7);
             return RedirectToAction(nameof(Weekly), new { startDate = nextWeekStart });
         }
 
         // GET: PublicMenu/PreviousWeek - Navigate to previous week
         [HttpGet]
-        public IActionResult PreviousWeek(DateTime currentWeekStart)
+        public IActionResult PreviousWeek(DateTime? currentWeekStart)
         {
-                var previousWeekStart = currentWeekStart.AddDays(-7);
+            var weekStart = currentWeekStart ?? GetStartOfWeek(DateTime.Today);
+            var previousWeekStart = weekStart.AddDays(-7);
             return RedirectToAction(nameof(Weekly), new { startDate = previousWeekStart });
         }
 

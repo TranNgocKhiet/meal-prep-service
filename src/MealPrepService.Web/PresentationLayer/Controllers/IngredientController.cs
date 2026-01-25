@@ -26,32 +26,55 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
         // GET: Ingredient/Index - List all ingredients
         [HttpGet]
-        public async Task<IActionResult> Index(string searchTerm = "", bool? showOnlyAllergens = null)
+        public async Task<IActionResult> Index(string searchTerm = "", bool? showOnlyAllergens = null, bool showAll = false, int page = 1)
         {
             try
             {
-                var ingredientDtos = await _ingredientService.GetAllAsync();
-                var ingredients = ingredientDtos.Select(MapToViewModel).ToList();
+                const int pageSize = 30;
+                var ingredients = new List<IngredientViewModel>();
 
-                // Apply filters
-                if (!string.IsNullOrWhiteSpace(searchTerm))
+                // Load ingredients if search term is provided OR showAll is true
+                if (!string.IsNullOrWhiteSpace(searchTerm) || showAll)
                 {
-                    ingredients = ingredients.Where(i => 
-                        i.IngredientName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        i.Unit.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
+                    var ingredientDtos = await _ingredientService.GetAllAsync();
+                    ingredients = ingredientDtos.Select(MapToViewModel).ToList();
+
+                    // Apply search filter only if search term is provided
+                    if (!string.IsNullOrWhiteSpace(searchTerm))
+                    {
+                        ingredients = ingredients.Where(i => 
+                            i.IngredientName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                            i.Unit.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                            .ToList();
+                    }
+
+                    if (showOnlyAllergens.HasValue)
+                    {
+                        ingredients = ingredients.Where(i => i.IsAllergen == showOnlyAllergens.Value).ToList();
+                    }
                 }
 
-                if (showOnlyAllergens.HasValue)
-                {
-                    ingredients = ingredients.Where(i => i.IsAllergen == showOnlyAllergens.Value).ToList();
-                }
+                // Calculate pagination
+                var totalItems = ingredients.Count;
+                var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+                
+                var pagedIngredients = ingredients
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
 
                 var viewModel = new IngredientListViewModel
                 {
-                    Ingredients = ingredients,
+                    Ingredients = pagedIngredients,
                     SearchTerm = searchTerm,
-                    ShowOnlyAllergens = showOnlyAllergens
+                    ShowOnlyAllergens = showOnlyAllergens,
+                    ShowAll = showAll,
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    PageSize = pageSize,
+                    TotalItems = totalItems,
+                    AllIngredients = ingredients // For statistics
                 };
 
                 return View(viewModel);

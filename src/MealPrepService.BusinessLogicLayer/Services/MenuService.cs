@@ -146,6 +146,67 @@ namespace MealPrepService.BusinessLogicLayer.Services
             _logger.LogInformation("Menu {MenuId} published for date {MenuDate}", menuId, menu.MenuDate);
         }
 
+        public async Task DeactivateMenuAsync(Guid menuId)
+        {
+            var menu = await _unitOfWork.DailyMenus.GetByIdAsync(menuId);
+            if (menu == null)
+            {
+                throw new BusinessException($"Menu with ID {menuId} not found");
+            }
+
+            if (menu.Status == "inactive")
+            {
+                throw new BusinessException("Menu is already inactive");
+            }
+
+            if (menu.Status == "draft")
+            {
+                throw new BusinessException("Cannot deactivate a draft menu. Please publish it first.");
+            }
+
+            menu.Status = "inactive";
+            menu.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.DailyMenus.UpdateAsync(menu);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Menu {MenuId} deactivated for date {MenuDate}", menuId, menu.MenuDate);
+        }
+
+        public async Task ReactivateMenuAsync(Guid menuId)
+        {
+            var menu = await _unitOfWork.DailyMenus.GetByIdAsync(menuId);
+            if (menu == null)
+            {
+                throw new BusinessException($"Menu with ID {menuId} not found");
+            }
+
+            if (menu.Status == "active")
+            {
+                throw new BusinessException("Menu is already active");
+            }
+
+            if (menu.Status == "draft")
+            {
+                throw new BusinessException("Cannot reactivate a draft menu. Please publish it first.");
+            }
+
+            // Validate menu has at least one meal
+            var menuWithMeals = await _unitOfWork.DailyMenus.GetWithMealsAsync(menuId);
+            if (menuWithMeals?.MenuMeals == null || !menuWithMeals.MenuMeals.Any())
+            {
+                throw new BusinessException("Cannot reactivate menu without meals");
+            }
+
+            menu.Status = "active";
+            menu.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.DailyMenus.UpdateAsync(menu);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Menu {MenuId} reactivated for date {MenuDate}", menuId, menu.MenuDate);
+        }
+
         public async Task UpdateMealQuantityAsync(Guid menuMealId, int newQuantity)
         {
             if (newQuantity < 0)

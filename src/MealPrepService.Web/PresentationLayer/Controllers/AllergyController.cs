@@ -21,24 +21,67 @@ public class AllergyController : Controller
 
     // GET: Allergy/Index
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string searchTerm = "", bool showAll = false, int page = 1)
     {
         try
         {
-            var allergies = await _allergyService.GetAllAsync();
-            var viewModels = allergies.Select(a => new AllergyViewModel
-            {
-                Id = a.Id,
-                AllergyName = a.AllergyName
-            }).ToList();
+            const int pageSize = 30;
+            var viewModels = new List<AllergyViewModel>();
 
-            return View(viewModels);
+            // Load allergies if search term is provided OR showAll is true
+            if (!string.IsNullOrWhiteSpace(searchTerm) || showAll)
+            {
+                var allergies = await _allergyService.GetAllAsync();
+                
+                // Apply search filter only if search term is provided
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    viewModels = allergies
+                        .Where(a => a.AllergyName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                        .Select(a => new AllergyViewModel
+                        {
+                            Id = a.Id,
+                            AllergyName = a.AllergyName
+                        }).ToList();
+                }
+                else
+                {
+                    viewModels = allergies.Select(a => new AllergyViewModel
+                    {
+                        Id = a.Id,
+                        AllergyName = a.AllergyName
+                    }).ToList();
+                }
+            }
+
+            // Calculate pagination
+            var totalItems = viewModels.Count;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+            
+            var pagedAllergies = viewModels
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var listViewModel = new AllergyListViewModel
+            {
+                Allergies = pagedAllergies,
+                SearchTerm = searchTerm,
+                ShowAll = showAll,
+                CurrentPage = page,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                TotalItems = totalItems
+            };
+
+            return View(listViewModel);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving allergies");
             TempData["ErrorMessage"] = "An error occurred while loading allergies.";
-            return View(new List<AllergyViewModel>());
+            return View(new AllergyListViewModel());
         }
     }
 

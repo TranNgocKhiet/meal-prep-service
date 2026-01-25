@@ -187,7 +187,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
         // GET: MealPlan/AddMeal/{planId} - Show add meal form
         [HttpGet]
-        public async Task<IActionResult> AddMeal(Guid planId)
+        public async Task<IActionResult> AddMeal(Guid planId, string searchTerm = "")
         {
             try
             {
@@ -207,12 +207,21 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return Forbid("You don't have permission to modify this meal plan.");
                 }
 
-                var recipes = await _recipeService.GetAllWithIngredientsAsync();
+                // Only load recipes if search term is provided
+                var recipes = new List<RecipeDto>();
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    var allRecipes = await _recipeService.GetAllWithIngredientsAsync();
+                    recipes = allRecipes
+                        .Where(r => r.RecipeName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
                 
                 var viewModel = new AddMealToPlanViewModel
                 {
                     PlanId = planId,
                     ServeDate = mealPlan.StartDate,
+                    SearchTerm = searchTerm,
                     AvailableRecipes = recipes.Select(r => new RecipeSelectionViewModel
                     {
                         Id = r.Id,

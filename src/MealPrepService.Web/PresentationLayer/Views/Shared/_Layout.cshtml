@@ -33,14 +33,15 @@
                         @if (User.IsInRole("Customer"))
                         {
                             <li class="nav-item">
+                                <a class="nav-link" asp-controller="HealthProfile" asp-action="Index">Health Profile</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" asp-controller="MealPlan" asp-action="Index">My Meal Plans</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Fridge" asp-action="Index">My Fridge</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Order" asp-action="Index">My Orders</a>
-                            </li>
+                            @* My Orders removed - deferred to Checkpoint 2 *@
                         }
                         
                         @if (User.IsInRole("Manager"))
@@ -77,8 +78,9 @@
                                     <li><a class="dropdown-item" asp-controller="Admin" asp-action="Revenue">
                                         <i class="bi bi-graph-up me-2"></i>Revenue Reports
                                     </a></li>
-                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="AIConfiguration">
-                                        <i class="bi bi-cpu me-2"></i>AI Configuration
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="SystemConfiguration">
+                                        <i class="bi bi-gear me-2"></i>System Configuration
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" asp-controller="Menu" asp-action="Index">

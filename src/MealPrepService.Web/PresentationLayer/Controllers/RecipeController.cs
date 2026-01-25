@@ -29,32 +29,54 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
         // GET: Recipe/Index - List all recipes
         [HttpGet]
-        public async Task<IActionResult> Index(string searchTerm = "", bool showOnlyWithIngredients = false)
+        public async Task<IActionResult> Index(string searchTerm = "", bool showOnlyWithIngredients = false, bool showAll = false, int page = 1)
         {
             try
             {
-                var recipeDtos = await _recipeService.GetAllAsync();
-                var recipes = recipeDtos.Select(MapToViewModel).ToList();
+                const int pageSize = 30;
+                var recipes = new List<RecipeViewModel>();
 
-                // Apply filters
-                if (!string.IsNullOrWhiteSpace(searchTerm))
+                // Load recipes if search term is provided OR showAll is true
+                if (!string.IsNullOrWhiteSpace(searchTerm) || showAll)
                 {
-                    recipes = recipes.Where(r => 
-                        r.RecipeName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        r.Instructions.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
+                    var recipeDtos = await _recipeService.GetAllAsync();
+                    recipes = recipeDtos.Select(MapToViewModel).ToList();
+
+                    // Apply search filter only if search term is provided
+                    if (!string.IsNullOrWhiteSpace(searchTerm))
+                    {
+                        recipes = recipes.Where(r => 
+                            r.RecipeName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                            r.Instructions.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                            .ToList();
+                    }
+
+                    if (showOnlyWithIngredients)
+                    {
+                        recipes = recipes.Where(r => r.Ingredients.Any()).ToList();
+                    }
                 }
 
-                if (showOnlyWithIngredients)
-                {
-                    recipes = recipes.Where(r => r.Ingredients.Any()).ToList();
-                }
+                // Calculate pagination
+                var totalItems = recipes.Count;
+                var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+                page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+                
+                var pagedRecipes = recipes
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
 
                 var viewModel = new RecipeListViewModel
                 {
-                    Recipes = recipes,
+                    Recipes = pagedRecipes,
                     SearchTerm = searchTerm,
-                    ShowOnlyWithIngredients = showOnlyWithIngredients
+                    ShowOnlyWithIngredients = showOnlyWithIngredients,
+                    ShowAll = showAll,
+                    CurrentPage = page,
+                    TotalPages = totalPages,
+                    PageSize = pageSize,
+                    TotalItems = totalItems
                 };
 
                 return View(viewModel);
@@ -73,14 +95,14 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
         {
             try
             {
-                var recipeDto = await _recipeService.GetByIdAsync(id);
+                var recipeDto = await _recipeService.GetByIdWithIngredientsAsync(id);
                 
                 if (recipeDto == null)
                 {
                     return NotFound("Recipe not found.");
                 }
 
-                var viewModel = MapToViewModel(recipeDto);
+                var viewModel = MapToViewModelWithIngredients(recipeDto);
                 
                 return View(viewModel);
             }
@@ -440,6 +462,30 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 FatG = dto.FatG,
                 CarbsG = dto.CarbsG,
                 Ingredients = new List<RecipeIngredientViewModel>() // TODO: Map ingredients when available
+            };
+        }
+
+        /// <summary>
+        /// Maps RecipeDto with ingredients to RecipeViewModel
+        /// </summary>
+        private RecipeViewModel MapToViewModelWithIngredients(RecipeDto dto)
+        {
+            return new RecipeViewModel
+            {
+                Id = dto.Id,
+                RecipeName = dto.RecipeName,
+                Instructions = dto.Instructions,
+                TotalCalories = dto.TotalCalories,
+                ProteinG = dto.ProteinG,
+                FatG = dto.FatG,
+                CarbsG = dto.CarbsG,
+                Ingredients = dto.Ingredients?.Select(i => new RecipeIngredientViewModel
+                {
+                    IngredientId = i.IngredientId,
+                    IngredientName = i.IngredientName,
+                    Amount = i.Amount,
+                    Unit = i.Unit
+                }).ToList() ?? new List<RecipeIngredientViewModel>()
             };
         }
 

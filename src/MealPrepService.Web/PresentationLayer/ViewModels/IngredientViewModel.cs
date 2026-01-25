@@ -91,15 +91,26 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
     public class IngredientListViewModel
     {
         public List<IngredientViewModel> Ingredients { get; set; } = new List<IngredientViewModel>();
+        public List<IngredientViewModel> AllIngredients { get; set; } = new List<IngredientViewModel>();
 
         public bool HasIngredients => Ingredients.Any();
-        public int TotalIngredients => Ingredients.Count;
-        public int AllergenCount => Ingredients.Count(i => i.IsAllergen);
-        public int SafeIngredientCount => Ingredients.Count(i => !i.IsAllergen);
+        public int TotalIngredients => AllIngredients.Count;
+        public int AllergenCount => AllIngredients.Count(i => i.IsAllergen);
+        public int SafeIngredientCount => AllIngredients.Count(i => !i.IsAllergen);
 
         // Filter properties
         public string SearchTerm { get; set; } = string.Empty;
         public bool? ShowOnlyAllergens { get; set; }
+        public bool ShowAll { get; set; }
+        
+        // Pagination properties
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages { get; set; } = 1;
+        public int PageSize { get; set; } = 30;
+        public int TotalItems { get; set; } = 0;
+        
+        public bool HasPreviousPage => CurrentPage > 1;
+        public bool HasNextPage => CurrentPage < TotalPages;
 
         // Statistics
         public string AllergenPercentage => TotalIngredients > 0 

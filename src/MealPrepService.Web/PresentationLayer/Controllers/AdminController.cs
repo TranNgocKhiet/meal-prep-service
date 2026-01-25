@@ -13,15 +13,18 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
     {
         private readonly IRevenueService _revenueService;
         private readonly IAccountService _accountService;
+        private readonly ISystemConfigurationService _systemConfigService;
         private readonly ILogger<AdminController> _logger;
 
         public AdminController(
             IRevenueService revenueService,
             IAccountService accountService,
+            ISystemConfigurationService systemConfigService,
             ILogger<AdminController> logger)
         {
             _revenueService = revenueService ?? throw new ArgumentNullException(nameof(revenueService));
             _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+            _systemConfigService = systemConfigService ?? throw new ArgumentNullException(nameof(systemConfigService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -218,85 +221,6 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 TempData["ErrorMessage"] = "An error occurred while generating the monthly report. Please try again.";
                 _logger.LogError(ex, "Unexpected error generating monthly report for {Year}-{Month}", year, month);
                 return RedirectToAction(nameof(Revenue), new { year });
-            }
-        }
-
-        // GET: Admin/AIConfiguration - Show AI configuration (stub)
-        [HttpGet]
-        public IActionResult AIConfiguration()
-        {
-            try
-            {
-                // Stub implementation for AI configuration
-                var viewModel = new AIConfigurationViewModel
-                {
-                    CurrentModelVersion = "v1.0.0",
-                    LastUpdated = DateTime.Now.AddDays(-7),
-                    AIFeaturesEnabled = true,
-                    MealPlanGenerationEnabled = true,
-                    NutritionCalculationEnabled = true,
-                    PriceAdjustmentEnabled = false,
-                    RecentOperations = new List<AIOperationLogViewModel>
-                    {
-                        new AIOperationLogViewModel
-                        {
-                            Timestamp = DateTime.Now.AddHours(-1),
-                            Operation = "Meal Plan Generation",
-                            Status = "Success",
-                            Details = "Generated meal plan for customer"
-                        },
-                        new AIOperationLogViewModel
-                        {
-                            Timestamp = DateTime.Now.AddHours(-3),
-                            Operation = "Nutrition Calculation",
-                            Status = "Success",
-                            Details = "Calculated nutrition for recipe"
-                        },
-                        new AIOperationLogViewModel
-                        {
-                            Timestamp = DateTime.Now.AddDays(-1),
-                            Operation = "Model Update",
-                            Status = "Success",
-                            Details = "Updated AI model to v1.0.0"
-                        }
-                    }
-                };
-
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while loading AI configuration");
-                TempData["ErrorMessage"] = "An error occurred while loading AI configuration.";
-                return View(new AIConfigurationViewModel());
-            }
-        }
-
-        // POST: Admin/UpdateAIConfiguration - Update AI configuration (stub)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult UpdateAIConfiguration(UpdateAIConfigurationViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                TempData["ErrorMessage"] = "Please correct the validation errors.";
-                return RedirectToAction(nameof(AIConfiguration));
-            }
-
-            try
-            {
-                // Stub implementation - in real implementation, this would update AI configuration
-                TempData["SuccessMessage"] = $"AI configuration updated successfully. Model version: {model.ModelVersion}";
-                _logger.LogInformation("AI configuration updated by admin {AdminId}. New model version: {ModelVersion}", 
-                    GetCurrentAccountId(), model.ModelVersion);
-                
-                return RedirectToAction(nameof(AIConfiguration));
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "An error occurred while updating AI configuration. Please try again.";
-                _logger.LogError(ex, "Unexpected error updating AI configuration");
-                return RedirectToAction(nameof(AIConfiguration));
             }
         }
 
@@ -558,6 +482,72 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 TempData["ErrorMessage"] = "An error occurred while deleting the account. Please try again.";
                 _logger.LogError(ex, "Unexpected error deleting staff account");
                 return RedirectToAction(nameof(StaffAccounts));
+            }
+        }
+
+        #endregion
+
+        #region System Configuration
+
+        // GET: Admin/SystemConfiguration - Show system configuration page
+        [HttpGet]
+        public async Task<IActionResult> SystemConfiguration()
+        {
+            try
+            {
+                var maxMealPlans = await _systemConfigService.GetMaxMealPlansPerCustomerAsync();
+                var maxFridgeItems = await _systemConfigService.GetMaxFridgeItemsPerCustomerAsync();
+
+                var viewModel = new SystemConfigurationViewModel
+                {
+                    MaxMealPlansPerCustomer = maxMealPlans,
+                    MaxFridgeItemsPerCustomer = maxFridgeItems
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading system configuration");
+                TempData["ErrorMessage"] = "An error occurred while loading system configuration.";
+                return RedirectToAction(nameof(Dashboard));
+            }
+        }
+
+        // POST: Admin/SystemConfiguration - Update system configuration
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SystemConfiguration(SystemConfigurationViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                var adminEmail = User.Identity?.Name ?? "Admin";
+
+                await _systemConfigService.UpdateMaxMealPlansAsync(model.MaxMealPlansPerCustomer, adminEmail);
+                await _systemConfigService.UpdateMaxFridgeItemsAsync(model.MaxFridgeItemsPerCustomer, adminEmail);
+
+                TempData["SuccessMessage"] = "System configuration updated successfully!";
+                _logger.LogInformation("System configuration updated by {AdminEmail}: MaxMealPlans={MaxMealPlans}, MaxFridgeItems={MaxFridgeItems}",
+                    adminEmail, model.MaxMealPlansPerCustomer, model.MaxFridgeItemsPerCustomer);
+
+                return RedirectToAction(nameof(SystemConfiguration));
+            }
+            catch (BusinessException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                _logger.LogWarning(ex, "Business error updating system configuration");
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "An error occurred while updating system configuration. Please try again.");
+                _logger.LogError(ex, "Unexpected error updating system configuration");
+                return View(model);
             }
         }
 

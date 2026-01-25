@@ -11,11 +11,16 @@ namespace MealPrepService.BusinessLogicLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<FridgeService> _logger;
+        private readonly ISystemConfigurationService _systemConfigService;
 
-        public FridgeService(IUnitOfWork unitOfWork, ILogger<FridgeService> logger)
+        public FridgeService(
+            IUnitOfWork unitOfWork, 
+            ILogger<FridgeService> logger,
+            ISystemConfigurationService systemConfigService)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _systemConfigService = systemConfigService ?? throw new ArgumentNullException(nameof(systemConfigService));
         }
 
         public async Task<IEnumerable<FridgeItemDto>> GetFridgeItemsAsync(Guid accountId)
@@ -29,6 +34,14 @@ namespace MealPrepService.BusinessLogicLayer.Services
             if (dto == null)
             {
                 throw new ArgumentNullException(nameof(dto));
+            }
+
+            // Check fridge item limit
+            var maxFridgeItems = await _systemConfigService.GetMaxFridgeItemsPerCustomerAsync();
+            var existingItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(dto.AccountId);
+            if (existingItems.Count() >= maxFridgeItems)
+            {
+                throw new BusinessException($"You have reached the maximum limit of {maxFridgeItems} fridge items. Please remove some items before adding new ones.");
             }
 
             // Validate required fields

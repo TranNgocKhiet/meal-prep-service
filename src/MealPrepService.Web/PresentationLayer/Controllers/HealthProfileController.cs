@@ -175,7 +175,10 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 _logger.LogInformation("Updating health profile for account {AccountId}: Age={Age}, Weight={Weight}, Height={Height}", 
                     accountId, healthProfileDto.Age, healthProfileDto.Weight, healthProfileDto.Height);
                 
-                await _healthProfileService.CreateOrUpdateAsync(healthProfileDto);
+                var updatedProfile = await _healthProfileService.CreateOrUpdateAsync(healthProfileDto);
+
+                // Sync allergies based on checkboxes
+                await SyncAllergiesAsync(updatedProfile.Id, model.SelectedAllergyIds);
 
                 _logger.LogInformation("Health profile updated successfully for account {AccountId}", accountId);
                 TempData["SuccessMessage"] = "Health profile updated successfully!";
@@ -341,6 +344,58 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                         _logger.LogWarning("Failed to add allergy {AllergyId} to profile {ProfileId}: {Message}", 
                             allergyId, profileId, ex.Message);
                     }
+                }
+            }
+        }
+
+        private async Task SyncAllergiesAsync(Guid profileId, List<Guid> selectedAllergyIds)
+        {
+            // Get current profile with allergies
+            var accountId = GetCurrentAccountId();
+            var currentProfile = await _healthProfileService.GetByAccountIdAsync(accountId);
+            
+            // Get all available allergies to map names to IDs
+            var allAllergies = await _unitOfWork.Allergies.GetAllAsync();
+            var currentAllergyIds = allAllergies
+                .Where(a => currentProfile.Allergies.Contains(a.AllergyName))
+                .Select(a => a.Id)
+                .ToList();
+
+            var selectedIds = selectedAllergyIds ?? new List<Guid>();
+
+            // Find allergies to remove (currently selected but not in the new selection)
+            var allergiesToRemove = currentAllergyIds.Except(selectedIds).ToList();
+            
+            // Find allergies to add (in new selection but not currently selected)
+            var allergiesToAdd = selectedIds.Except(currentAllergyIds).ToList();
+
+            // Remove unchecked allergies
+            foreach (var allergyId in allergiesToRemove)
+            {
+                try
+                {
+                    await _healthProfileService.RemoveAllergyAsync(profileId, allergyId);
+                    _logger.LogInformation("Removed allergy {AllergyId} from profile {ProfileId}", allergyId, profileId);
+                }
+                catch (BusinessException ex)
+                {
+                    _logger.LogWarning("Failed to remove allergy {AllergyId} from profile {ProfileId}: {Message}", 
+                        allergyId, profileId, ex.Message);
+                }
+            }
+
+            // Add newly checked allergies
+            foreach (var allergyId in allergiesToAdd)
+            {
+                try
+                {
+                    await _healthProfileService.AddAllergyAsync(profileId, allergyId);
+                    _logger.LogInformation("Added allergy {AllergyId} to profile {ProfileId}", allergyId, profileId);
+                }
+                catch (BusinessException ex)
+                {
+                    _logger.LogWarning("Failed to add allergy {AllergyId} to profile {ProfileId}: {Message}", 
+                        allergyId, profileId, ex.Message);
                 }
             }
         }

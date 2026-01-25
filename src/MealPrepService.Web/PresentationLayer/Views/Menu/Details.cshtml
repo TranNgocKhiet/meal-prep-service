@@ -19,6 +19,10 @@
                         {
                             <span class="badge bg-success">Active</span>
                         }
+                        else if (Model.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="badge bg-danger">Inactive</span>
+                        }
                         else
                         {
                             <span class="badge bg-warning">@Model.Status</span>
@@ -35,6 +39,24 @@
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to publish this menu? You won\'t be able to edit it after publishing.')">
                                 <i class="bi bi-check-circle"></i> Publish Menu
+                            </button>
+                        </form>
+                    }
+                    else if (Model.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form asp-action="Deactivate" asp-route-menuId="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to deactivate this menu? It will no longer appear in public menus.')">
+                                <i class="bi bi-x-circle"></i> Deactivate Menu
+                            </button>
+                        </form>
+                    }
+                    else if (Model.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form asp-action="Reactivate" asp-route-menuId="@Model.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to reactivate this menu? It will appear in public menus again.')">
+                                <i class="bi bi-arrow-clockwise"></i> Reactivate Menu
                             </button>
                         </form>
                     }

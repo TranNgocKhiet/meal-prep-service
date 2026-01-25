@@ -63,6 +63,10 @@
                                         {
                                             <span class="badge bg-success">Active</span>
                                         }
+                                        else if (menu.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-danger">Inactive</span>
+                                        }
                                         else
                                         {
                                             <span class="badge bg-warning">@menu.Status</span>

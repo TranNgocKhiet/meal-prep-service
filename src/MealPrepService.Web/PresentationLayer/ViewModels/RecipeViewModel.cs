@@ -106,10 +106,20 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         public List<RecipeViewModel> Recipes { get; set; } = new List<RecipeViewModel>();
 
         public bool HasRecipes => Recipes.Any();
-        public int TotalRecipes => Recipes.Count;
+        public int TotalRecipes => TotalItems;
 
         // Filter properties
         public string SearchTerm { get; set; } = string.Empty;
         public bool ShowOnlyWithIngredients { get; set; }
+        public bool ShowAll { get; set; }
+        
+        // Pagination properties
+        public int CurrentPage { get; set; } = 1;
+        public int TotalPages { get; set; } = 1;
+        public int PageSize { get; set; } = 30;
+        public int TotalItems { get; set; } = 0;
+        
+        public bool HasPreviousPage => CurrentPage > 1;
+        public bool HasNextPage => CurrentPage < TotalPages;
     }
 }

@@ -47,6 +47,13 @@
                                         <th>Height:</th>
                                         <td>@Model.Height cm</td>
                                     </tr>
+                                    @if (Model.CalorieGoal.HasValue)
+                                    {
+                                        <tr>
+                                            <th>Daily Calorie Goal:</th>
+                                            <td><strong class="text-primary">@Model.CalorieGoal.Value kcal</strong></td>
+                                        </tr>
+                                    }
                                     @if (!string.IsNullOrWhiteSpace(Model.HealthNotes))
                                     {
                                         <tr>
@@ -91,6 +98,28 @@
                     </div>
 
                     <div class="card mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-slash-circle me-2" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                    <path d="M11.354 4.646a.5.5 0 0 0-.708 0l-6 6a.5.5 0 0 0 .708.708l6-6a.5.5 0 0 0 0-.708z"/>
+                                </svg>
+                                Dietary Restrictions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (!string.IsNullOrWhiteSpace(Model.DietaryRestrictions))
+                            {
+                                <p class="mb-0" style="white-space: pre-wrap;">@Model.DietaryRestrictions</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted mb-0">No dietary restrictions recorded</p>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
                         <div class="card-header bg-success text-white">
                             <h5 class="mb-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart me-2" viewBox="0 0 16 16">
@@ -102,7 +131,7 @@
                         <div class="card-body">
                             @if (!string.IsNullOrWhiteSpace(Model.FoodPreferences))
                             {
-                                <p class="mb-0">@Model.FoodPreferences</p>
+                                <p class="mb-0" style="white-space: pre-wrap;">@Model.FoodPreferences</p>
                             }
                             else
                             {

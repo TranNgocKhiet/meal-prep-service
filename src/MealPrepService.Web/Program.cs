@@ -7,6 +7,8 @@ using MealPrepService.Web.PresentationLayer.Middleware;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -145,6 +147,7 @@ try
     builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IAllergyService, MealPrepService.BusinessLogicLayer.Services.AllergyService>();
     builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IRevenueService, MealPrepService.BusinessLogicLayer.Services.RevenueService>();
     builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IVnpayService, MealPrepService.BusinessLogicLayer.Services.VnpayService>();
+    builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.ISystemConfigurationService, MealPrepService.BusinessLogicLayer.Services.SystemConfigurationService>();
     
     // Add HTTP client factory for AI services
     builder.Services.AddHttpClient();
@@ -162,6 +165,15 @@ try
     builder.Services.AddScoped<MealPrepService.BusinessLogicLayer.Interfaces.IAIRecommendationService, MealPrepService.BusinessLogicLayer.Services.AIRecommendationService>();
 
     var app = builder.Build();
+
+    // Configure localization to use English (US)
+    var supportedCultures = new[] { new CultureInfo("en-US") };
+    app.UseRequestLocalization(new RequestLocalizationOptions
+    {
+        DefaultRequestCulture = new RequestCulture("en-US"),
+        SupportedCultures = supportedCultures,
+        SupportedUICultures = supportedCultures
+    });
 
     // Seed database
     using (var scope = app.Services.CreateScope())

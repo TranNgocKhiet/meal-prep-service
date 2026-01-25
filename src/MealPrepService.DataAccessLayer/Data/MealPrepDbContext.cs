@@ -29,6 +29,7 @@ public class MealPrepDbContext : DbContext
     public DbSet<RevenueReport> RevenueReports { get; set; }
     public DbSet<AIConfiguration> AIConfigurations { get; set; }
     public DbSet<AIOperationLog> AIOperationLogs { get; set; }
+    public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,6 +72,7 @@ public class MealPrepDbContext : DbContext
         modelBuilder.Entity<RevenueReport>().HasKey(e => e.Id).IsClustered(false);
         modelBuilder.Entity<AIConfiguration>().HasKey(e => e.Id).IsClustered(false);
         modelBuilder.Entity<AIOperationLog>().HasKey(e => e.Id).IsClustered(false);
+        modelBuilder.Entity<SystemConfiguration>().HasKey(e => e.Id).IsClustered(false);
     }
     
     private void ConfigureAIEntities(ModelBuilder modelBuilder)
@@ -95,6 +97,26 @@ public class MealPrepDbContext : DbContext
         // AIConfiguration constraints
         modelBuilder.Entity<AIConfiguration>()
             .Property(ac => ac.UpdatedBy)
+            .IsRequired()
+            .HasMaxLength(200);
+        
+        // SystemConfiguration constraints
+        modelBuilder.Entity<SystemConfiguration>()
+            .Property(sc => sc.ConfigKey)
+            .IsRequired()
+            .HasMaxLength(100);
+        
+        modelBuilder.Entity<SystemConfiguration>()
+            .HasIndex(sc => sc.ConfigKey)
+            .IsUnique();
+        
+        modelBuilder.Entity<SystemConfiguration>()
+            .Property(sc => sc.ConfigValue)
+            .IsRequired()
+            .HasMaxLength(500);
+        
+        modelBuilder.Entity<SystemConfiguration>()
+            .Property(sc => sc.UpdatedBy)
             .IsRequired()
             .HasMaxLength(200);
     }

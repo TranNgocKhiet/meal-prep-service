@@ -85,11 +85,15 @@
                                     <h4 class="text-primary mb-0">$@meal.Price.ToString("F2")</h4>
                                     <small class="text-muted">@meal.AvailableQuantity available</small>
                                 </div>
-                                @if (User.Identity.IsAuthenticated && User.IsInRole("Customer"))
+                                @if (User.Identity.IsAuthenticated)
                                 {
-                                    <a asp-controller="Order" asp-action="Create" asp-route-menuDate="@Model.MenuDate" class="btn btn-primary">
-                                        <i class="bi bi-cart-plus"></i> Order
-                                    </a>
+                                    @if (User.IsInRole("Customer"))
+                                    {
+                                        <button class="btn btn-secondary" disabled title="Order feature coming in Checkpoint 2">
+                                            <i class="bi bi-cart-plus"></i> Order (Coming Soon)
+                                        </button>
+                                    }
+                                    @* No order button for Admin, Manager, or DeliveryMan *@
                                 }
                                 else
                                 {
@@ -106,10 +110,9 @@
 
         @if (User.Identity.IsAuthenticated && User.IsInRole("Customer"))
         {
-            <div class="text-center mt-4">
-                <a asp-controller="Order" asp-action="Create" asp-route-menuDate="@Model.MenuDate" class="btn btn-lg btn-primary">
-                    <i class="bi bi-cart-check"></i> Create Order from Today's Menu
-                </a>
+            <div class="alert alert-info text-center mt-4">
+                <i class="bi bi-info-circle"></i> 
+                <strong>Note:</strong> Order and delivery features will be available in Checkpoint 2.
             </div>
         }
     }

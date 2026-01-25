@@ -13,6 +13,14 @@ namespace MealPrepService.DataAccessLayer.Repositories
         {
         }
 
+        public async Task<Recipe?> GetByIdWithIngredientsAsync(Guid recipeId)
+        {
+            return await _dbSet
+                .Include(r => r.RecipeIngredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                .FirstOrDefaultAsync(r => r.Id == recipeId);
+        }
+
         public async Task<IEnumerable<Recipe>> GetByIngredientsAsync(IEnumerable<Guid> ingredientIds)
         {
             return await _dbSet
