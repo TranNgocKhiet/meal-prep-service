@@ -181,10 +181,31 @@
                         </svg>
                         Other Meal Plans
                     </h4>
-                    <div class="row">
+                    
+                    @* Search Section *@
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search text-muted" viewBox="0 0 16 16">
+                                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                            </svg>
+                                        </span>
+                                        <input type="text" id="mealPlanSearch" class="form-control border-start-0" placeholder="Search meal plans by name..." aria-label="Search meal plans">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-3 mt-md-0">
+                                    <small class="text-muted" id="searchResultsCount">Showing @otherPlans.Count meal plan(s)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" id="mealPlansContainer">
                         @foreach (var plan in otherPlans)
                         {
-                            <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="col-md-6 col-lg-4 mb-4 meal-plan-card" data-plan-name="@plan.PlanName.ToLower()">
                                 <div class="card h-100 shadow-sm">
                                     <div class="card-header @(plan.IsAiGenerated ? "bg-primary text-white" : "bg-secondary text-white")">
                                         <div class="d-flex justify-content-between align-items-center">
@@ -285,6 +306,15 @@
                             </div>
                         }
                     </div>
+                    
+                    @* No Results Message *@
+                    <div id="noResultsMessage" class="alert alert-warning text-center" style="display: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-search mb-3" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                        <h5>No meal plans found</h5>
+                        <p class="text-muted mb-0">Try adjusting your search criteria.</p>
+                    </div>
                 }
             }
             else
@@ -316,3 +346,99 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('mealPlanSearch');
+            const mealPlanCards = document.querySelectorAll('.meal-plan-card');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            const searchResultsCount = document.getElementById('searchResultsCount');
+            
+            // Exit if search elements don't exist (no other plans)
+            if (!searchInput || mealPlanCards.length === 0) {
+                return;
+            }
+
+            function filterMealPlans() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                let visibleCount = 0;
+                
+                mealPlanCards.forEach(card => {
+                    const planName = card.getAttribute('data-plan-name');
+                    
+                    if (searchTerm === '' || planName.includes(searchTerm)) {
+                        card.style.display = '';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Update results count and no results message
+                if (visibleCount === 0) {
+                    noResultsMessage.style.display = 'block';
+                    searchResultsCount.textContent = 'No meal plans found';
+                } else {
+                    noResultsMessage.style.display = 'none';
+                    const planText = visibleCount === 1 ? 'meal plan' : 'meal plans';
+                    searchResultsCount.textContent = `Showing ${visibleCount} ${planText}`;
+                }
+            }
+            
+            // Add event listener with debouncing for search input
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(filterMealPlans, 300);
+            });
+            
+            // Clear search on Escape key
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    filterMealPlans();
+                }
+            });
+        });
+    </script>
+    
+    <style>
+        .meal-plan-card {
+            transition: opacity 0.3s ease;
+        }
+        
+        .meal-plan-card .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .input-group-text {
+            background-color: #fff;
+            border-right: 0;
+        }
+        
+        #mealPlanSearch {
+            border-left: 0;
+        }
+        
+        #mealPlanSearch:focus {
+            border-left: 1px solid #86b7fe;
+            box-shadow: none;
+        }
+        
+        #mealPlanSearch:focus + .input-group-text {
+            border-color: #86b7fe;
+        }
+        
+        .input-group:focus-within .input-group-text {
+            border-color: #86b7fe;
+        }
+        
+        .input-group:focus-within #mealPlanSearch {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
+}
