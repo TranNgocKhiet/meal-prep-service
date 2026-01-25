@@ -871,6 +871,14 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             viewModel.TotalFatG = viewModel.Meals.Sum(m => m.MealFatG);
             viewModel.TotalCarbsG = viewModel.Meals.Sum(m => m.MealCarbsG);
 
+            // Calculate finished nutrition (from completed meals only)
+            var finishedMeals = viewModel.Meals.Where(m => m.MealFinished).ToList();
+            viewModel.FinishedCalories = finishedMeals.Sum(m => m.MealCalories);
+            viewModel.FinishedProteinG = finishedMeals.Sum(m => m.MealProteinG);
+            viewModel.FinishedFatG = finishedMeals.Sum(m => m.MealFatG);
+            viewModel.FinishedCarbsG = finishedMeals.Sum(m => m.MealCarbsG);
+            viewModel.FinishedMealCount = finishedMeals.Count;
+
             // Calculate daily nutrition breakdown
             var dailyNutrition = new Dictionary<DateTime, DailyNutritionViewModel>();
             

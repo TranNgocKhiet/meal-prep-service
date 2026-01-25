@@ -25,24 +25,170 @@
 
             @if (Model?.Any() == true)
             {
-                <div class="row">
-                    @foreach (var plan in Model)
-                    {
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100 shadow-sm @(plan.IsActive ? "border-success border-3" : "")">
-                                <div class="card-header @(plan.IsAiGenerated ? "bg-primary text-white" : "bg-secondary text-white")">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">@plan.PlanName</h5>
-                                        <div class="d-flex gap-2">
-                                            @if (plan.IsActive)
-                                            {
-                                                <span class="badge bg-success">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-circle-fill me-1" viewBox="0 0 16 16">
-                                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                                                    </svg>
-                                                    ACTIVE
-                                                </span>
-                                            }
+                var activePlan = Model.FirstOrDefault(p => p.IsActive);
+                var otherPlans = Model.Where(p => !p.IsActive).ToList();
+                
+                @* Active Meal Plan - Featured Section *@
+                @if (activePlan != null)
+                {
+                    <div class="mb-4">
+                        <h4 class="mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-star-fill text-warning me-2" viewBox="0 0 16 16">
+                                <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                            </svg>
+                            Active Meal Plan
+                        </h4>
+                        <div class="card border-success border-3 shadow-lg mb-4" style="background: linear-gradient(135deg, #f8fff8 0%, #e8f5e9 100%);">
+                            <div class="card-header @(activePlan.IsAiGenerated ? "bg-primary text-white" : "bg-success text-white")">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">@activePlan.PlanName</h5>
+                                    <div class="d-flex gap-2">
+                                        <span class="badge bg-light text-success">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-circle-fill me-1" viewBox="0 0 16 16">
+                                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                                            </svg>
+                                            ACTIVE
+                                        </span>
+                                        @if (activePlan.IsAiGenerated)
+                                        {
+                                            <span class="badge bg-light text-primary">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot me-1" viewBox="0 0 16 16">
+                                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25.286 25.286 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135Z"/>
+                                                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z"/>
+                                                </svg>
+                                                AI Generated
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">Manual</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="mb-3">
+                                            <small class="text-muted">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-calendar-range me-1" viewBox="0 0 16 16">
+                                                    <path d="M9 7a1 1 0 0 1 1-1h5v2h-5a1 1 0 0 1-1-1zM1 9h4a1 1 0 0 1 0 2H1V9z"/>
+                                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                                                </svg>
+                                                @activePlan.StartDate.ToString("MMM dd") - @activePlan.EndDate.ToString("MMM dd, yyyy")
+                                            </small>
+                                        </div>
+
+                                        <div class="row text-center mb-3">
+                                            <div class="col-6">
+                                                <div class="border border-success rounded p-2 bg-white">
+                                                    <div class="text-muted small">Meals</div>
+                                                    <div class="fw-bold fs-4 text-success">@activePlan.Meals.Count</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="border border-success rounded p-2 bg-white">
+                                                    <div class="text-muted small">Days</div>
+                                                    <div class="fw-bold fs-4 text-success">@((activePlan.EndDate - activePlan.StartDate).Days + 1)</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="nutrition-summary">
+                                            <h6 class="text-success mb-2 fw-bold">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bar-chart me-1" viewBox="0 0 16 16">
+                                                    <path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/>
+                                                </svg>
+                                                Nutrition Progress
+                                            </h6>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <div class="border border-success rounded p-2 bg-white">
+                                                        <small class="text-muted">Calories</small>
+                                                        <div class="fw-bold text-success">
+                                                            <span class="text-primary">@activePlan.FinishedCalories.ToString("F0")</span>
+                                                            <span class="text-muted"> / @activePlan.TotalCalories.ToString("F0")</span>
+                                                        </div>
+                                                        <small class="text-muted">kcal</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="border border-success rounded p-2 bg-white">
+                                                        <small class="text-muted">Protein</small>
+                                                        <div class="fw-bold text-success">
+                                                            <span class="text-primary">@activePlan.FinishedProteinG.ToString("F1")</span>
+                                                            <span class="text-muted"> / @activePlan.TotalProteinG.ToString("F1")</span>
+                                                        </div>
+                                                        <small class="text-muted">g</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="border border-success rounded p-2 bg-white">
+                                                        <small class="text-muted">Fat</small>
+                                                        <div class="fw-bold text-success">
+                                                            <span class="text-primary">@activePlan.FinishedFatG.ToString("F1")</span>
+                                                            <span class="text-muted"> / @activePlan.TotalFatG.ToString("F1")</span>
+                                                        </div>
+                                                        <small class="text-muted">g</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="border border-success rounded p-2 bg-white">
+                                                        <small class="text-muted">Carbs</small>
+                                                        <div class="fw-bold text-success">
+                                                            <span class="text-primary">@activePlan.FinishedCarbsG.ToString("F1")</span>
+                                                            <span class="text-muted"> / @activePlan.TotalCarbsG.ToString("F1")</span>
+                                                        </div>
+                                                        <small class="text-muted">g</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a asp-action="Details" asp-route-id="@activePlan.Id" class="btn btn-success flex-fill">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-eye me-1" viewBox="0 0 16 16">
+                                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                                        </svg>
+                                        View Details
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@activePlan.Id" class="btn btn-outline-danger">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                        </svg>
+                                        Delete
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+                @* Other Meal Plans *@
+                @if (otherPlans.Any())
+                {
+                    <h4 class="mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-calendar-week me-2" viewBox="0 0 16 16">
+                            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                        </svg>
+                        Other Meal Plans
+                    </h4>
+                    <div class="row">
+                        @foreach (var plan in otherPlans)
+                        {
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-header @(plan.IsAiGenerated ? "bg-primary text-white" : "bg-secondary text-white")">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">@plan.PlanName</h5>
                                             @if (plan.IsAiGenerated)
                                             {
                                                 <span class="badge bg-light text-primary">
@@ -59,66 +205,63 @@
                                             }
                                         </div>
                                     </div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <small class="text-muted">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-calendar-range me-1" viewBox="0 0 16 16">
-                                                <path d="M9 7a1 1 0 0 1 1-1h5v2h-5a1 1 0 0 1-1-1zM1 9h4a1 1 0 0 1 0 2H1V9z"/>
-                                                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-                                            </svg>
-                                            @plan.StartDate.ToString("MMM dd") - @plan.EndDate.ToString("MMM dd, yyyy")
-                                        </small>
-                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <small class="text-muted">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-calendar-range me-1" viewBox="0 0 16 16">
+                                                    <path d="M9 7a1 1 0 0 1 1-1h5v2h-5a1 1 0 0 1-1-1zM1 9h4a1 1 0 0 1 0 2H1V9z"/>
+                                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                                                </svg>
+                                                @plan.StartDate.ToString("MMM dd") - @plan.EndDate.ToString("MMM dd, yyyy")
+                                            </small>
+                                        </div>
 
-                                    <div class="row text-center mb-3">
-                                        <div class="col-6">
-                                            <div class="border rounded p-2">
-                                                <div class="text-muted small">Meals</div>
-                                                <div class="fw-bold">@plan.Meals.Count</div>
+                                        <div class="row text-center mb-3">
+                                            <div class="col-6">
+                                                <div class="border rounded p-2">
+                                                    <div class="text-muted small">Meals</div>
+                                                    <div class="fw-bold">@plan.Meals.Count</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="border rounded p-2">
+                                                    <div class="text-muted small">Days</div>
+                                                    <div class="fw-bold">@((plan.EndDate - plan.StartDate).Days + 1)</div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="col-6">
-                                            <div class="border rounded p-2">
-                                                <div class="text-muted small">Days</div>
-                                                <div class="fw-bold">@((plan.EndDate - plan.StartDate).Days + 1)</div>
-                                            </div>
-                                        </div>
-                                    </div>
 
-                                    <div class="nutrition-summary">
-                                        <h6 class="text-muted mb-2">Total Nutrition</h6>
-                                        <div class="row g-2">
-                                            <div class="col-6">
-                                                <small class="text-muted">Calories:</small>
-                                                <div class="fw-bold">@plan.TotalCalories.ToString("F0") kcal</div>
-                                            </div>
-                                            <div class="col-6">
-                                                <small class="text-muted">Protein:</small>
-                                                <div class="fw-bold">@plan.TotalProteinG.ToString("F1") g</div>
-                                            </div>
-                                            <div class="col-6">
-                                                <small class="text-muted">Fat:</small>
-                                                <div class="fw-bold">@plan.TotalFatG.ToString("F1") g</div>
-                                            </div>
-                                            <div class="col-6">
-                                                <small class="text-muted">Carbs:</small>
-                                                <div class="fw-bold">@plan.TotalCarbsG.ToString("F1") g</div>
+                                        <div class="nutrition-summary">
+                                            <h6 class="text-muted mb-2">Total Nutrition</h6>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <small class="text-muted">Calories:</small>
+                                                    <div class="fw-bold">@plan.TotalCalories.ToString("F0") kcal</div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <small class="text-muted">Protein:</small>
+                                                    <div class="fw-bold">@plan.TotalProteinG.ToString("F1") g</div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <small class="text-muted">Fat:</small>
+                                                    <div class="fw-bold">@plan.TotalFatG.ToString("F1") g</div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <small class="text-muted">Carbs:</small>
+                                                    <div class="fw-bold">@plan.TotalCarbsG.ToString("F1") g</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="card-footer bg-transparent">
-                                    <div class="d-flex gap-2 flex-wrap">
-                                        <a asp-action="Details" asp-route-id="@plan.Id" class="btn btn-outline-primary btn-sm flex-fill">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-eye me-1" viewBox="0 0 16 16">
-                                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
-                                                <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
-                                            </svg>
-                                            View Details
-                                        </a>
-                                        @if (!plan.IsActive)
-                                        {
+                                    <div class="card-footer bg-transparent">
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <a asp-action="Details" asp-route-id="@plan.Id" class="btn btn-outline-primary btn-sm flex-fill">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-eye me-1" viewBox="0 0 16 16">
+                                                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                                                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                                                </svg>
+                                                View Details
+                                            </a>
                                             <form asp-action="SetActive" asp-route-id="@plan.Id" method="post" class="flex-fill">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit" class="btn btn-outline-success btn-sm w-100">
@@ -129,20 +272,20 @@
                                                     Set Active
                                                 </button>
                                             </form>
-                                        }
-                                        <a asp-action="Delete" asp-route-id="@plan.Id" class="btn btn-outline-danger btn-sm">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
-                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
-                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
-                                            </svg>
-                                            Delete
-                                        </a>
+                                            <a asp-action="Delete" asp-route-id="@plan.Id" class="btn btn-outline-danger btn-sm">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
+                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                                </svg>
+                                                Delete
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    }
-                </div>
+                        }
+                    </div>
+                }
             }
             else
             {

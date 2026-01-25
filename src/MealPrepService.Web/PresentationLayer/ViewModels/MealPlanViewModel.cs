@@ -39,6 +39,22 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         [Display(Name = "Total Carbs (g)")]
         public float TotalCarbsG { get; set; }
 
+        // Finished nutrition totals (from completed meals only)
+        [Display(Name = "Finished Calories")]
+        public float FinishedCalories { get; set; }
+
+        [Display(Name = "Finished Protein (g)")]
+        public float FinishedProteinG { get; set; }
+
+        [Display(Name = "Finished Fat (g)")]
+        public float FinishedFatG { get; set; }
+
+        [Display(Name = "Finished Carbs (g)")]
+        public float FinishedCarbsG { get; set; }
+
+        [Display(Name = "Finished Meal Count")]
+        public int FinishedMealCount { get; set; }
+
         // Daily nutrition breakdown
         public Dictionary<DateTime, DailyNutritionViewModel> DailyNutrition { get; set; } = new Dictionary<DateTime, DailyNutritionViewModel>();
     }
