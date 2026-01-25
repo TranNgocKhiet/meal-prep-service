@@ -548,9 +548,16 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return Json(new { success = false, message = "Meal not found." });
                 }
 
-                // Get fridge items
+                // Get fridge items - group by ingredient ID and sum amounts to handle multiple items of same ingredient
                 var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
-                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => new { f.Id, f.CurrentAmount });
+                var fridgeInventory = fridgeItems
+                    .GroupBy(f => f.IngredientId)
+                    .ToDictionary(
+                        g => g.Key, 
+                        g => new { 
+                            Items = g.ToList(), 
+                            TotalAmount = g.Sum(f => f.CurrentAmount) 
+                        });
 
                 // Calculate required ingredients
                 var requiredIngredients = new Dictionary<Guid, float>();
@@ -600,27 +607,42 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     }
                     else
                     {
-                        var fridgeItem = fridgeInventory[ingredientId];
-                        if (fridgeItem.CurrentAmount < requiredAmount)
+                        var fridgeGroup = fridgeInventory[ingredientId];
+                        if (fridgeGroup.TotalAmount < requiredAmount)
                         {
                             insufficientIngredients.Add(new
                             {
                                 name = ingredientName,
                                 required = requiredAmount,
-                                available = fridgeItem.CurrentAmount,
+                                available = fridgeGroup.TotalAmount,
                                 unit = unit
                             });
                         }
                         else
                         {
-                            consumptionPlan.Add(new
+                            // Show which fridge items will be consumed (ordered by expiry date)
+                            var itemsToConsume = fridgeGroup.Items.OrderBy(f => f.ExpiryDate).ToList();
+                            var remainingToConsume = requiredAmount;
+                            
+                            foreach (var item in itemsToConsume)
                             {
-                                fridgeItemId = fridgeItem.Id,
-                                ingredientName = ingredientName,
-                                amount = requiredAmount,
-                                newAmount = fridgeItem.CurrentAmount - requiredAmount,
-                                unit = unit
-                            });
+                                if (remainingToConsume <= 0) break;
+                                
+                                var amountToConsume = Math.Min(item.CurrentAmount, remainingToConsume);
+                                var newAmount = item.CurrentAmount - amountToConsume;
+                                
+                                consumptionPlan.Add(new
+                                {
+                                    fridgeItemId = item.Id,
+                                    ingredientName = ingredientName,
+                                    amount = amountToConsume,
+                                    newAmount = newAmount,
+                                    unit = unit,
+                                    expiryDate = item.ExpiryDate
+                                });
+                                
+                                remainingToConsume -= amountToConsume;
+                            }
                         }
                     }
                 }
