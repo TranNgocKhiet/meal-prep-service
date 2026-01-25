@@ -186,7 +186,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     ProteinG = recipeDto.ProteinG,
                     FatG = recipeDto.FatG,
                     CarbsG = recipeDto.CarbsG,
-                    Ingredients = new List<RecipeIngredientViewModel>() // TODO: Map ingredients when available
+                    Ingredients = new List<RecipeIngredientViewModel>()
                 };
 
                 return View(viewModel);
@@ -461,7 +461,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 ProteinG = dto.ProteinG,
                 FatG = dto.FatG,
                 CarbsG = dto.CarbsG,
-                Ingredients = new List<RecipeIngredientViewModel>() // TODO: Map ingredients when available
+                Ingredients = new List<RecipeIngredientViewModel>()
             };
         }
 

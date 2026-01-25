@@ -62,15 +62,4 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         public string AllergyName { get; set; } = string.Empty;
         public bool IsSelected { get; set; }
     }
-
-    public class AddAllergyViewModel
-    {
-        public Guid HealthProfileId { get; set; }
-        
-        [Required(ErrorMessage = "Please select an allergy")]
-        [Display(Name = "Allergy")]
-        public Guid AllergyId { get; set; }
-        
-        public List<AllergyViewModel> AvailableAllergies { get; set; } = new List<AllergyViewModel>();
-    }
 }
