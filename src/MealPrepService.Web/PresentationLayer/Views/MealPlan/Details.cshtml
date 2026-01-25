@@ -114,11 +114,34 @@
                 @foreach (var day in Model.DailyNutrition.OrderBy(d => d.Key))
                 {
                     var isToday = day.Key.Date == today;
-                    var cardClass = isToday ? "card mb-3 shadow border-primary border-3" : "card mb-3 shadow-sm";
-                    var headerClass = isToday ? "card-header bg-primary text-white" : "card-header bg-light";
+                    var hasUnfinishedMeals = day.Key.Date < today && day.Value.Meals.Any(m => !m.MealFinished);
+                    
+                    // Determine card styling
+                    string cardClass;
+                    string headerClass;
+                    string headerTextClass;
+                    
+                    if (isToday)
+                    {
+                        cardClass = "card mb-3 shadow border-primary border-3";
+                        headerClass = "bg-primary text-white";
+                        headerTextClass = "text-white-50";
+                    }
+                    else if (hasUnfinishedMeals)
+                    {
+                        cardClass = "card mb-3 shadow border-warning border-3";
+                        headerClass = "bg-warning bg-opacity-25";
+                        headerTextClass = "text-muted";
+                    }
+                    else
+                    {
+                        cardClass = "card mb-3 shadow-sm";
+                        headerClass = "bg-light";
+                        headerTextClass = "text-muted";
+                    }
                     
                     <div class="@cardClass">
-                        <div class="@headerClass">
+                        <div class="card-header @headerClass">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-calendar-day me-2" viewBox="0 0 16 16">
@@ -135,9 +158,19 @@
                                             TODAY
                                         </span>
                                     }
+                                    @if (hasUnfinishedMeals)
+                                    {
+                                        var unfinishedCount = day.Value.Meals.Count(m => !m.MealFinished);
+                                        <span class="badge bg-warning text-dark ms-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-exclamation-circle-fill me-1" viewBox="0 0 16 16">
+                                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                                            </svg>
+                                            @unfinishedCount Unfinished Meal@(unfinishedCount > 1 ? "s" : "")
+                                        </span>
+                                    }
                                 </h5>
                                 <div class="text-end">
-                                    <small class="@(isToday ? "text-white-50" : "text-muted")">Daily Total:</small>
+                                    <small class="@headerTextClass">Daily Total:</small>
                                     <div class="fw-bold">@day.Value.DailyCalories.ToString("F0") kcal</div>
                                 </div>
                             </div>
@@ -172,10 +205,27 @@
                             </div>
 
 
+
                             <!-- Meals for this day -->
                             @foreach (var meal in day.Value.Meals.OrderBy(m => MealViewModel.GetMealTypeOrder(m.MealType)))
                             {
-                                <div class="meal-card mb-3 border rounded p-3 @(meal.MealFinished ? "meal-finished" : "")">
+                                var isPastUnfinished = day.Key.Date < today && !meal.MealFinished;
+                                var mealCardClass = isPastUnfinished 
+                                    ? "meal-card mb-3 border border-warning border-2 rounded p-3 bg-warning bg-opacity-10" 
+                                    : meal.MealFinished 
+                                        ? "meal-card mb-3 border rounded p-3 meal-finished" 
+                                        : "meal-card mb-3 border rounded p-3";
+                                
+                                <div class="@mealCardClass">
+                                    @if (isPastUnfinished)
+                                    {
+                                        <div class="alert alert-warning py-1 px-2 mb-2 d-inline-flex align-items-center" style="font-size: 0.85rem;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-exclamation-triangle-fill me-1" viewBox="0 0 16 16">
+                                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                            </svg>
+                                            <strong>Reminder:</strong> This meal is not yet marked as finished
+                                        </div>
+                                    }
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <h6 class="mb-0">
                                             @if (meal.MealType == "Breakfast")
