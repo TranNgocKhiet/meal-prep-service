@@ -3,6 +3,20 @@
     ViewData["Title"] = Model.PlanName;
 }
 
+<style>
+    .collapse-icon {
+        transition: transform 0.3s ease;
+    }
+    
+    [aria-expanded="true"] .collapse-icon {
+        transform: rotate(180deg);
+    }
+    
+    .card-header[data-bs-toggle="collapse"]:hover {
+        opacity: 0.9;
+    }
+</style>
+
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-12">
@@ -141,7 +155,7 @@
                     }
                     
                     <div class="@cardClass">
-                        <div class="card-header @headerClass">
+                        <div class="card-header @headerClass" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#day-@day.Key.ToString("yyyyMMdd")" aria-expanded="@(isToday ? "true" : "false")" aria-controls="day-@day.Key.ToString("yyyyMMdd")">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-calendar-day me-2" viewBox="0 0 16 16">
@@ -168,6 +182,9 @@
                                             @unfinishedCount Unfinished Meal@(unfinishedCount > 1 ? "s" : "")
                                         </span>
                                     }
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down ms-2 collapse-icon" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                    </svg>
                                 </h5>
                                 <div class="text-end">
                                     <small class="@headerTextClass">Daily Total:</small>
@@ -175,7 +192,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
+                        <div id="day-@day.Key.ToString("yyyyMMdd")" class="collapse @(isToday ? "show" : "")">
+                            <div class="card-body">
                             <!-- Daily Nutrition Summary -->
                             <div class="row mb-3 g-2">
                                 <div class="col-3">
@@ -389,6 +407,7 @@
                                     </div>
                                 </div>
                             }
+                            </div>
                         </div>
                     </div>
                 }
@@ -611,8 +630,54 @@
             .replace(/&lt;br&gt;/gi, '<br>')
             .replace(/&lt;br\s*\/&gt;/gi, '<br>');
         
+        
         return formatted;
     }
+</script>
+
+<style>
+    .card-header[data-bs-toggle="collapse"] {
+        transition: background-color 0.3s ease;
+    }
+    
+    .card-header[data-bs-toggle="collapse"]:hover {
+        background-color: rgba(0, 0, 0, 0.05) !important;
+    }
+    
+    .card-header .bi-chevron-down {
+        transition: transform 0.3s ease;
+    }
+    
+    .card-header[aria-expanded="true"] .bi-chevron-down {
+        transform: rotate(180deg);
+    }
+</style>
+
+<script>
+    // Handle chevron rotation on collapse toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all collapsible elements
+        const collapseElements = document.querySelectorAll('[id^="day-"]');
+        
+        collapseElements.forEach(function(collapseEl) {
+            collapseEl.addEventListener('show.bs.collapse', function() {
+                const header = document.querySelector('[data-bs-target="#' + collapseEl.id + '"]');
+                if (header) {
+                    header.setAttribute('aria-expanded', 'true');
+                }
+            });
+            
+            collapseEl.addEventListener('hide.bs.collapse', function() {
+                const header = document.querySelector('[data-bs-target="#' + collapseEl.id + '"]');
+                if (header) {
+                    header.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+        
+        console.log('Collapse handlers initialized for', collapseElements.length, 'day sections');
+    });
+
 </script>
 
 <!-- Finish Meal Confirmation Modal -->
