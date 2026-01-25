@@ -258,24 +258,31 @@
                                         <div class="d-flex align-items-center gap-2">
                                             @if (meal.MealFinished)
                                             {
-                                                <span class="badge bg-success px-3 py-2">
+                                                <button type="button" class="btn btn-sm btn-success finish-meal-btn px-3 py-2" 
+                                                        data-meal-id="@meal.Id" 
+                                                        data-plan-id="@Model.Id"
+                                                        data-meal-type="@meal.MealType"
+                                                        data-is-finished="true"
+                                                        title="Click to mark as unfinished">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill me-1" viewBox="0 0 16 16">
                                                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
                                                     </svg>
                                                     Finished
-                                                </span>
+                                                </button>
                                             }
                                             else
                                             {
                                                 <button type="button" class="btn btn-sm btn-outline-success finish-meal-btn" 
                                                         data-meal-id="@meal.Id" 
                                                         data-plan-id="@Model.Id"
-                                                        data-meal-type="@meal.MealType">
+                                                        data-meal-type="@meal.MealType"
+                                                        data-is-finished="false"
+                                                        title="Click to mark as finished">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-circle me-1" viewBox="0 0 16 16">
                                                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                                                         <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
                                                     </svg>
-                                                    Finish Meal
+                                                    Mark as Finished
                                                 </button>
                                             }
                                             <div class="text-end">
@@ -663,25 +670,31 @@ document.addEventListener('DOMContentLoaded', function() {
             const mealId = this.getAttribute('data-meal-id');
             const planId = this.getAttribute('data-plan-id');
             const mealType = this.getAttribute('data-meal-type');
+            const isFinished = this.getAttribute('data-is-finished') === 'true';
                 
-            currentMealData = { mealId, planId, mealType, button: this };
-                
-            // Show modal with loading state
-            document.getElementById('finishMealTitle').textContent = `Finish ${mealType} Meal`;
-            document.getElementById('finishMealContent').innerHTML = `
-                <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+            currentMealData = { mealId, planId, mealType, button: this, isFinished };
+            
+            if (isFinished) {
+                // If meal is already finished, unmark it directly without modal
+                unmarkMealAsFinished(mealId, planId);
+            } else {
+                // Show modal with loading state for marking as finished
+                document.getElementById('finishMealTitle').textContent = `Finish ${mealType} Meal`;
+                document.getElementById('finishMealContent').innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Checking ingredients availability...</p>
                     </div>
-                    <p class="mt-2">Checking ingredients availability...</p>
-                </div>
-            `;
-            document.getElementById('confirmFinishMealBtn').style.display = 'none';
-                
-            finishMealModal.show();
-                
-            // Check ingredients availability
-            checkMealIngredients(mealId, planId);
+                `;
+                document.getElementById('confirmFinishMealBtn').style.display = 'none';
+                    
+                finishMealModal.show();
+                    
+                // Check ingredients availability
+                checkMealIngredients(mealId, planId);
+            }
         });
     });
 
@@ -709,6 +722,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add pulse animation
                 button.style.animation = 'pulse-success 0.6s ease';
             }
+        }
+
+        function unmarkMealAsFinished(mealId, planId) {
+            // Show confirmation
+            if (!confirm('Are you sure you want to mark this meal as unfinished?')) {
+                return;
+            }
+            
+            const button = currentMealData.button;
+            const originalContent = button.innerHTML;
+            
+            // Show loading state
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+            
+            // Call the MarkMealFinished action with finished=false
+            const url = '@Url.Action("MarkMealFinished", "MealPlan")';
+            const formData = new FormData();
+            formData.append('mealId', mealId);
+            formData.append('planId', planId);
+            formData.append('finished', 'false');
+            
+            // Add anti-forgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            formData.append('__RequestVerificationToken', token);
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected || response.ok) {
+                    // Reload the page to reflect changes
+                    window.location.reload();
+                } else {
+                    throw new Error('Failed to update meal status');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the meal status. Please try again.');
+                button.disabled = false;
+                button.innerHTML = originalContent;
+            });
         }
 
         function checkMealIngredients(mealId, planId) {
