@@ -44,6 +44,18 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 
                 var viewModels = mealPlanDtos.Select(MapToViewModel).ToList();
                 
+                // Calculate nutrition totals for each meal plan
+                foreach (var viewModel in viewModels)
+                {
+                    CalculateNutritionTotals(viewModel);
+                }
+                
+                // Sort meal plans: Active plans first, then by start date descending
+                viewModels = viewModels
+                    .OrderByDescending(p => p.IsActive)
+                    .ThenByDescending(p => p.StartDate)
+                    .ToList();
+                
                 return View(viewModels);
             }
             catch (Exception ex)
