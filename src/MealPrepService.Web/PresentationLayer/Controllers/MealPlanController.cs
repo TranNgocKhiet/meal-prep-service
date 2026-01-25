@@ -671,9 +671,9 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return RedirectToAction(nameof(Details), new { id = planId });
                 }
 
-                // Get fridge items
+                // Get fridge items - sorted by expiry date (closest first)
                 var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
-                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => new { f.Id, f.CurrentAmount });
+                var fridgeItemsList = fridgeItems.OrderBy(f => f.ExpiryDate).ToList();
 
                 // Calculate required ingredients
                 var requiredIngredients = new Dictionary<Guid, float>();
@@ -695,7 +695,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     }
                 }
 
-                // Consume ingredients
+                // Consume ingredients - prioritize items with closest expiry date
                 var updatedCount = 0;
                 var removedCount = 0;
                 foreach (var required in requiredIngredients)
@@ -703,12 +703,23 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     var ingredientId = required.Key;
                     var requiredAmount = required.Value;
 
-                    if (fridgeInventory.ContainsKey(ingredientId))
+                    // Get all fridge items for this ingredient, ordered by expiry date (closest first)
+                    var availableItems = fridgeItemsList
+                        .Where(f => f.IngredientId == ingredientId)
+                        .OrderBy(f => f.ExpiryDate)
+                        .ToList();
+
+                    var remainingRequired = requiredAmount;
+
+                    foreach (var fridgeItem in availableItems)
                     {
-                        var fridgeItem = fridgeInventory[ingredientId];
-                        var newAmount = Math.Max(0, fridgeItem.CurrentAmount - requiredAmount);
-                        
-                        if (newAmount == 0)
+                        if (remainingRequired <= 0) break;
+
+                        var amountToConsume = Math.Min(fridgeItem.CurrentAmount, remainingRequired);
+                        var newAmount = fridgeItem.CurrentAmount - amountToConsume;
+                        remainingRequired -= amountToConsume;
+
+                        if (newAmount <= 0.001f) // Use small epsilon for floating point comparison
                         {
                             // Remove item from fridge when quantity reaches 0
                             await _fridgeService.RemoveItemAsync(fridgeItem.Id);
