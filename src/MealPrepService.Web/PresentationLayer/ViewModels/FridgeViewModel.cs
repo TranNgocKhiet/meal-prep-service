@@ -106,6 +106,57 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         public string Unit { get; set; } = string.Empty;
     }
 
+    public class UpdateExpiryDateViewModel
+    {
+        public Guid FridgeItemId { get; set; }
+
+        [Display(Name = "Ingredient")]
+        public string IngredientName { get; set; } = string.Empty;
+
+        [Display(Name = "Unit")]
+        public string Unit { get; set; } = string.Empty;
+
+        [Display(Name = "Current Amount")]
+        public float CurrentAmount { get; set; }
+
+        [Display(Name = "Current Expiry Date")]
+        [DataType(DataType.Date)]
+        public DateTime CurrentExpiryDate { get; set; }
+
+        [Required(ErrorMessage = "New expiry date is required")]
+        [Display(Name = "New Expiry Date")]
+        [DataType(DataType.Date)]
+        public DateTime NewExpiryDate { get; set; }
+    }
+
+    public class UpdateFridgeItemViewModel
+    {
+        public Guid FridgeItemId { get; set; }
+
+        [Display(Name = "Ingredient")]
+        public string IngredientName { get; set; } = string.Empty;
+
+        [Display(Name = "Unit")]
+        public string Unit { get; set; } = string.Empty;
+
+        [Display(Name = "Current Amount")]
+        public float CurrentAmount { get; set; }
+
+        [Required(ErrorMessage = "Amount is required")]
+        [Range(0.01, 10000, ErrorMessage = "Amount must be between 0.01 and 10000")]
+        [Display(Name = "Amount")]
+        public float NewAmount { get; set; }
+
+        [Display(Name = "Current Expiry Date")]
+        [DataType(DataType.Date)]
+        public DateTime CurrentExpiryDate { get; set; }
+
+        [Required(ErrorMessage = "Expiry date is required")]
+        [Display(Name = "Expiry Date")]
+        [DataType(DataType.Date)]
+        public DateTime NewExpiryDate { get; set; }
+    }
+
     public class GroceryListViewModel
     {
         public Guid AccountId { get; set; }
@@ -149,6 +200,15 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
 
         [Display(Name = "Needed By")]
         public DateTime? EarliestNeededDate { get; set; }
+        
+        // Editable properties for purchase
+        [Display(Name = "Purchase Quantity")]
+        [Range(0.01, 10000, ErrorMessage = "Amount must be between 0.01 and 10000")]
+        public float PurchaseAmount { get; set; }
+        
+        [Display(Name = "Expiry Date")]
+        [DataType(DataType.Date)]
+        public DateTime PurchaseExpiryDate { get; set; } = DateTime.Today.AddDays(7);
 
         // Display properties
         public string RequiredAmountDisplay => $"{RequiredAmount:F2} {Unit}";
@@ -209,7 +269,17 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
     public class PurchasedIngredientViewModel
     {
         public Guid IngredientId { get; set; }
+        
+        [Required]
+        [Range(0.01, 10000, ErrorMessage = "Amount must be between 0.01 and 10000")]
         public float Amount { get; set; }
+        
         public bool IsPurchased { get; set; }
+        
+        [Required]
+        [DataType(DataType.Date)]
+        public DateTime ExpiryDate { get; set; } = DateTime.Today.AddDays(7);
+        
+        public string Unit { get; set; } = string.Empty;
     }
 }
