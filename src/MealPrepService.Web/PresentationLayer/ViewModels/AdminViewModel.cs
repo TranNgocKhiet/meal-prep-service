@@ -60,7 +60,7 @@ namespace MealPrepService.Web.PresentationLayer.ViewModels
         public string Activity { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; }
         public string Type { get; set; } = string.Empty;
-        public string CssClass { get; set; } = string.Empty;
+        public string CssClass { get; set; } = "success";
 
         public string TimeAgo
         {

@@ -29,6 +29,13 @@ namespace MealPrepService.BusinessLogicLayer.Services
             return fridgeItems.Select(MapToDto);
         }
 
+        public async Task<(IEnumerable<FridgeItemDto> Items, int TotalCount)> GetFridgeItemsPagedAsync(Guid accountId, int pageNumber, int pageSize)
+        {
+            var (fridgeItems, totalCount) = await _unitOfWork.FridgeItems.GetByAccountIdPagedAsync(accountId, pageNumber, pageSize);
+            var dtos = fridgeItems.Select(MapToDto);
+            return (dtos, totalCount);
+        }
+
         public async Task<FridgeItemDto> AddItemAsync(FridgeItemDto dto)
         {
             if (dto == null)
@@ -38,8 +45,8 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
             // Check fridge item limit
             var maxFridgeItems = await _systemConfigService.GetMaxFridgeItemsPerCustomerAsync();
-            var existingItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(dto.AccountId);
-            if (existingItems.Count() >= maxFridgeItems)
+            var fridgeItemsForAccount = await _unitOfWork.FridgeItems.GetByAccountIdAsync(dto.AccountId);
+            if (fridgeItemsForAccount.Count() >= maxFridgeItems)
             {
                 throw new BusinessException($"You have reached the maximum limit of {maxFridgeItems} fridge items. Please remove some items before adding new ones.");
             }
@@ -72,12 +79,39 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException($"Ingredient with ID {dto.IngredientId} not found");
             }
 
-            // Create fridge item entity
+            // Check if item with same ingredient and expiry date already exists
+            var fridgeItemsForAccountAgain = await _unitOfWork.FridgeItems.GetByAccountIdAsync(dto.AccountId);
+            var existingItem = fridgeItemsForAccountAgain.FirstOrDefault(f =>
+                f.IngredientId == dto.IngredientId &&
+                f.ExpiryDate.Date == dto.ExpiryDate.Date);
+
+            if (existingItem != null)
+            {
+                // Merge with existing item
+                existingItem.CurrentAmount += dto.CurrentAmount;
+                existingItem.UpdatedAt = DateTime.UtcNow;
+                
+                // Clear the Ingredient navigation property to avoid EF tracking conflict
+                // (GetByAccountIdAsync loaded it untracked, but GetByIdAsync tracked the same Ingredient)
+                existingItem.Ingredient = null;
+                
+                await _unitOfWork.FridgeItems.UpdateAsync(existingItem);
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("Merged fridge item for account {AccountId}, ingredient {IngredientId}, expiry {ExpiryDate}. New amount: {Amount}",
+                    dto.AccountId, dto.IngredientId, dto.ExpiryDate.Date, existingItem.CurrentAmount);
+
+                // Use the ingredient fetched earlier for DTO mapping
+                existingItem.Ingredient = ingredient;
+                return MapToDto(existingItem);
+            }
+
+            // Create new fridge item entity
             var fridgeItem = new FridgeItem
             {
                 Id = Guid.NewGuid(),
                 AccountId = dto.AccountId,
-                IngredientId = dto.IngredientId,
+               IngredientId = dto.IngredientId,
                 CurrentAmount = dto.CurrentAmount,
                 ExpiryDate = dto.ExpiryDate,
                 CreatedAt = DateTime.UtcNow
@@ -86,7 +120,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
             await _unitOfWork.FridgeItems.AddAsync(fridgeItem);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Fridge item added for account {AccountId}, ingredient {IngredientId}", 
+            _logger.LogInformation("Fridge item added for account {AccountId}, ingredient {IngredientId}",
                 dto.AccountId, dto.IngredientId);
 
             // Load the ingredient for mapping
@@ -242,7 +276,10 @@ namespace MealPrepService.BusinessLogicLayer.Services
         {
             // Get current fridge items
             var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(accountId);
-            var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => f.CurrentAmount);
+            // Group by ingredient ID and sum amounts (same ingredient can have multiple entries with different expiry dates)
+            var fridgeInventory = fridgeItems
+                .GroupBy(f => f.IngredientId)
+                .ToDictionary(g => g.Key, g => g.Sum(f => f.CurrentAmount));
 
             // Calculate required ingredients from meal plan and track when they're needed
             var requiredIngredients = new Dictionary<Guid, float>();

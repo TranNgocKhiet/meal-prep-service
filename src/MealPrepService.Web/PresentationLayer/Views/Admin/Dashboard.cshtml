@@ -1,15 +1,21 @@
-@model MealPrepService.Web.PresentationLayer.ViewModels.AdminDashboardViewModel
+﻿@model MealPrepService.Web.PresentationLayer.ViewModels.AdminDashboardViewModel
 
 @{
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="container-fluid mt-4">
+
+<div class="container-fluid mt-4 bg-black text-white p-3">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
         <div>
-            <span class="text-muted">Last Updated: @Model.LastUpdated.ToString("MMM dd, yyyy hh:mm tt")</span>
-            <button type="button" class="btn btn-outline-secondary btn-sm ms-2" onclick="location.reload()">
+            <span class="text-secondary">Last Updated: @Model.LastUpdated.ToString("MMM dd, yyyy hh:mm tt")</span>
+            <button type="button"
+                    class="btn btn-sm ms-2"
+                    style="background:#6c757d; color:#fff; border:1px solid #6c757d;"
+                    onmouseover="this.style.background='#adb5bd'; this.style.color='#000';"
+                    onmouseout="this.style.background='#6c757d'; this.style.color='#fff';"
+                    onclick="location.reload()">
                 <i class="bi bi-arrow-clockwise"></i> Refresh
             </button>
         </div>
@@ -62,92 +68,73 @@
         }
     </div>
 
+ 
+
     <div class="row">
         <!-- Quick Actions -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
+        <div class="col-12 mb-4">
+            <div class="card h-100 text-white" style="min-height: 600px; background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+                <div class="card-header bg-success text-white">
                     <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a asp-action="SystemConfiguration" class="btn btn-outline-primary">
-                            <i class="bi bi-gear"></i> System Configuration
-                        </a>
-                        <a asp-action="StaffAccounts" class="btn btn-outline-primary">
-                            <i class="fas fa-users-cog"></i> Manage Staff Accounts
-                        </a>
-                        <a asp-action="Revenue" class="btn btn-outline-primary">
-                            <i class="bi bi-graph-up"></i> View Revenue Reports
-                        </a>
-                        <hr class="my-2">
-                        <a asp-controller="Menu" asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-calendar-week"></i> Manage Menus
-                        </a>
-                        <a asp-controller="Recipe" asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-book"></i> Manage Recipes
-                        </a>
-                        <a asp-controller="Ingredient" asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-egg"></i> Manage Ingredients
-                        </a>
-                        <a asp-controller="Allergy" asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-exclamation-triangle"></i> Manage Allergies
-                        </a>
+             
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <a asp-action="SystemConfiguration" class="btn btn-outline-success">
+                                        <i class="bi bi-gear"></i> System Configuration
+                                    </a>
+
+                                    <a asp-action="StaffAccounts" class="btn btn-outline-success">
+                                        <i class="bi bi-people-gear"></i> Manage Staff Accounts
+                                    </a>
+
+                                    <a asp-action="Revenue" class="btn btn-outline-success">
+                                        <i class="bi bi-graph-up"></i> View Revenue Reports
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <a asp-controller="Menu" asp-action="Index" class="btn btn-outline-info">
+                                        <i class="bi bi-calendar-week"></i> Manage Menus
+                                    </a>
+
+                                    <a asp-controller="Recipe" asp-action="Index" class="btn btn-outline-info">
+                                        <i class="bi bi-book"></i> Manage Recipes
+                                    </a>
+
+                                    <a asp-controller="Ingredient" asp-action="Index" class="btn btn-outline-info">
+                                        <i class="bi bi-egg"></i> Manage Ingredients
+                                    </a>
+
+                                    <a asp-controller="Allergy" asp-action="Index" class="btn btn-outline-info">
+                                        <i class="bi bi-exclamation-triangle"></i> Manage Allergies
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Recent Activities -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Activities</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.RecentActivities.Any())
-                    {
-                        <div class="list-group list-group-flush">
-                            @foreach (var activity in Model.RecentActivities)
-                            {
-                                <div class="list-group-item px-0">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <span class="@activity.CssClass">
-                                                <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
-                                            </span>
-                                            <strong class="ms-2">@activity.Activity</strong>
-                                        </div>
-                                        <small class="text-muted">@activity.TimeAgo</small>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted text-center py-4">No recent activities</p>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- System Status -->
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
+            <div class="card h-100 bg-light text-dark">
+                <div class="card-header bg-success text-white" style="background-color: #1e293b !important;">
                     <h5 class="mb-0"><i class="bi bi-info-circle"></i> System Status</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="background-color: #1e293b !important;">
                     <div class="row">
                         <div class="col-md-4">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="me-3">
                                     <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
                                 </div>
-                                <div>
+                                <div style="background-color: #1e293b !important;">
                                     <h6 class="mb-0">Database</h6>
                                     <small class="text-success">Connected</small>
                                 </div>
@@ -158,7 +145,7 @@
                                 <div class="me-3">
                                     <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
                                 </div>
-                                <div>
+                                <div style="background-color: #1e293b !important;">
                                     <h6 class="mb-0">Payment Gateway</h6>
                                     <small class="text-success">Operational</small>
                                 </div>
@@ -169,7 +156,7 @@
                                 <div class="me-3">
                                     <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
                                 </div>
-                                <div>
+                                <div style="background-color: #1e293b !important;">
                                     <h6 class="mb-0">AI Services</h6>
                                     <small class="text-success">Active</small>
                                 </div>
@@ -196,7 +183,7 @@
     
     .card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 6px 14px rgba(25, 135, 84, 0.25);
     }
     
     .list-group-item {

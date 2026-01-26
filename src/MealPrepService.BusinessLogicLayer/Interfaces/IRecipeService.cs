@@ -15,6 +15,8 @@ namespace MealPrepService.BusinessLogicLayer.Interfaces
         Task<RecipeDto> UpdateRecipeAsync(Guid recipeId, UpdateRecipeDto dto);
         Task DeleteRecipeAsync(Guid recipeId);
         Task AddIngredientToRecipeAsync(Guid recipeId, RecipeIngredientDto ingredientDto);
+        Task UpdateRecipeIngredientAsync(Guid recipeId, Guid ingredientId, float newAmount);
+        Task RemoveIngredientFromRecipeAsync(Guid recipeId, Guid ingredientId);
         Task<IEnumerable<RecipeDto>> GetByIngredientsAsync(IEnumerable<Guid> ingredientIds);
         Task<IEnumerable<RecipeDto>> GetExcludingAllergensAsync(IEnumerable<Guid> allergyIds);
     }

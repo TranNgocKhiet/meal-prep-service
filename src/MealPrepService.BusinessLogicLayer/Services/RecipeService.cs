@@ -206,6 +206,50 @@ namespace MealPrepService.BusinessLogicLayer.Services
             _logger.LogInformation("Ingredient added successfully to recipe");
         }
 
+        public async Task UpdateRecipeIngredientAsync(Guid recipeId, Guid ingredientId, float newAmount)
+        {
+            _logger.LogInformation("Updating ingredient {IngredientId} amount in recipe {RecipeId} to {NewAmount}", 
+                ingredientId, recipeId, newAmount);
+
+            if (newAmount <= 0)
+            {
+                throw new BusinessException("Ingredient amount must be positive");
+            }
+
+            var recipeIngredient = await _unitOfWork.RecipeIngredients
+                .FirstOrDefaultAsync(ri => ri.RecipeId == recipeId && ri.IngredientId == ingredientId);
+
+            if (recipeIngredient == null)
+            {
+                throw new BusinessException("Recipe ingredient not found");
+            }
+
+            recipeIngredient.Amount = newAmount;
+            _unitOfWork.RecipeIngredients.Update(recipeIngredient);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Recipe ingredient amount updated successfully");
+        }
+
+        public async Task RemoveIngredientFromRecipeAsync(Guid recipeId, Guid ingredientId)
+        {
+            _logger.LogInformation("Removing ingredient {IngredientId} from recipe {RecipeId}", 
+                ingredientId, recipeId);
+
+            var recipeIngredient = await _unitOfWork.RecipeIngredients
+                .FirstOrDefaultAsync(ri => ri.RecipeId == recipeId && ri.IngredientId == ingredientId);
+
+            if (recipeIngredient == null)
+            {
+                throw new BusinessException("Recipe ingredient not found");
+            }
+
+            _unitOfWork.RecipeIngredients.Remove(recipeIngredient);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Ingredient removed successfully from recipe");
+        }
+
         public async Task<IEnumerable<RecipeDto>> GetByIngredientsAsync(IEnumerable<Guid> ingredientIds)
         {
             var recipes = await _unitOfWork.Recipes.GetByIngredientsAsync(ingredientIds);

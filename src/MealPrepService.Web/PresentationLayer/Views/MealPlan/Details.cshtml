@@ -171,9 +171,9 @@
                         headerTextClass = "text-muted";
                     }
                     
-                    <div class="@cardClass">
-                        <div class="card-header @headerClass" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#day-@day.Key.ToString("yyyyMMdd")" aria-expanded="@(isToday ? "true" : "false")" aria-controls="day-@day.Key.ToString("yyyyMMdd")">
-                            <div class="d-flex justify-content-between align-items-center">
+                    <div class="@cardClass" style="background-color: #1e293b !important;">
+                        <div class="card-header @headerClass" style="background-color: #1e293b !important; cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#day-@day.Key.ToString("yyyyMMdd")" aria-expanded="@(isToday ? "true" : "false")" aria-controls="day-@day.Key.ToString("yyyyMMdd")">
+                            <div class="d-flex justify-content-between align-items-center" style="background-color: #1e293b !important;">
                                 <h5 class="mb-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-calendar-day me-2" viewBox="0 0 16 16">
                                         <path d="M4.684 11.523v-2.3h2.261v-.61H4.684V6.801h2.464v-.61H4v5.332h.684zm3.296 0h.676V8.98c0-.554.227-1.007.953-1.007.125 0 .258.004.329.015v-.613a1.806 1.806 0 0 0-.254-.02c-.582 0-.891.32-1.012.567h-.02v-.504H7.98v4.105zm2.805-5.093c0 .238.192.425.43.425a.428.428 0 1 0 0-.855.426.426 0 0 0-.43.43zm.094 5.093h.672V7.418h-.672v4.105z"/>
@@ -214,25 +214,25 @@
                             <!-- Daily Nutrition Summary -->
                             <div class="row mb-3 g-2">
                                 <div class="col-3">
-                                    <div class="text-center p-2 bg-light rounded">
+                                    <div class="text-center p-2 bg-light border rounded" style="background-color: #1e293b !important;">
                                         <small class="text-muted">Calories</small>
                                         <div class="fw-bold">@day.Value.DailyCalories.ToString("F0") kcal</div>
                                     </div>
                                 </div>
                                 <div class="col-3">
-                                    <div class="text-center p-2 bg-light rounded">
+                                    <div class="text-center p-2 bg-light border rounded" style="background-color: #1e293b !important;">
                                         <small class="text-muted">Protein</small>
                                         <div class="fw-bold">@day.Value.DailyProteinG.ToString("F1") g</div>
                                     </div>
                                 </div>
                                 <div class="col-3">
-                                    <div class="text-center p-2 bg-light rounded">
+                                    <div class="text-center p-2 bg-light border rounded" style="background-color: #1e293b !important;">
                                         <small class="text-muted">Fat</small>
                                         <div class="fw-bold">@day.Value.DailyFatG.ToString("F1") g</div>
                                     </div>
                                 </div>
                                 <div class="col-3">
-                                    <div class="text-center p-2 bg-light rounded">
+                                    <div class="text-center p-2 bg-light border rounded" style="background-color: #1e293b !important;">
                                         <small class="text-muted">Carbs</small>
                                         <div class="fw-bold">@day.Value.DailyCarbsG.ToString("F1") g</div>
                                     </div>
@@ -248,7 +248,7 @@
                                 var mealCardClass = isPastUnfinished 
                                     ? "meal-card mb-3 border border-warning border-2 rounded p-3 bg-warning bg-opacity-10" 
                                     : meal.MealFinished 
-                                        ? "meal-card mb-3 border rounded p-3 meal-finished" 
+                                        ? "meal-card mb-3 border border-warning border-2 rounded p-3 bg-warning meal-finished bg-opacity-10" 
                                         : "meal-card mb-3 border rounded p-3";
                                 
                                 <div class="@mealCardClass">
@@ -383,20 +383,53 @@
                                                             Info
                                                         </button>
                                                         
-                                                        <form asp-action="RemoveRecipeFromMeal" method="post" class="d-inline remove-recipe-form">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="mealId" value="@meal.Id" />
-                                                            <input type="hidden" name="recipeId" value="@recipe.Id" />
-                                                            <input type="hidden" name="planId" value="@Model.Id" />
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                                    onclick="return confirm('Are you sure you want to remove this recipe from the meal?@(meal.Recipes.Count <= 1 ? " This will delete the entire meal as it\'s the last recipe." : "")');">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
-                                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
-                                                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
-                                                                </svg>
-                                                                Remove
-                                                            </button>
-                                                        </form>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#removeRecipeModal-@meal.Id-@recipe.Id">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
+                                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                                            </svg>
+                                                            Remove
+                                                        </button>
+                                                        
+                                                        <!-- Remove Recipe Confirmation Modal -->
+                                                        <div class="modal fade" id="removeRecipeModal-@meal.Id-@recipe.Id" tabindex="-1" aria-labelledby="removeRecipeModalLabel-@meal.Id-@recipe.Id" aria-hidden="true">
+                                                            <div class="modal-dialog">
+                                                                <div class="modal-content" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+                                                                    <div class="modal-header text-white" style="background-color: #1e293b; border-bottom: 1px solid rgba(34,197,94,.25);">
+                                                                        <h5 class="modal-title text-white" id="removeRecipeModalLabel-@meal.Id-@recipe.Id">
+                                                                            <i class="bi bi-exclamation-triangle me-2"></i>
+                                                                            Confirm Remove Recipe
+                                                                        </h5>
+                                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                    </div>
+                                                                    <div class="modal-body text-white" style="background-color: #0F172A;">
+                                                                        <p>Are you sure you want to remove <strong>@recipe.RecipeName</strong> from this @meal.MealType meal?</p>
+                                                                        @if (meal.Recipes.Count <= 1)
+                                                                        {
+                                                                            <div class="alert alert-warning" role="alert">
+                                                                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                                                                <strong>Warning:</strong> This is the last recipe in this meal. Removing it will delete the entire meal.
+                                                                            </div>
+                                                                        }
+                                                                        <p class="text-muted mb-0">This action cannot be undone.</p>
+                                                                    </div>
+                                                                    <div class="modal-footer" style="background-color: #0F172A; border-top: 1px solid rgba(34,197,94,.25);">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                        <form asp-action="RemoveRecipeFromMeal" method="post" class="d-inline">
+                                                                            @Html.AntiForgeryToken()
+                                                                            <input type="hidden" name="mealId" value="@meal.Id" />
+                                                                            <input type="hidden" name="recipeId" value="@recipe.Id" />
+                                                                            <input type="hidden" name="planId" value="@Model.Id" />
+                                                                            <button type="submit" class="btn btn-danger">
+                                                                                <i class="bi bi-trash"></i> Remove Recipe
+                                                                            </button>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                         
                                                         <!-- Hidden ingredients data -->
                                                         <script type="application/json" class="recipe-ingredients-data" data-recipe-id="@recipe.Id">
@@ -408,8 +441,13 @@
                                                 {
                                                     <div class="mt-2">
                                                         <small class="text-muted">Ingredients:</small>
-                                                        <div class="small">
-                                                            @string.Join(", ", recipe.Ingredients.Select(i => $"{i.IngredientName} ({i.Amount} {i.Unit})"))
+                                                        <div class="d-flex flex-wrap gap-2 mt-1">
+                                                            @foreach (var ingredient in recipe.Ingredients)
+                                                            {
+                                                                <span class="badge text-white" style="background-color: #000; border: 1px solid rgba(34,197,94,.25); font-size: 0.85rem; font-weight: normal; padding: 0.4rem 0.6rem;">
+                                                                    @ingredient.IngredientName (@ingredient.Amount @ingredient.Unit)
+                                                                </span>
+                                                            }
                                                         </div>
                                                     </div>
                                                 }
@@ -456,8 +494,8 @@
 <!-- Recipe Details Modal -->
 <div class="modal fade" id="recipeModal" tabindex="-1" aria-labelledby="recipeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content" style="background-color: #1e293b !important;">
+            <div class="modal-header" style="background-color: #1e293b !important;">
                 <h5 class="modal-title" id="recipeModalLabel">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-book me-2" viewBox="0 0 16 16">
                         <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
@@ -466,7 +504,7 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="background-color: #0F172A !important;">
                 <div class="row">
                     <div class="col-md-8">
                         <h4 id="modalRecipeName" class="text-primary mb-3"></h4>
@@ -493,8 +531,8 @@
                         <div id="modalRecipeInstructions" class="mb-3"></div>
                     </div>
                     <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-header">
+                        <div class="card bg-light" style="background-color: #1e293b !important;">
+                            <div class="card-header" style="background-color: #1e293b !important;">
                                 <h6 class="mb-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bar-chart me-2" viewBox="0 0 16 16">
                                         <path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/>
@@ -502,7 +540,7 @@
                                     Nutrition Facts
                                 </h6>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" style="background-color: #1e293b !important;">
                                 <div class="nutrition-item d-flex justify-content-between mb-2">
                                     <span class="fw-bold">Calories:</span>
                                     <span id="modalCalories" class="text-primary fw-bold"></span>
@@ -593,6 +631,7 @@
         if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
             const ul = document.createElement('ul');
             ul.className = 'list-unstyled mb-0';
+            ul.style.backgroundColor = '#1e293b';
             
             ingredients.forEach(function(ingredient, index) {
                 console.log(`Ingredient ${index}:`, ingredient); // Debug log
@@ -603,11 +642,13 @@
                 const unit = ingredient.unit || ingredient.Unit || 'unit';
                 
                 const li = document.createElement('li');
-                li.className = 'mb-2 p-2 bg-light rounded';
+                li.className = 'mb-2 p-2 rounded';
+                li.style.backgroundColor = '#000';
+                li.style.border = '1px solid rgba(34,197,94,.25)';
                 li.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-medium">${name}</span>
-                        <span class="text-muted">${amount} ${unit}</span>
+                        <span class="fw-medium text-white">${name}</span>
+                        <span class="text-white" style="opacity: 0.7;">${amount} ${unit}</span>
                     </div>
                 `;
                 ul.appendChild(li);
@@ -699,10 +740,10 @@
 
 <!-- Finish Meal Confirmation Modal -->
 <div class="modal fade" id="finishMealModal" tabindex="-1" aria-labelledby="finishMealModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="finishMealModalLabel">
+    <div class="modal-dialog modal-lg" style="background-color: #0F172A !important;">
+        <div class="modal-content" style="background-color: #0F172A !important;">
+            <div class="modal-header" style="background-color: #0F172A !important;">
+                <h5 class="modal-title" id="finishMealModalLabel" style="background-color: #0F172A !important;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle me-2" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                         <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
@@ -748,8 +789,8 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div class="alert alert-info">
+            <div class="modal-body" style="background-color: #0F172A; !important">
+                <div class="alert alert-info" style="color: #FF0000; !important">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-info-circle me-2" viewBox="0 0 16 16">
                         <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                         <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
@@ -764,7 +805,7 @@
                 </ul>
                 <p class="text-muted mb-0"><small>You can mark it as finished again later.</small></p>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="background-color: #0F172A; !important">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
                         <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
@@ -1001,11 +1042,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             </svg>
                             Missing Ingredients:
                         </h6>
-                        <ul class="list-group mb-3">
+                        <ul class="list-group mb-3 style="background-color: #0F172A !important;">
                     `;
                     data.missingIngredients.forEach(item => {
                         html += `
-                            <li class="list-group-item d-flex justify-content-between">
+                            <li class="list-group-item d-flex justify-content-between" style="background-color: #0F172A !important;">
                                 <span>${item.name}</span>
                                 <span class="badge bg-danger">${item.required.toFixed(2)} ${item.unit}</span>
                             </li>
@@ -1023,11 +1064,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             </svg>
                             Insufficient Ingredients:
                         </h6>
-                        <ul class="list-group mb-3">
+                        <ul class="list-group mb-3" style="background-color: #0F172A !important;">
                     `;
                     data.insufficientIngredients.forEach(item => {
                         html += `
-                            <li class="list-group-item">
+                            <li class="list-group-item" style="background-color: #0F172A !important;">
                                 <div class="d-flex justify-content-between">
                                     <span>${item.name}</span>
                                     <span class="text-danger">
@@ -1051,11 +1092,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             </svg>
                             Available Ingredients (will be consumed):
                         </h6>
-                        <ul class="list-group mb-3">
+                        <ul class="list-group mb-3" style="background-color: #0F172A !important;">
                     `;
                     data.consumptionPlan.forEach(item => {
                         html += `
-                            <li class="list-group-item d-flex justify-content-between">
+                            <li class="list-group-item d-flex justify-content-between" style="background-color: #0F172A !important;">
                                 <span>${item.ingredientName}</span>
                                 <span class="badge bg-success">${item.amount.toFixed(2)} ${item.unit}</span>
                             </li>
@@ -1065,14 +1106,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 html += `
-                    <div class="alert alert-info">
+                    <div class="alert alert-info" style="color: #000000 !important;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-clock-history me-2" viewBox="0 0 16 16">
                             <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
                             <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
                             <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
                         </svg>
                         <strong>Note:</strong> You can still finish this meal. Available ingredients will be consumed from your fridge.
-                        <br><small class="mt-2 d-block"><strong>Reminder:</strong> Ingredients with the closest expiry dates will be used first to minimize food waste.</small>
+znt;"><strong>Reminder:</strong> Ingredients with the closest expiry dates will be used first to minimize food waste.</small>
                     </div>
                 `;
                 
@@ -1161,7 +1202,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* Finished meal visual indicators */
     .meal-finished {
-        background: linear-gradient(135deg, #f8fff8 0%, #e8f5e9 100%);
+        background: #4caf50 !important;
         border: 2px solid #4caf50 !important;
         opacity: 0.95;
     }
@@ -1173,7 +1214,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     .meal-finished .recipe-item {
         opacity: 0.9;
-        background-color: rgba(255, 255, 255, 0.7);
     }
 
     /* Badge styling for finished */
