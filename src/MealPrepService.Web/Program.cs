@@ -34,6 +34,48 @@ try
     builder.Services.AddControllersWithViews()
         .AddApplicationPart(typeof(Program).Assembly);
 
+    // Add Swagger/OpenAPI
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+        {
+            Title = "Meal Prep Service API",
+            Version = "v1",
+            Description = "API documentation for Meal Prep Service application",
+            Contact = new Microsoft.OpenApi.Models.OpenApiContact
+            {
+                Name = "Meal Prep Service",
+                Email = "support@mealprepservice.com"
+            }
+        });
+
+        // Add JWT authentication to Swagger
+        options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Description = "Cookie authentication using ASP.NET Core Identity",
+            Name = "Authorization",
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+
+        options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+    });
+
     // Configure Razor to find views in PresentationLayer
     builder.Services.Configure<Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions>(options =>
     {
@@ -203,6 +245,21 @@ try
     
     // Add global exception handler (should be early in the pipeline)
     app.UseGlobalExceptionHandler();
+
+    // Enable Swagger in all environments
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Meal Prep Service API v1");
+        options.RoutePrefix = "swagger"; // Access at /swagger
+        options.DocumentTitle = "Meal Prep Service API Documentation";
+        
+        // Dark theme for Swagger UI
+        options.DefaultModelsExpandDepth(-1); // Hide models section by default
+        options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None); // Collapse all endpoints by default
+        options.EnableDeepLinking();
+        options.DisplayRequestDuration();
+    });
 
     if (!app.Environment.IsDevelopment())
     {
