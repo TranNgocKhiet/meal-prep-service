@@ -102,13 +102,13 @@
                                             <strong>@allergy.AllergyName</strong>
                                         </td>
                                         <td class="text-end">
-                                            <div class="btn-group btn-group-sm" role="group">
+                                            <div class="action-buttons">
                                                 <a asp-action="Edit" asp-route-id="@allergy.Id" 
-                                                   class="btn btn-outline-primary" title="Edit">
+                                                   class="btn btn-sm btn-action btn-action-edit" title="Edit">
                                                     <i class="bi bi-pencil"></i> Edit
                                                 </a>
                                                 <a asp-action="Delete" asp-route-id="@allergy.Id" 
-                                                   class="btn btn-outline-danger" title="Delete">
+                                                   class="btn btn-sm btn-action btn-action-delete" title="Delete">
                                                     <i class="bi bi-trash"></i> Delete
                                                 </a>
                                             </div>

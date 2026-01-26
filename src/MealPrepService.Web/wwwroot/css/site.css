@@ -538,6 +538,27 @@ select:focus {
   border-color: rgba(34, 197, 94, 0.35) !important;
   color: #fff !important;
   font-weight: 600;
+  text-align: center !important;
+  vertical-align: middle;
+}
+
+/* Căn giữa tất cả các cột trừ Actions nếu có text-end */
+.table thead th:not(.text-end) {
+  text-align: center !important;
+}
+
+.table tbody td {
+  text-align: center !important;
+  vertical-align: middle;
+}
+
+/* Giữ Actions ở bên phải nếu có class text-end */
+.table thead th.text-end {
+  text-align: center !important;
+}
+
+.table tbody td.text-end {
+  text-align: center !important;
 }
 
 /* Căn giữa header Actions với các nút bên dưới */
@@ -558,6 +579,60 @@ select:focus {
   display: inline-flex;
   margin: 0 auto;
   width: auto;
+}
+
+.table tbody tr td:last-child .action-buttons,
+.table tbody tr td.text-end .action-buttons {
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* Đảm bảo tất cả nội dung trong td được căn giữa */
+.table tbody tr td strong {
+  display: inline-block;
+  text-align: center;
+}
+
+.table tbody tr td .badge {
+  display: inline-block;
+  margin: 0.125rem;
+}
+
+/* Căn giữa các phần tử inline trong td */
+.table tbody tr td span,
+.table tbody tr td div:not(.btn-group):not(.action-buttons):not(.modal) {
+  text-align: center;
+  display: inline-block;
+}
+
+/* Căn giữa các phần tử có nhiều badges */
+.table tbody tr td .badge + .badge {
+  margin-left: 0.25rem;
+}
+
+/* Đảm bảo text-muted cũng được căn giữa */
+.table tbody tr td .text-muted {
+  display: inline-block;
+  text-align: center;
+}
+
+/* Căn giữa các phần tử có icon */
+.table tbody tr td i:not(.btn i) {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Căn giữa các phần tử có strong + icon */
+.table tbody tr td strong + i,
+.table tbody tr td i + strong {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Đảm bảo form inline cũng được căn giữa */
+.table tbody tr td form.d-inline {
+  display: inline-block;
+  text-align: center;
 }
 
 .table tbody {
@@ -583,6 +658,8 @@ select:focus {
   border-color: rgba(34, 197, 94, 0.2) !important;
   color: #fff !important;
   background-color: transparent !important;
+  text-align: center !important;
+  vertical-align: middle !important;
 }
 
 .table.table-hover tbody tr:hover {
@@ -826,6 +903,157 @@ thead.table-light + tbody tr td {
   margin-right: auto;
 }
 
+/* Action buttons styling - Ingredient Management */
+.action-buttons {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  border-radius: 0.5rem !important;
+  font-weight: 600 !important;
+  padding: 0.6rem 1.2rem !important;
+  border: none !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  white-space: nowrap !important;
+  min-width: 80px !important;
+  text-decoration: none !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.btn-action:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.btn-action:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.btn-action i {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #ffffff !important;
+  line-height: 1;
+}
+
+/* View button - Green (Primary) */
+.btn-action-view,
+.btn.btn-sm.btn-action-view {
+  background-color: #22C55E !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-action-view:hover,
+.btn.btn-sm.btn-action-view:hover {
+  background-color: #16A34A !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-action-view i,
+.btn.btn-sm.btn-action-view i {
+  color: #ffffff !important;
+}
+
+/* Edit button - Gray (Secondary) */
+.btn-action-edit,
+.btn.btn-sm.btn-action-edit {
+  background-color: #6c757d !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-action-edit:hover,
+.btn.btn-sm.btn-action-edit:hover {
+  background-color: #5a6268 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-action-edit i,
+.btn.btn-sm.btn-action-edit i {
+  color: #ffffff !important;
+}
+
+/* Delete button - Red (Danger) */
+.btn-action-delete,
+.btn.btn-sm.btn-action-delete {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-action-delete:hover,
+.btn.btn-sm.btn-action-delete:hover {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-action-delete i,
+.btn.btn-sm.btn-action-delete i {
+  color: #ffffff !important;
+}
+
+/* Đảm bảo TẤT CẢ text trong action buttons màu trắng */
+.btn-action,
+.btn-action span,
+.btn-action small,
+.btn-action strong,
+.btn-action * {
+  color: #ffffff !important;
+}
+
+/* Override mọi màu text khác với specificity cao */
+.btn.btn-sm.btn-action-view,
+.btn.btn-sm.btn-action-view *,
+.btn-action-view,
+.btn-action-view * {
+  color: #ffffff !important;
+}
+
+.btn.btn-sm.btn-action-edit,
+.btn.btn-sm.btn-action-edit *,
+.btn-action-edit,
+.btn-action-edit * {
+  color: #ffffff !important;
+}
+
+.btn.btn-sm.btn-action-delete,
+.btn.btn-sm.btn-action-delete *,
+.btn-action-delete,
+.btn-action-delete * {
+  color: #ffffff !important;
+}
+
+/* Đảm bảo không có text-decoration */
+.btn-action,
+.btn-action:hover,
+.btn-action:focus,
+.btn-action:active {
+  text-decoration: none !important;
+}
+
 .table tbody tr td .text-danger i {
   color: #ef4444 !important;
 }
@@ -846,9 +1074,11 @@ thead.table-light + tbody tr td {
   color: rgba(255, 255, 255, 0.7) !important;
 }
 
-/* Đảm bảo tất cả text trong tbody có màu sáng */
+
 .table tbody tr td {
   color: #fff !important;
+  text-align: center !important;
+  vertical-align: middle !important;
 }
 
 /* Override cho các elements đặc biệt */
@@ -868,14 +1098,12 @@ thead.table-light + tbody tr td {
   color: #3b82f6 !important;
 }
 
-/* Đảm bảo các text elements thông thường có màu trắng */
 .table tbody tr td p,
 .table tbody tr td span:not(.badge):not(.text-danger):not(.text-success):not(.text-warning):not(.text-info):not(.text-muted),
 .table tbody tr td div:not(.btn-group):not(.badge) {
   color: #fff !important;
 }
 
-/* CARD HEADER STYLING */
 .card-header {
   background-color: rgba(34, 197, 94, 0.15) !important;
   border-bottom: 1px solid rgba(34, 197, 94, 0.25) !important;
@@ -896,7 +1124,7 @@ thead.table-light + tbody tr td {
   border-top: 1px solid rgba(34, 197, 94, 0.25) !important;
 }
 
-/* BADGES */
+
 .badge {
   font-weight: 500;
   padding: 0.4em 0.65em;
@@ -932,7 +1160,7 @@ thead.table-light + tbody tr td {
   border: 1px solid rgba(59, 130, 246, 0.5);
 }
 
-/* ALERTS */
+
 .alert {
   border: 1px solid;
   border-radius: 12px;
@@ -963,7 +1191,7 @@ thead.table-light + tbody tr td {
   color: #fbbf24 !important;
 }
 
-/* STATISTICS CARDS */
+
 .card.bg-primary,
 .card.bg-danger,
 .card.bg-success {
@@ -986,7 +1214,7 @@ thead.table-light + tbody tr td {
   color: #fff !important;
 }
 
-/* BUTTONS */
+
 .btn-outline-primary {
   border-color: rgba(34, 197, 94, 0.7) !important;
   border-width: 1.5px !important;
@@ -1082,7 +1310,7 @@ thead.table-light + tbody tr td {
   color: #fff !important;
 }
 
-/* PAGINATION */
+
 .pagination .page-link {
   background-color: rgba(15, 23, 42, 0.8) !important;
   border-color: rgba(34, 197, 94, 0.25) !important;
@@ -1108,7 +1336,6 @@ thead.table-light + tbody tr td {
   cursor: not-allowed;
 }
 
-/* RECIPE CARD SPECIFIC STYLING */
 .recipe-card {
   transition: transform 0.2s, box-shadow 0.2s;
   border: 1px solid rgba(34, 197, 94, 0.25) !important;
@@ -1140,7 +1367,7 @@ thead.table-light + tbody tr td {
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-/* MODAL STYLING */
+
 .modal-content {
   background-color: #0F172A !important;
   border: 1px solid rgba(34, 197, 94, 0.25) !important;
@@ -1169,7 +1396,7 @@ thead.table-light + tbody tr td {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
 
-/* FORM LABELS */
+
 .form-label {
   color: #fff !important;
   font-weight: 500;
@@ -1178,13 +1405,11 @@ thead.table-light + tbody tr td {
 .form-check-label {
   color: rgba(255, 255, 255, 0.9) !important;
 }
-
-/* TEXT MUTED */
 .text-muted {
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
-/* ICONS IN CARDS */
+
 .card-body i,
 .card-header i {
   color: #22C55E !important;
@@ -1194,7 +1419,7 @@ thead.table-light + tbody tr td {
   color: #ef4444 !important;
 }
 
-/* EMPTY STATE STYLING */
+
 .card-body.text-center i {
   color: rgba(255, 255, 255, 0.3) !important;
 }
@@ -1203,7 +1428,6 @@ thead.table-light + tbody tr td {
   color: #fff !important;
 }
 
-/* SEARCH FORM STYLING */
 .form-control:focus {
   background-color: #020617 !important;
   border-color: #22C55E !important;
@@ -1225,13 +1449,13 @@ thead.table-light + tbody tr td {
   box-shadow: 0 0 0 0.25rem rgba(34, 197, 94, 0.25) !important;
 }
 
-/* TABLE RESPONSIVE */
+
 .table-responsive {
   border-radius: 12px;
   overflow: hidden;
 }
 
-/* CARD BODY TEXT */
+
 .card-body p,
 .card-body small {
   color: rgba(255, 255, 255, 0.9) !important;
@@ -1242,17 +1466,16 @@ thead.table-light + tbody tr td {
   color: #fff !important;
 }
 
-/* BUTTON GROUP */
+
 .btn-group .btn {
   border-color: rgba(34, 197, 94, 0.25) !important;
 }
 
-/* HOVER EFFECTS FOR CARDS */
+
 .card:hover {
   border-color: rgba(34, 197, 94, 0.4) !important;
 }
 
-/* SPECIFIC PAGE HEADERS */
 h2 {
   color: #fff !important;
 }
@@ -1261,7 +1484,7 @@ h2 i {
   color: #22C55E !important;
 }
 
-/* STATISTICS CARDS H3 */
+
 .card.bg-primary h3,
 .card.bg-danger h3,
 .card.bg-success h3 {
@@ -1269,35 +1492,35 @@ h2 i {
   font-weight: 700;
 }
 
-/* EMPTY STATE CARDS */
+
 .card-body.text-center {
   background-color: rgba(15, 23, 42, 0.5) !important;
 }
 
-/* SEARCH SECTION CARDS */
+
 .card.mb-4 {
   background-color: rgba(15, 23, 42, 0.8) !important;
 }
 
-/* RECIPE CARD HEADER */
+
 .recipe-card .card-header.bg-primary.text-white {
   background-color: rgba(34, 197, 94, 0.3) !important;
   border-bottom: 1px solid rgba(34, 197, 94, 0.25) !important;
 }
 
-/* INGREDIENT ALLERGY BADGES */
+
 .badge.bg-danger.me-1 {
   background-color: rgba(239, 68, 68, 0.3) !important;
   color: #ef4444 !important;
   border: 1px solid rgba(239, 68, 68, 0.5) !important;
 }
 
-/* ALLERGY PAGE SPECIFIC */
+
 h2 .text-danger {
   color: #ef4444 !important;
 }
 
-/* FORM VALIDATION */
+
 .text-danger {
   color: #ef4444 !important;
 }
@@ -1308,7 +1531,7 @@ span.text-danger {
   display: block;
 }
 
-/* INPUT GROUPS */
+
 .input-group-text {
   background-color: rgba(15, 23, 42, 0.8) !important;
   border-color: rgba(34, 197, 94, 0.35) !important;
@@ -1324,7 +1547,7 @@ span.text-danger {
   border-color: #22C55E !important;
 }
 
-/* FORM SWITCH */
+
 .form-check-input[type="checkbox"] {
   background-color: rgba(15, 23, 42, 0.8) !important;
   border-color: rgba(34, 197, 94, 0.35) !important;
@@ -1343,12 +1566,12 @@ span.text-danger {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e");
 }
 
-/* SHADOW UTILITIES */
+
 .shadow-sm {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* VALIDATION SUMMARY */
+
 .alert-danger ul {
   margin-bottom: 0;
   padding-left: 1.5rem;
@@ -1358,7 +1581,7 @@ span.text-danger {
   color: #ef4444 !important;
 }
 
-/* FORM TEXT HELP */
+
 .form-text {
   color: rgba(255, 255, 255, 0.6) !important;
   font-size: 0.875rem;
@@ -1368,13 +1591,11 @@ span.text-danger {
   color: rgba(34, 197, 94, 0.7) !important;
 }
 
-/* CARD SHADOW */
 .card.shadow-sm {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* RECIPE DETAILS PAGE SPECIFIC STYLING */
-/* Override bg-light cho dark theme */
+
 .card.bg-light {
   background-color: rgba(15, 23, 42, 0.8) !important;
   border: 1px solid rgba(34, 197, 94, 0.25) !important;
@@ -1392,7 +1613,6 @@ span.text-danger {
   color: #fff !important;
 }
 
-/* Text colors trong bg-light cards và card-body */
 .card.bg-light .text-primary,
 .card-body .text-primary {
   color: #22C55E !important;
@@ -1433,7 +1653,6 @@ span.text-danger {
   color: rgba(255, 255, 255, 0.9) !important;
 }
 
-/* Đảm bảo h4 trong bg-light cards có màu đúng */
 .card.bg-light h4.text-primary {
   color: #22C55E !important;
 }
@@ -1450,7 +1669,7 @@ span.text-danger {
   color: #3b82f6 !important;
 }
 
-/* Headings trong Recipe Details và các trang khác */
+
 h3.text-primary,
 h3 .text-primary {
   color: #22C55E !important;
@@ -1561,6 +1780,24 @@ hr {
   
   .card-header {
     padding: 0.75rem 1rem;
+  }
+  
+  /* Action buttons responsive */
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+  }
+  
+  .btn-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 769px) {
+  .action-buttons {
+    flex-direction: row;
   }
 }
 
