@@ -190,8 +190,7 @@
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
                 <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
-                    <a class="page-link" 
-                       style="color: #000 !important;"
+                    <a class="page-link text-muted" 
                        asp-action="Index" 
                        asp-route-searchTerm="@Model.SearchTerm" 
                        asp-route-showAll="@Model.ShowAll"
@@ -205,8 +204,7 @@
                     if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 2 && i <= Model.CurrentPage + 2))
                     {
                         <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                            <a class="page-link" 
-                               style="color: #000 !important;"
+                            <a class="page-link text-muted" 
                                asp-action="Index" 
                                asp-route-searchTerm="@Model.SearchTerm" 
                                asp-route-showAll="@Model.ShowAll"
@@ -218,14 +216,13 @@
                     else if (i == Model.CurrentPage - 3 || i == Model.CurrentPage + 3)
                     {
                         <li class="page-item disabled">
-                            <span class="page-link" style="color: #000 !important;">...</span>
+                            <span class="page-link text-muted">...</span>
                         </li>
                     }
                 }
                 
                 <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
-                    <a class="page-link" 
-                       style="color: #000 !important;"
+                    <a class="page-link text-muted" 
                        asp-action="Index" 
                        asp-route-searchTerm="@Model.SearchTerm" 
                        asp-route-showAll="@Model.ShowAll"
