@@ -30,7 +30,6 @@ body {
   text-align: start;
 }
 
-/* Fix dropdown positioning - ensure dropdowns appear below their triggers */
 .dropdown-menu {
   position: absolute !important;
   top: 100% !important;
@@ -46,30 +45,25 @@ body {
   display: block !important;
 }
 
-/* Ensure dropdown menu appears below the dropdown toggle in navbar */
 .navbar .dropdown-menu {
   margin-top: 0.125rem;
 }
 
-/* Fix for dropdown-menu-end alignment */
 .dropdown-menu-end {
   right: 0 !important;
   left: auto !important;
 }
 
-/* Ensure dropdown parent has relative positioning */
 .dropdown,
 .nav-item.dropdown {
   position: relative !important;
 }
 
-/* Fix for select dropdowns */
 select.form-select,
 select.form-control {
   position: relative;
 }
 
-/* Ensure navbar items don't interfere with dropdown positioning */
 .navbar-collapse {
   position: relative;
 }
@@ -78,7 +72,6 @@ select.form-control {
   position: relative;
 }
 
-/* Select2 Custom Styling */
 .select2-container {
   width: 100% !important;
   position: relative;
@@ -112,7 +105,6 @@ select.form-control {
   white-space: nowrap;
 }
 
-/* Show placeholder properly when nothing is selected */
 .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered .select2-selection__placeholder {
   color: #6c757d;
   font-weight: normal;
@@ -126,12 +118,10 @@ select.form-control {
   width: 20px;
 }
 
-/* When dropdown opens, completely hide the selection box */
 .select2-container--bootstrap-5.select2-container--open .select2-selection {
   display: none !important;
 }
 
-/* Select2 Dropdown styling - appears in place of the selection box */
 .select2-dropdown {
   border: 1px solid #86b7fe;
   border-radius: 0.375rem;
@@ -149,7 +139,6 @@ select.form-control {
   display: block !important;
 }
 
-/* Search field inside dropdown - this is the ONLY input that shows when open */
 .select2-container--bootstrap-5 .select2-search--dropdown {
   padding: 0;
   display: block;
@@ -175,7 +164,6 @@ select.form-control {
   box-shadow: none;
 }
 
-/* Hide the inline search (the one that appears in the selection box) */
 .select2-container--bootstrap-5 .select2-search--inline {
   display: none !important;
 }
@@ -184,13 +172,11 @@ select.form-control {
   display: none !important;
 }
 
-/* Hide any tooltips or hints when dropdown is open */
 .select2-container--open + .form-text,
 .select2-container--open + small {
   display: none !important;
 }
 
-/* Highlight selected option */
 .select2-container--bootstrap-5 .select2-results__option--highlighted {
   background-color: #0d6efd !important;
   color: white !important;
@@ -206,7 +192,6 @@ select.form-control {
   color: #212529;
 }
 
-/* Focus state */
 .select2-container--bootstrap-5.select2-container--focus .select2-selection,
 .select2-container--bootstrap-5.select2-container--open .select2-selection {
   border-color: #86b7fe;
@@ -214,7 +199,6 @@ select.form-control {
   outline: 0;
 }
 
-/* Hide the original select element completely */
 .select2-hidden-accessible {
   position: absolute !important;
   width: 1px !important;
@@ -227,7 +211,6 @@ select.form-control {
   border: 0 !important;
 }
 
-/* Make Select2 work with form-select classes */
 .form-select-lg + .select2-container .select2-selection,
 .select2-container.form-select-lg .select2-selection {
   min-height: 48px;
@@ -247,7 +230,6 @@ select.form-control {
   padding: 0.25rem 0.5rem;
 }
 
-/* Ensure Select2 dropdown appears above modals and other content */
 .select2-container {
   z-index: auto;
 }
@@ -256,34 +238,27 @@ select.form-control {
   z-index: 10000 !important;
 }
 
-/* Fix for dropdowns in modals */
 .modal .select2-dropdown {
   z-index: 10060 !important;
 }
 
-/* Ensure parent containers don't clip dropdown */
 .mb-4, .mb-3, .form-group {
   position: relative;
   overflow: visible !important;
 }
 
-/* Card body should not clip dropdowns */
 .card-body {
   overflow: visible !important;
 }
 
-/* Form containers should allow dropdown overflow */
 form {
   overflow: visible !important;
 }
 
-/* Prevent dropdown from being cut off */
 .select2-container--open {
   z-index: 1060;
 }
 
-
-/* Clear button styling */
 .select2-container--bootstrap-5 .select2-selection__clear {
   color: #6c757d;
   font-size: 1.5rem;
@@ -300,7 +275,6 @@ form {
   color: #dc3545;
 }
 
-/* Results container */
 .select2-results {
   display: block;
   max-height: 300px;
@@ -325,7 +299,6 @@ form {
   background-color: #f8f9fa;
 }
 
-/* Hide loading spinner */
 .select2-results__option.loading-results {
   display: none !important;
 }
@@ -336,14 +309,12 @@ form {
   font-size: 0.875rem;
 }
 
-/* Ensure no loading indicators appear */
 .select2-container--bootstrap-5 .select2-selection__spinner,
 .select2-spinner,
 .select2-selection__loading {
   display: none !important;
 }
 
-/* Clean dropdown appearance */
 .select2-container--bootstrap-5.select2-container--open {
   position: relative;
 }
@@ -352,15 +323,12 @@ form {
   display: none !important;
 }
 
-
-/* Placeholder styling */
 .select2-container--bootstrap-5 .select2-selection__placeholder {
   color: #6c757d;
   opacity: 1;
   line-height: 1.5;
 }
 
-/* Ensure rendered selection doesn't look like an input */
 .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
   padding-right: 30px;
   display: block;
@@ -369,7 +337,6 @@ form {
   white-space: nowrap;
 }
 
-/* Make sure the selection arrow is visible */
 .select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow b {
   border-color: #999 transparent transparent transparent;
   border-style: solid;
@@ -388,25 +355,17 @@ form {
   border-width: 0 4px 5px 4px;
 }
 
-/* Loading state */
 .select2-container--bootstrap-5 .select2-results__message {
   padding: 0.5rem 0.75rem;
   color: #6c757d;
 }
 
-/* Custom Theme Styles - TrungKien */
-/* =========================
-   DARK THEME OVERRIDE
-   ========================= */
-
-/* GLOBAL */
 body {
   background-color: #000 !important;
   color: #fff !important;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* HEADER */
 header,
 .navbar,
 .navbar.bg-white {
@@ -421,7 +380,6 @@ header *,
   color: #000 !important;
 }
 
-/* SECTIONS */
 .section {
   background-color: #111827;
   border-radius: 16px;
@@ -430,7 +388,6 @@ header *,
   color: #fff;
 }
 
-/* CARDS */
 .card,
 .box {
   background-color: #0F172A;
@@ -440,14 +397,12 @@ header *,
   box-shadow: 0 10px 30px rgba(0,0,0,.6);
 }
 
-/* TEXT */
 main h1, main h2, main h3, main h4, main h5, main h6,
 main p, main span, main label, main small,
 main .text-muted {
   color: #fff !important;
 }
 
-/* LINKS */
 main a:not(.btn) {
   color: #fff !important;
 }
@@ -456,7 +411,6 @@ main a:not(.btn):hover {
   text-decoration: underline;
 }
 
-/* INPUT */
 input,
 textarea,
 select {
@@ -478,7 +432,6 @@ select:focus {
   box-shadow: 0 0 0 2px rgba(34,197,94,.25) !important;
 }
 
-/* BUTTONS */
 .btn-primary {
   background-color: #22C55E !important;
   border-color: #22C55E !important;
@@ -491,7 +444,6 @@ select:focus {
   border-color: #16A34A !important;
 }
 
-/* SHOW ALL BUTTON */
 .btn-success {
   background-color: #0c9cf0 !important;
   border-color: #0c9cf0 !important;
@@ -508,7 +460,6 @@ select:focus {
   border-color: #076fae !important;
 }
 
-/* FOOTER */
 .footer {
   background: linear-gradient(135deg, #16A34A, #22C55E) !important;
   padding: 2.5rem 0;
@@ -523,11 +474,6 @@ select:focus {
   text-decoration: underline;
 }
 
-/* =========================
-   MENU, RECIPES, INGREDIENTS, ALLERGIES PAGES STYLING
-   ========================= */
-
-/* TABLE STYLING */
 .table {
   color: #fff !important;
   background-color: transparent;
@@ -542,7 +488,6 @@ select:focus {
   vertical-align: middle;
 }
 
-/* Căn giữa tất cả các cột trừ Actions nếu có text-end */
 .table thead th:not(.text-end) {
   text-align: center !important;
 }
@@ -552,7 +497,6 @@ select:focus {
   vertical-align: middle;
 }
 
-/* Giữ Actions ở bên phải nếu có class text-end */
 .table thead th.text-end {
   text-align: center !important;
 }
@@ -561,7 +505,6 @@ select:focus {
   text-align: center !important;
 }
 
-/* Căn giữa header Actions với các nút bên dưới */
 .table thead th:last-child,
 .table thead th.text-end {
   text-align: center !important;
@@ -587,7 +530,6 @@ select:focus {
   margin: 0 auto;
 }
 
-/* Đảm bảo tất cả nội dung trong td được căn giữa */
 .table tbody tr td strong {
   display: inline-block;
   text-align: center;
@@ -598,38 +540,32 @@ select:focus {
   margin: 0.125rem;
 }
 
-/* Căn giữa các phần tử inline trong td */
 .table tbody tr td span,
 .table tbody tr td div:not(.btn-group):not(.action-buttons):not(.modal) {
   text-align: center;
   display: inline-block;
 }
 
-/* Căn giữa các phần tử có nhiều badges */
 .table tbody tr td .badge + .badge {
   margin-left: 0.25rem;
 }
 
-/* Đảm bảo text-muted cũng được căn giữa */
 .table tbody tr td .text-muted {
   display: inline-block;
   text-align: center;
 }
 
-/* Căn giữa các phần tử có icon */
 .table tbody tr td i:not(.btn i) {
   display: inline-block;
   vertical-align: middle;
 }
 
-/* Căn giữa các phần tử có strong + icon */
 .table tbody tr td strong + i,
 .table tbody tr td i + strong {
   display: inline-block;
   vertical-align: middle;
 }
 
-/* Đảm bảo form inline cũng được căn giữa */
 .table tbody tr td form.d-inline {
   display: inline-block;
   text-align: center;
@@ -670,7 +606,6 @@ select:focus {
   color: #fff !important;
 }
 
-/* Table-light chỉ áp dụng cho thead */
 .table-light {
   background-color: transparent !important;
 }
@@ -681,7 +616,6 @@ select:focus {
   border-color: rgba(34, 197, 94, 0.35) !important;
 }
 
-/* Đảm bảo tbody không bị ảnh hưởng bởi table-light */
 thead.table-light + tbody tr {
   background-color: rgba(15, 23, 42, 0.8) !important;
 }
@@ -691,7 +625,6 @@ thead.table-light + tbody tr td {
   background-color: transparent !important;
 }
 
-/* Links và buttons trong bảng */
 .table tbody tr td a {
   color: #22C55E !important;
   text-decoration: none;
@@ -706,7 +639,6 @@ thead.table-light + tbody tr td {
   color: #fff !important;
 }
 
-/* Buttons trong bảng - đảm bảo rõ ràng */
 .table tbody tr td .btn {
   transition: all 0.2s ease;
   font-weight: 600;
@@ -804,12 +736,10 @@ thead.table-light + tbody tr td {
   color: inherit !important;
 }
 
-/* Icons trong bảng - chỉ áp dụng khi không trong button */
 .table tbody tr td i:not(.btn i) {
   color: #22C55E !important;
 }
 
-/* Button group styling */
 .btn-group-sm .btn {
   padding: 0.5rem 0.9rem;
   font-size: 0.875rem;
@@ -844,7 +774,6 @@ thead.table-light + tbody tr td {
   z-index: 2;
 }
 
-/* Đảm bảo icons trong buttons có kích thước phù hợp và rõ ràng */
 .btn-group-sm .btn i {
   font-size: 1rem !important;
   line-height: 1;
@@ -852,19 +781,16 @@ thead.table-light + tbody tr td {
   display: inline-block;
 }
 
-/* Text trong buttons */
 .btn-group-sm .btn {
   font-weight: 600;
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
-/* Đảm bảo buttons có đủ không gian cho text */
 .btn-group-sm .btn:not(:only-child) {
   flex: 0 1 auto;
 }
 
-/* Tăng contrast cho buttons trong table */
 .table tbody tr td .btn-group {
   display: inline-flex;
   justify-content: center;
@@ -897,13 +823,11 @@ thead.table-light + tbody tr td {
   transform: translateY(-1px);
 }
 
-/* Đảm bảo td chứa btn-group căn giữa - fallback */
 .table tbody tr td .btn-group {
   margin-left: auto;
   margin-right: auto;
 }
 
-/* Action buttons styling - Ingredient Management */
 .action-buttons {
   display: flex;
   gap: 0.6rem;
@@ -955,7 +879,6 @@ thead.table-light + tbody tr td {
   line-height: 1;
 }
 
-/* View button - Green (Primary) */
 .btn-action-view,
 .btn.btn-sm.btn-action-view {
   background-color: #22C55E !important;
@@ -975,7 +898,6 @@ thead.table-light + tbody tr td {
   color: #ffffff !important;
 }
 
-/* Edit button - Gray (Secondary) */
 .btn-action-edit,
 .btn.btn-sm.btn-action-edit {
   background-color: #6c757d !important;
@@ -995,7 +917,6 @@ thead.table-light + tbody tr td {
   color: #ffffff !important;
 }
 
-/* Delete button - Red (Danger) */
 .btn-action-delete,
 .btn.btn-sm.btn-action-delete {
   background-color: #ef4444 !important;
@@ -1015,7 +936,6 @@ thead.table-light + tbody tr td {
   color: #ffffff !important;
 }
 
-/* Đảm bảo TẤT CẢ text trong action buttons màu trắng */
 .btn-action,
 .btn-action span,
 .btn-action small,
@@ -1024,7 +944,6 @@ thead.table-light + tbody tr td {
   color: #ffffff !important;
 }
 
-/* Override mọi màu text khác với specificity cao */
 .btn.btn-sm.btn-action-view,
 .btn.btn-sm.btn-action-view *,
 .btn-action-view,
@@ -1046,7 +965,6 @@ thead.table-light + tbody tr td {
   color: #ffffff !important;
 }
 
-/* Đảm bảo không có text-decoration */
 .btn-action,
 .btn-action:hover,
 .btn-action:focus,
@@ -1058,22 +976,18 @@ thead.table-light + tbody tr td {
   color: #ef4444 !important;
 }
 
-/* Strong text trong bảng */
 .table tbody tr td strong {
   color: #fff !important;
   font-weight: 600;
 }
 
-/* Badges trong bảng */
 .table tbody tr td .badge {
   color: #fff !important;
 }
 
-/* Text muted trong bảng */
 .table tbody tr td .text-muted {
   color: rgba(255, 255, 255, 0.7) !important;
 }
-
 
 .table tbody tr td {
   color: #fff !important;
@@ -1081,7 +995,6 @@ thead.table-light + tbody tr td {
   vertical-align: middle !important;
 }
 
-/* Override cho các elements đặc biệt */
 .table tbody tr td .text-danger {
   color: #ef4444 !important;
 }
@@ -1124,7 +1037,6 @@ thead.table-light + tbody tr td {
   border-top: 1px solid rgba(34, 197, 94, 0.25) !important;
 }
 
-
 .badge {
   font-weight: 500;
   padding: 0.4em 0.65em;
@@ -1160,7 +1072,6 @@ thead.table-light + tbody tr td {
   border: 1px solid rgba(59, 130, 246, 0.5);
 }
 
-
 .alert {
   border: 1px solid;
   border-radius: 12px;
@@ -1191,7 +1102,6 @@ thead.table-light + tbody tr td {
   color: #fbbf24 !important;
 }
 
-
 .card.bg-primary,
 .card.bg-danger,
 .card.bg-success {
@@ -1213,7 +1123,6 @@ thead.table-light + tbody tr td {
   background-color: rgba(34, 197, 94, 0.25) !important;
   color: #fff !important;
 }
-
 
 .btn-outline-primary {
   border-color: rgba(34, 197, 94, 0.7) !important;
@@ -1310,7 +1219,6 @@ thead.table-light + tbody tr td {
   color: #fff !important;
 }
 
-
 .pagination .page-link {
   background-color: rgba(15, 23, 42, 0.8) !important;
   border-color: rgba(34, 197, 94, 0.25) !important;
@@ -1367,7 +1275,6 @@ thead.table-light + tbody tr td {
   color: rgba(255, 255, 255, 0.8) !important;
 }
 
-
 .modal-content {
   background-color: #0F172A !important;
   border: 1px solid rgba(34, 197, 94, 0.25) !important;
@@ -1396,7 +1303,6 @@ thead.table-light + tbody tr td {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
 
-
 .form-label {
   color: #fff !important;
   font-weight: 500;
@@ -1409,7 +1315,6 @@ thead.table-light + tbody tr td {
   color: rgba(255, 255, 255, 0.6) !important;
 }
 
-
 .card-body i,
 .card-header i {
   color: #22C55E !important;
@@ -1418,7 +1323,6 @@ thead.table-light + tbody tr td {
 .text-danger i {
   color: #ef4444 !important;
 }
-
 
 .card-body.text-center i {
   color: rgba(255, 255, 255, 0.3) !important;
@@ -1449,12 +1353,10 @@ thead.table-light + tbody tr td {
   box-shadow: 0 0 0 0.25rem rgba(34, 197, 94, 0.25) !important;
 }
 
-
 .table-responsive {
   border-radius: 12px;
   overflow: hidden;
 }
-
 
 .card-body p,
 .card-body small {
@@ -1466,11 +1368,9 @@ thead.table-light + tbody tr td {
   color: #fff !important;
 }
 
-
 .btn-group .btn {
   border-color: rgba(34, 197, 94, 0.25) !important;
 }
-
 
 .card:hover {
   border-color: rgba(34, 197, 94, 0.4) !important;
@@ -1484,7 +1384,6 @@ h2 i {
   color: #22C55E !important;
 }
 
-
 .card.bg-primary h3,
 .card.bg-danger h3,
 .card.bg-success h3 {
@@ -1492,22 +1391,18 @@ h2 i {
   font-weight: 700;
 }
 
-
 .card-body.text-center {
   background-color: rgba(15, 23, 42, 0.5) !important;
 }
-
 
 .card.mb-4 {
   background-color: rgba(15, 23, 42, 0.8) !important;
 }
 
-
 .recipe-card .card-header.bg-primary.text-white {
   background-color: rgba(34, 197, 94, 0.3) !important;
   border-bottom: 1px solid rgba(34, 197, 94, 0.25) !important;
 }
-
 
 .badge.bg-danger.me-1 {
   background-color: rgba(239, 68, 68, 0.3) !important;
@@ -1515,11 +1410,9 @@ h2 i {
   border: 1px solid rgba(239, 68, 68, 0.5) !important;
 }
 
-
 h2 .text-danger {
   color: #ef4444 !important;
 }
-
 
 .text-danger {
   color: #ef4444 !important;
@@ -1530,7 +1423,6 @@ span.text-danger {
   margin-top: 0.25rem;
   display: block;
 }
-
 
 .input-group-text {
   background-color: rgba(15, 23, 42, 0.8) !important;
@@ -1546,7 +1438,6 @@ span.text-danger {
 .input-group .input-group-text:first-child + .form-control:focus {
   border-color: #22C55E !important;
 }
-
 
 .form-check-input[type="checkbox"] {
   background-color: rgba(15, 23, 42, 0.8) !important;
@@ -1566,11 +1457,9 @@ span.text-danger {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e");
 }
 
-
 .shadow-sm {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
-
 
 .alert-danger ul {
   margin-bottom: 0;
@@ -1580,7 +1469,6 @@ span.text-danger {
 .alert-danger li {
   color: #ef4444 !important;
 }
-
 
 .form-text {
   color: rgba(255, 255, 255, 0.6) !important;
@@ -1594,7 +1482,6 @@ span.text-danger {
 .card.shadow-sm {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
-
 
 .card.bg-light {
   background-color: rgba(15, 23, 42, 0.8) !important;
@@ -1669,7 +1556,6 @@ span.text-danger {
   color: #3b82f6 !important;
 }
 
-
 h3.text-primary,
 h3 .text-primary {
   color: #22C55E !important;
@@ -1704,7 +1590,6 @@ h5.text-info {
   color: #3b82f6 !important;
 }
 
-/* Đảm bảo tất cả headings trong card-body có màu đúng */
 .card-body h3,
 .card-body h4,
 .card-body h5,
@@ -1729,13 +1614,11 @@ h5.text-info {
   color: #3b82f6 !important;
 }
 
-/* HR styling */
 hr {
   border-color: rgba(34, 197, 94, 0.25) !important;
   opacity: 1;
 }
 
-/* Alert links */
 .alert-link {
   color: #22C55E !important;
   text-decoration: underline;
@@ -1745,7 +1628,6 @@ hr {
   color: #16A34A !important;
 }
 
-/* Modal header bg-danger */
 .modal-header.bg-danger {
   background-color: rgba(239, 68, 68, 0.3) !important;
   border-bottom: 1px solid rgba(239, 68, 68, 0.5) !important;
@@ -1759,36 +1641,34 @@ hr {
   filter: invert(1) grayscale(100%) brightness(200%);
 }
 
-/* RESPONSIVE ADJUSTMENTS */
 @media (max-width: 768px) {
   .card {
     margin-bottom: 1rem;
   }
-  
+
   .table-responsive {
     font-size: 0.875rem;
   }
-  
+
   .btn-group-sm .btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
   }
-  
+
   .card-body {
     padding: 1rem;
   }
-  
+
   .card-header {
     padding: 0.75rem 1rem;
   }
-  
-  /* Action buttons responsive */
+
   .action-buttons {
     flex-direction: column;
     gap: 0.4rem;
     width: 100%;
   }
-  
+
   .btn-action {
     width: 100%;
     justify-content: center;
@@ -1800,5 +1680,4 @@ hr {
     flex-direction: row;
   }
 }
-
 
