@@ -242,7 +242,10 @@ namespace MealPrepService.BusinessLogicLayer.Services
         {
             // Get current fridge items
             var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(accountId);
-            var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => f.CurrentAmount);
+            // Group by ingredient ID and sum amounts (same ingredient can have multiple entries with different expiry dates)
+            var fridgeInventory = fridgeItems
+                .GroupBy(f => f.IngredientId)
+                .ToDictionary(g => g.Key, g => g.Sum(f => f.CurrentAmount));
 
             // Calculate required ingredients from meal plan and track when they're needed
             var requiredIngredients = new Dictionary<Guid, float>();
