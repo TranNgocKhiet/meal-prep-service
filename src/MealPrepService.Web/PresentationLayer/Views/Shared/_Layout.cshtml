@@ -7,9 +7,11 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
+<body class="bg-black text-white d-flex flex-column min-vh-100">
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow mb-3">
+            
+
             <div class="container">
                 <a class="navbar-brand" asp-controller="Home" asp-action="Index">
                     <strong>Meal Prep Service</strong>
@@ -143,14 +145,19 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted mt-5">
+    <footer class="footer mt-auto"
+            style="background-color:#22B14C; color:white;">
         <div class="container py-3">
             <div class="row">
                 <div class="col-md-6">
-                    &copy; 2026 - Meal Prep Service
+                    © 2026 - Meal Prep Service
                 </div>
                 <div class="col-md-6 text-end">
-                    <a asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                    <a asp-controller="Home"
+                       asp-action="Privacy"
+                       class="text-white text-decoration-none">
+                        Privacy Policy
+                    </a>
                 </div>
             </div>
         </div>
