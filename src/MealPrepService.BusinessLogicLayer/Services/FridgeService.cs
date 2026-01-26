@@ -29,6 +29,13 @@ namespace MealPrepService.BusinessLogicLayer.Services
             return fridgeItems.Select(MapToDto);
         }
 
+        public async Task<(IEnumerable<FridgeItemDto> Items, int TotalCount)> GetFridgeItemsPagedAsync(Guid accountId, int pageNumber, int pageSize)
+        {
+            var (fridgeItems, totalCount) = await _unitOfWork.FridgeItems.GetByAccountIdPagedAsync(accountId, pageNumber, pageSize);
+            var dtos = fridgeItems.Select(MapToDto);
+            return (dtos, totalCount);
+        }
+
         public async Task<FridgeItemDto> AddItemAsync(FridgeItemDto dto)
         {
             if (dto == null)
@@ -104,7 +111,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
             {
                 Id = Guid.NewGuid(),
                 AccountId = dto.AccountId,
-                IngredientId = dto.IngredientId,
+               IngredientId = dto.IngredientId,
                 CurrentAmount = dto.CurrentAmount,
                 ExpiryDate = dto.ExpiryDate,
                 CreatedAt = DateTime.UtcNow

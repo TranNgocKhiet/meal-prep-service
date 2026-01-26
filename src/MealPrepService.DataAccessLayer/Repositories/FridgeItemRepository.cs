@@ -23,6 +23,23 @@ namespace MealPrepService.DataAccessLayer.Repositories
                 .ToListAsync();
         }
 
+        public async Task<(IEnumerable<FridgeItem> Items, int TotalCount)> GetByAccountIdPagedAsync(Guid accountId, int pageNumber, int pageSize)
+        {
+            var query = _dbSet
+                .AsNoTracking()
+                .Include(fi => fi.Ingredient)
+                .Where(fi => fi.AccountId == accountId)
+                .OrderBy(fi => fi.ExpiryDate);
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
         public async Task<IEnumerable<FridgeItem>> GetExpiringItemsAsync(Guid accountId, int daysThreshold)
         {
             var thresholdDate = DateTime.UtcNow.AddDays(daysThreshold);

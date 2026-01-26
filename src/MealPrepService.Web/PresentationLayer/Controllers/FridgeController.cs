@@ -30,22 +30,31 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
         // GET: Fridge/Index - Display fridge items
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
             try
             {
                 var accountId = GetCurrentAccountId();
-                var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
+                const int pageSize = 20;
+                
+                if (page < 1)
+                {
+                    page = 1;
+                }
+                
+                var (pagedFridgeItems, totalCount) = await _fridgeService.GetFridgeItemsPagedAsync(accountId, page, pageSize);
                 var expiringItems = await _fridgeService.GetExpiringItemsAsync(accountId);
                 
                 var viewModel = new FridgeViewModel
                 {
-                    FridgeItems = fridgeItems.Select(MapToViewModel).ToList(),
+                    FridgeItems = pagedFridgeItems.Select(MapToViewModel).ToList(),
                     ExpiringItems = expiringItems.Where(item => item.IsExpiring && !item.IsExpired).Select(MapToViewModel).ToList(),
                     ExpiredItems = expiringItems.Where(item => item.IsExpired).Select(MapToViewModel).ToList(),
-                    TotalItems = fridgeItems.Count(),
+                    TotalItems = totalCount,
                     ExpiringItemsCount = expiringItems.Count(item => item.IsExpiring && !item.IsExpired),
-                    ExpiredItemsCount = expiringItems.Count(item => item.IsExpired)
+                    ExpiredItemsCount = expiringItems.Count(item => item.IsExpired),
+                    CurrentPage = page,
+                    PageSize = pageSize
                 };
                 
                 return View(viewModel);
