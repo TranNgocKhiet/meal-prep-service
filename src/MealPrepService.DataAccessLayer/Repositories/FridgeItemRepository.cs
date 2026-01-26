@@ -16,6 +16,7 @@ namespace MealPrepService.DataAccessLayer.Repositories
         public async Task<IEnumerable<FridgeItem>> GetByAccountIdAsync(Guid accountId)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Include(fi => fi.Ingredient)
                 .Where(fi => fi.AccountId == accountId)
                 .OrderBy(fi => fi.ExpiryDate)
@@ -26,6 +27,7 @@ namespace MealPrepService.DataAccessLayer.Repositories
         {
             var thresholdDate = DateTime.UtcNow.AddDays(daysThreshold);
             return await _dbSet
+                .AsNoTracking()
                 .Include(fi => fi.Ingredient)
                 .Where(fi => fi.AccountId == accountId 
                     && fi.ExpiryDate <= thresholdDate)

@@ -590,9 +590,13 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 // Get current fridge items
                 var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
                 // Group by both IngredientId and ExpiryDate to treat same ingredient with different expiry dates as separate items
+                // Use a class to store both the item and total amount for proper merging
                 var fridgeInventory = fridgeItems
                     .GroupBy(f => new { f.IngredientId, ExpiryDate = f.ExpiryDate.Date })
-                    .ToDictionary(g => g.Key, g => g.First());
+                    .ToDictionary(
+                        g => g.Key, 
+                        g => new { Item = g.First(), TotalAmount = g.Sum(f => f.CurrentAmount) }
+                    );
 
                 int itemsAdded = 0;
                 int itemsUpdated = 0;
@@ -617,13 +621,13 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     if (fridgeInventory.ContainsKey(inventoryKey))
                     {
                         // Update existing fridge item with same expiry date
-                        var existingItem = fridgeInventory[inventoryKey];
-                        var newAmount = existingItem.CurrentAmount + purchasedItem.Amount;
-                        await _fridgeService.UpdateItemQuantityAsync(existingItem.Id, newAmount);
+                        var existingData = fridgeInventory[inventoryKey];
+                        var newAmount = existingData.TotalAmount + purchasedItem.Amount;
+                        await _fridgeService.UpdateItemQuantityAsync(existingData.Item.Id, newAmount);
                         itemsUpdated++;
                         
                         _logger.LogInformation("Updated fridge item {IngredientName} (Expiry: {ExpiryDate}) from {OldAmount} to {NewAmount} for account {AccountId}",
-                            ingredient.IngredientName, expiryDate.ToShortDateString(), existingItem.CurrentAmount, newAmount, accountId);
+                            ingredient.IngredientName, expiryDate.ToShortDateString(), existingData.TotalAmount, newAmount, accountId);
                     }
                     else
                     {
