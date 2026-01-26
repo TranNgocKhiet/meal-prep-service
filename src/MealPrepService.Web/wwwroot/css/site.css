@@ -523,4 +523,1045 @@ select:focus {
   text-decoration: underline;
 }
 
+/* =========================
+   MENU, RECIPES, INGREDIENTS, ALLERGIES PAGES STYLING
+   ========================= */
+
+/* TABLE STYLING */
+.table {
+  color: #fff !important;
+  background-color: transparent;
+}
+
+.table thead th {
+  background-color: rgba(34, 197, 94, 0.25) !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Căn giữa header Actions với các nút bên dưới */
+.table thead th:last-child,
+.table thead th.text-end {
+  text-align: center !important;
+}
+
+.table tbody tr td:last-child,
+.table tbody tr td.text-end {
+  text-align: center !important;
+  vertical-align: middle;
+}
+
+.table tbody tr td:last-child .btn-group,
+.table tbody tr td.text-end .btn-group {
+  justify-content: center;
+  display: inline-flex;
+  margin: 0 auto;
+  width: auto;
+}
+
+.table tbody {
+  background-color: transparent;
+}
+
+.table tbody tr {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border-color: rgba(34, 197, 94, 0.2) !important;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  transform: translateX(2px);
+}
+
+.table tbody td {
+  border-color: rgba(34, 197, 94, 0.2) !important;
+  color: #fff !important;
+  background-color: transparent !important;
+}
+
+.table.table-hover tbody tr:hover {
+  background-color: rgba(34, 197, 94, 0.25) !important;
+}
+
+.table.table-hover tbody tr:hover td {
+  color: #fff !important;
+}
+
+/* Table-light chỉ áp dụng cho thead */
+.table-light {
+  background-color: transparent !important;
+}
+
+.table-light th {
+  background-color: rgba(34, 197, 94, 0.25) !important;
+  color: #fff !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+/* Đảm bảo tbody không bị ảnh hưởng bởi table-light */
+thead.table-light + tbody tr {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+}
+
+thead.table-light + tbody tr td {
+  color: #fff !important;
+  background-color: transparent !important;
+}
+
+/* Links và buttons trong bảng */
+.table tbody tr td a {
+  color: #22C55E !important;
+  text-decoration: none;
+}
+
+.table tbody tr td a:hover {
+  color: #16A34A !important;
+  text-decoration: underline;
+}
+
+.table tbody tr td .btn {
+  color: #fff !important;
+}
+
+/* Buttons trong bảng - đảm bảo rõ ràng */
+.table tbody tr td .btn {
+  transition: all 0.2s ease;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.table tbody tr td .btn:not(:has(span)) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.table tbody tr td .btn-outline-primary {
+  color: #22C55E !important;
+  border-color: rgba(34, 197, 94, 0.8) !important;
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  border-width: 2px !important;
+}
+
+.table tbody tr td .btn-outline-primary:hover {
+  color: #fff !important;
+  background-color: #22C55E !important;
+  border-color: #22C55E !important;
+}
+
+.table tbody tr td .btn-outline-primary {
+  color: #22C55E !important;
+  border-color: rgba(34, 197, 94, 0.8) !important;
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  border-width: 2px !important;
+  font-weight: 600;
+}
+
+.table tbody tr td .btn-outline-primary:hover {
+  color: #fff !important;
+  background-color: #22C55E !important;
+  border-color: #22C55E !important;
+}
+
+.table tbody tr td .btn-outline-primary i {
+  color: inherit !important;
+  font-weight: 600;
+  font-size: 1rem !important;
+}
+
+.table tbody tr td .btn-outline-primary:hover i {
+  color: inherit !important;
+}
+
+.table tbody tr td .btn-outline-secondary {
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  border-width: 2px !important;
+  font-weight: 600;
+}
+
+.table tbody tr td .btn-outline-secondary:hover {
+  color: #000 !important;
+  background-color: #fff !important;
+  border-color: #fff !important;
+}
+
+.table tbody tr td .btn-outline-secondary i {
+  color: inherit !important;
+  font-weight: 600;
+  font-size: 1rem !important;
+}
+
+.table tbody tr td .btn-outline-secondary:hover i {
+  color: inherit !important;
+}
+
+.table tbody tr td .btn-outline-danger {
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.9) !important;
+  background-color: rgba(239, 68, 68, 0.25) !important;
+  border-width: 2px !important;
+  font-weight: 600;
+}
+
+.table tbody tr td .btn-outline-danger:hover {
+  color: #fff !important;
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
+
+.table tbody tr td .btn-outline-danger i {
+  color: inherit !important;
+  font-weight: 600;
+  font-size: 1rem !important;
+}
+
+.table tbody tr td .btn-outline-danger:hover i {
+  color: inherit !important;
+}
+
+/* Icons trong bảng - chỉ áp dụng khi không trong button */
+.table tbody tr td i:not(.btn i) {
+  color: #22C55E !important;
+}
+
+/* Button group styling */
+.btn-group-sm .btn {
+  padding: 0.5rem 0.9rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  min-width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.btn-group .btn {
+  border-width: 2px !important;
+  position: relative;
+}
+
+.btn-group .btn:not(:first-child) {
+  margin-left: -2px;
+}
+
+.btn-group .btn:focus {
+  z-index: 2;
+}
+
+.btn-group .btn:hover {
+  z-index: 2;
+}
+
+.btn-group .btn:active {
+  z-index: 2;
+}
+
+/* Đảm bảo icons trong buttons có kích thước phù hợp và rõ ràng */
+.btn-group-sm .btn i {
+  font-size: 1rem !important;
+  line-height: 1;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Text trong buttons */
+.btn-group-sm .btn {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Đảm bảo buttons có đủ không gian cho text */
+.btn-group-sm .btn:not(:only-child) {
+  flex: 0 1 auto;
+}
+
+/* Tăng contrast cho buttons trong table */
+.table tbody tr td .btn-group {
+  display: inline-flex;
+  justify-content: center;
+  margin: 0 auto;
+  gap: 0;
+}
+
+.table tbody tr td .btn-group .btn {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  border-radius: 0.375rem;
+}
+
+.table tbody tr td .btn-group .btn:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.table tbody tr td .btn-group .btn:last-child {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.table tbody tr td .btn-group .btn:not(:first-child):not(:last-child) {
+  border-radius: 0;
+}
+
+.table tbody tr td .btn-group .btn:hover {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  transform: translateY(-1px);
+}
+
+/* Đảm bảo td chứa btn-group căn giữa - fallback */
+.table tbody tr td .btn-group {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.table tbody tr td .text-danger i {
+  color: #ef4444 !important;
+}
+
+/* Strong text trong bảng */
+.table tbody tr td strong {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Badges trong bảng */
+.table tbody tr td .badge {
+  color: #fff !important;
+}
+
+/* Text muted trong bảng */
+.table tbody tr td .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Đảm bảo tất cả text trong tbody có màu sáng */
+.table tbody tr td {
+  color: #fff !important;
+}
+
+/* Override cho các elements đặc biệt */
+.table tbody tr td .text-danger {
+  color: #ef4444 !important;
+}
+
+.table tbody tr td .text-success {
+  color: #22C55E !important;
+}
+
+.table tbody tr td .text-warning {
+  color: #fbbf24 !important;
+}
+
+.table tbody tr td .text-info {
+  color: #3b82f6 !important;
+}
+
+/* Đảm bảo các text elements thông thường có màu trắng */
+.table tbody tr td p,
+.table tbody tr td span:not(.badge):not(.text-danger):not(.text-success):not(.text-warning):not(.text-info):not(.text-muted),
+.table tbody tr td div:not(.btn-group):not(.badge) {
+  color: #fff !important;
+}
+
+/* CARD HEADER STYLING */
+.card-header {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  border-bottom: 1px solid rgba(34, 197, 94, 0.25) !important;
+  color: #fff !important;
+}
+
+.card-header.bg-primary {
+  background-color: rgba(34, 197, 94, 0.3) !important;
+  border-bottom: none !important;
+}
+
+.card-header.bg-primary.text-white {
+  color: #fff !important;
+}
+
+.card-footer {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border-top: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+
+/* BADGES */
+.badge {
+  font-weight: 500;
+  padding: 0.4em 0.65em;
+}
+
+.badge.bg-secondary {
+  background-color: rgba(108, 117, 125, 0.3) !important;
+  color: #fff !important;
+  border: 1px solid rgba(108, 117, 125, 0.5);
+}
+
+.badge.bg-success {
+  background-color: rgba(34, 197, 94, 0.3) !important;
+  color: #22C55E !important;
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.badge.bg-danger {
+  background-color: rgba(239, 68, 68, 0.3) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.badge.bg-warning {
+  background-color: rgba(251, 191, 36, 0.3) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+}
+
+.badge.bg-info {
+  background-color: rgba(59, 130, 246, 0.3) !important;
+  color: #3b82f6 !important;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+}
+
+/* ALERTS */
+.alert {
+  border: 1px solid;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.alert-success {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  color: #22C55E !important;
+}
+
+.alert-danger {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #ef4444 !important;
+}
+
+.alert-info {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #3b82f6 !important;
+}
+
+.alert-warning {
+  background-color: rgba(251, 191, 36, 0.15) !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  color: #fbbf24 !important;
+}
+
+/* STATISTICS CARDS */
+.card.bg-primary,
+.card.bg-danger,
+.card.bg-success {
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+
+.card.bg-primary {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  color: #fff !important;
+}
+
+.card.bg-danger {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  color: #fff !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.card.bg-success {
+  background-color: rgba(34, 197, 94, 0.25) !important;
+  color: #fff !important;
+}
+
+/* BUTTONS */
+.btn-outline-primary {
+  border-color: rgba(34, 197, 94, 0.7) !important;
+  border-width: 1.5px !important;
+  color: #22C55E !important;
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  font-weight: 500;
+}
+
+.btn-outline-primary:hover {
+  background-color: #22C55E !important;
+  border-color: #22C55E !important;
+  color: #fff !important;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.btn-outline-primary:focus {
+  box-shadow: 0 0 0 0.25rem rgba(34, 197, 94, 0.5) !important;
+}
+
+.btn-outline-secondary {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  border-width: 1.5px !important;
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  font-weight: 500;
+}
+
+.btn-outline-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  color: #fff !important;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+.btn-outline-secondary:focus {
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.3) !important;
+}
+
+.btn-outline-danger {
+  border-color: rgba(239, 68, 68, 0.7) !important;
+  border-width: 1.5px !important;
+  color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  font-weight: 500;
+}
+
+.btn-outline-danger:hover {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #fff !important;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.btn-outline-danger:focus {
+  box-shadow: 0 0 0 0.25rem rgba(239, 68, 68, 0.5) !important;
+}
+
+.btn-secondary {
+  background-color: rgba(108, 117, 125, 0.3) !important;
+  border-color: rgba(108, 117, 125, 0.5) !important;
+  color: #fff !important;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(108, 117, 125, 0.5) !important;
+  border-color: rgba(108, 117, 125, 0.7) !important;
+}
+
+.btn-info {
+  background-color: rgba(59, 130, 246, 0.3) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+  color: #3b82f6 !important;
+}
+
+.btn-info:hover {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #fff !important;
+}
+
+.btn-danger {
+  background-color: rgba(239, 68, 68, 0.3) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #ef4444 !important;
+}
+
+.btn-danger:hover {
+  background-color: #ef4444 !important;
+  border-color: #ef4444 !important;
+  color: #fff !important;
+}
+
+/* PAGINATION */
+.pagination .page-link {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border-color: rgba(34, 197, 94, 0.25) !important;
+  color: #fff !important;
+}
+
+.pagination .page-link:hover {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  color: #22C55E !important;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #22C55E !important;
+  border-color: #22C55E !important;
+  color: #fff !important;
+}
+
+.pagination .page-item.disabled .page-link {
+  background-color: rgba(15, 23, 42, 0.4) !important;
+  border-color: rgba(34, 197, 94, 0.15) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  cursor: not-allowed;
+}
+
+/* RECIPE CARD SPECIFIC STYLING */
+.recipe-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+
+.recipe-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+.nutrition-badge {
+  padding: 0.5rem;
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: #fff !important;
+}
+
+.nutrition-badge strong {
+  color: #22C55E !important;
+}
+
+.nutrition-badge small {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.recipe-instructions-preview {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* MODAL STYLING */
+.modal-content {
+  background-color: #0F172A !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+  color: #fff !important;
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(34, 197, 94, 0.25) !important;
+  background-color: rgba(15, 23, 42, 0.8) !important;
+}
+
+.modal-title {
+  color: #fff !important;
+}
+
+.modal-body {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(34, 197, 94, 0.25) !important;
+  background-color: rgba(15, 23, 42, 0.8) !important;
+}
+
+.btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* FORM LABELS */
+.form-label {
+  color: #fff !important;
+  font-weight: 500;
+}
+
+.form-check-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* TEXT MUTED */
+.text-muted {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ICONS IN CARDS */
+.card-body i,
+.card-header i {
+  color: #22C55E !important;
+}
+
+.text-danger i {
+  color: #ef4444 !important;
+}
+
+/* EMPTY STATE STYLING */
+.card-body.text-center i {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.card-body.text-center h4 {
+  color: #fff !important;
+}
+
+/* SEARCH FORM STYLING */
+.form-control:focus {
+  background-color: #020617 !important;
+  border-color: #22C55E !important;
+  color: #fff !important;
+}
+
+.form-check-input {
+  background-color: #020617 !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+.form-check-input:checked {
+  background-color: #22C55E !important;
+  border-color: #22C55E !important;
+}
+
+.form-check-input:focus {
+  border-color: #22C55E !important;
+  box-shadow: 0 0 0 0.25rem rgba(34, 197, 94, 0.25) !important;
+}
+
+/* TABLE RESPONSIVE */
+.table-responsive {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* CARD BODY TEXT */
+.card-body p,
+.card-body small {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.card-body h5,
+.card-body h6 {
+  color: #fff !important;
+}
+
+/* BUTTON GROUP */
+.btn-group .btn {
+  border-color: rgba(34, 197, 94, 0.25) !important;
+}
+
+/* HOVER EFFECTS FOR CARDS */
+.card:hover {
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+/* SPECIFIC PAGE HEADERS */
+h2 {
+  color: #fff !important;
+}
+
+h2 i {
+  color: #22C55E !important;
+}
+
+/* STATISTICS CARDS H3 */
+.card.bg-primary h3,
+.card.bg-danger h3,
+.card.bg-success h3 {
+  color: #fff !important;
+  font-weight: 700;
+}
+
+/* EMPTY STATE CARDS */
+.card-body.text-center {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+/* SEARCH SECTION CARDS */
+.card.mb-4 {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+}
+
+/* RECIPE CARD HEADER */
+.recipe-card .card-header.bg-primary.text-white {
+  background-color: rgba(34, 197, 94, 0.3) !important;
+  border-bottom: 1px solid rgba(34, 197, 94, 0.25) !important;
+}
+
+/* INGREDIENT ALLERGY BADGES */
+.badge.bg-danger.me-1 {
+  background-color: rgba(239, 68, 68, 0.3) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.5) !important;
+}
+
+/* ALLERGY PAGE SPECIFIC */
+h2 .text-danger {
+  color: #ef4444 !important;
+}
+
+/* FORM VALIDATION */
+.text-danger {
+  color: #ef4444 !important;
+}
+
+span.text-danger {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* INPUT GROUPS */
+.input-group-text {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  color: #fff !important;
+}
+
+.input-group .form-control {
+  border-right: none;
+}
+
+.input-group .form-control:focus + .input-group-text,
+.input-group .input-group-text:first-child + .form-control:focus {
+  border-color: #22C55E !important;
+}
+
+/* FORM SWITCH */
+.form-check-input[type="checkbox"] {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+.form-check-input[type="checkbox"]:checked {
+  background-color: #22C55E !important;
+  border-color: #22C55E !important;
+}
+
+.form-switch .form-check-input {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 0.5%29'/%3e%3c/svg%3e");
+}
+
+.form-switch .form-check-input:checked {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e");
+}
+
+/* SHADOW UTILITIES */
+.shadow-sm {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* VALIDATION SUMMARY */
+.alert-danger ul {
+  margin-bottom: 0;
+  padding-left: 1.5rem;
+}
+
+.alert-danger li {
+  color: #ef4444 !important;
+}
+
+/* FORM TEXT HELP */
+.form-text {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 0.875rem;
+}
+
+.form-text i {
+  color: rgba(34, 197, 94, 0.7) !important;
+}
+
+/* CARD SHADOW */
+.card.shadow-sm {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* RECIPE DETAILS PAGE SPECIFIC STYLING */
+/* Override bg-light cho dark theme */
+.card.bg-light {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+  color: #fff !important;
+}
+
+.card.bg-light .card-body {
+  background-color: transparent !important;
+  color: #fff !important;
+}
+
+.card-footer.bg-light {
+  background-color: rgba(15, 23, 42, 0.8) !important;
+  border-top: 1px solid rgba(34, 197, 94, 0.25) !important;
+  color: #fff !important;
+}
+
+/* Text colors trong bg-light cards và card-body */
+.card.bg-light .text-primary,
+.card-body .text-primary {
+  color: #22C55E !important;
+}
+
+.card.bg-light .text-success,
+.card-body .text-success {
+  color: #22C55E !important;
+}
+
+.card.bg-light .text-warning,
+.card-body .text-warning {
+  color: #fbbf24 !important;
+}
+
+.card.bg-light .text-info,
+.card-body .text-info {
+  color: #3b82f6 !important;
+}
+
+.card.bg-light .text-danger,
+.card-body .text-danger {
+  color: #ef4444 !important;
+}
+
+.card.bg-light .text-muted,
+.card-body .text-muted {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.card.bg-light h4,
+.card-body h4 {
+  color: #fff !important;
+}
+
+.card.bg-light p,
+.card-body p {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Đảm bảo h4 trong bg-light cards có màu đúng */
+.card.bg-light h4.text-primary {
+  color: #22C55E !important;
+}
+
+.card.bg-light h4.text-success {
+  color: #22C55E !important;
+}
+
+.card.bg-light h4.text-warning {
+  color: #fbbf24 !important;
+}
+
+.card.bg-light h4.text-info {
+  color: #3b82f6 !important;
+}
+
+/* Headings trong Recipe Details và các trang khác */
+h3.text-primary,
+h3 .text-primary {
+  color: #22C55E !important;
+}
+
+h4.text-primary,
+h4 .text-primary {
+  color: #22C55E !important;
+}
+
+h5 {
+  color: #fff !important;
+}
+
+h5 .text-danger,
+h5.text-danger {
+  color: #ef4444 !important;
+}
+
+h5 .text-primary,
+h5.text-primary {
+  color: #22C55E !important;
+}
+
+h5 .text-warning,
+h5.text-warning {
+  color: #fbbf24 !important;
+}
+
+h5 .text-info,
+h5.text-info {
+  color: #3b82f6 !important;
+}
+
+/* Đảm bảo tất cả headings trong card-body có màu đúng */
+.card-body h3,
+.card-body h4,
+.card-body h5,
+.card-body h6 {
+  color: #fff !important;
+}
+
+.card-body h3.text-primary,
+.card-body h4.text-primary {
+  color: #22C55E !important;
+}
+
+.card-body h4.text-success {
+  color: #22C55E !important;
+}
+
+.card-body h4.text-warning {
+  color: #fbbf24 !important;
+}
+
+.card-body h4.text-info {
+  color: #3b82f6 !important;
+}
+
+/* HR styling */
+hr {
+  border-color: rgba(34, 197, 94, 0.25) !important;
+  opacity: 1;
+}
+
+/* Alert links */
+.alert-link {
+  color: #22C55E !important;
+  text-decoration: underline;
+}
+
+.alert-link:hover {
+  color: #16A34A !important;
+}
+
+/* Modal header bg-danger */
+.modal-header.bg-danger {
+  background-color: rgba(239, 68, 68, 0.3) !important;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.5) !important;
+}
+
+.modal-header.bg-danger .modal-title {
+  color: #fff !important;
+}
+
+.modal-header.bg-danger .btn-close-white {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* RESPONSIVE ADJUSTMENTS */
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .card-header {
+    padding: 0.75rem 1rem;
+  }
+}
+
 

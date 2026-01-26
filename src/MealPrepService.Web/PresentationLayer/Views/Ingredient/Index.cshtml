@@ -135,17 +135,17 @@
                                         <div class="btn-group btn-group-sm" role="group">
                                             <a asp-action="Details" asp-route-id="@ingredient.Id" 
                                                class="btn btn-outline-primary" title="View Details">
-                                                <i class="bi bi-eye"></i>
+                                                <i class="bi bi-eye"></i> View
                                             </a>
                                             <a asp-action="Edit" asp-route-id="@ingredient.Id" 
                                                class="btn btn-outline-secondary" title="Edit">
-                                                <i class="bi bi-pencil"></i>
+                                                <i class="bi bi-pencil"></i> Edit
                                             </a>
                                             <button type="button" class="btn btn-outline-danger" 
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#deleteModal-@ingredient.Id"
                                                     title="Delete">
-                                                <i class="bi bi-trash"></i>
+                                                <i class="bi bi-trash"></i> Delete
                                             </button>
                                         </div>
 
@@ -276,13 +276,3 @@
         </a>
     </div>
 </div>
-
-<style>
-    .table tbody tr {
-        transition: background-color 0.2s;
-    }
-    
-    .table tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-</style>
