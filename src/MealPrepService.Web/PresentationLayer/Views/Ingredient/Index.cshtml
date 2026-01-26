@@ -62,26 +62,67 @@
     <!-- Search and Filter Section -->
     <div class="card mb-4">
         <div class="card-body">
-            <form asp-action="Index" method="get" class="row g-3">
+            <form asp-action="Index" method="get" id="searchForm" class="row g-3">
                 <div class="col-12">
                     <label for="searchTerm" class="form-label">Search Ingredients</label>
-                    <input type="text" class="form-control" id="searchTerm" name="searchTerm" 
-                           value="@Model.SearchTerm" placeholder="Search by name or unit..." autofocus>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchTerm" name="searchTerm" 
+                               value="@Model.SearchTerm" placeholder="Search by name or unit..." autofocus>
+                        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                        {
+                            <button type="button" class="btn btn-outline-secondary" id="clearInputBtn" title="Clear search input">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        }
+                    </div>
                 </div>
                 <div class="col-12">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i> Search
-                    </button>
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Clear
-                    </a>
                     <a asp-action="Index" asp-route-showAll="true" class="btn btn-success">
-                        <i class="bi bi-list-ul"></i> Show All
+                        <i class="bi bi-list-ul"></i> Show All Ingredients
                     </a>
+                    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.ShowAll)
+                    {
+                        <button type="button" class="btn btn-secondary" id="clearAllBtn">
+                            <i class="bi bi-x-circle"></i> Clear
+                        </button>
+                    }
                 </div>
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchTerm');
+            const searchForm = document.getElementById('searchForm');
+            const clearInputBtn = document.getElementById('clearInputBtn');
+            const clearAllBtn = document.getElementById('clearAllBtn');
+            let searchTimeout;
+
+            // Auto-submit on input with debounce
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    searchForm.submit();
+                }, 500); // Wait 500ms after user stops typing
+            });
+
+            // Clear input button functionality (inline X button)
+            if (clearInputBtn) {
+                clearInputBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    searchForm.submit();
+                });
+            }
+
+            // Clear all button functionality (clears everything and exits show all)
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', function() {
+                    window.location.href = '@Url.Action("Index")';
+                });
+            }
+        });
+    </script>
 
     <!-- Ingredients Table -->
     @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.ShowAll)
@@ -94,18 +135,18 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>Ingredient Name</th>
-                                <th>Unit</th>
-                                <th>Calories per Unit</th>
-                                <th>Allergy Name</th>
-                                <th class="text-end">Actions</th>
+                                <th class="text-white" style="background-color: transparent;">Ingredient Name</th>
+                                <th class="text-white" style="background-color: transparent;">Unit</th>
+                                <th class="text-white" style="background-color: transparent;">Calories per Unit</th>
+                                <th class="text-white" style="background-color: transparent;">Allergy Name</th>
+                                <th class="text-white text-end" style="background-color: transparent;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var ingredient in Model.Ingredients)
                             {
                                 <tr>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">
                                         <strong>@ingredient.IngredientName</strong>
                                         @if (ingredient.IsAllergen)
                                         {
@@ -113,9 +154,9 @@
                                                title="Allergen"></i>
                                         }
                                     </td>
-                                    <td>@ingredient.Unit</td>
-                                    <td>@ingredient.CaloPerUnit.ToString("F1") cal</td>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">@ingredient.Unit</td>
+                                    <td class="text-white" style="background-color: transparent;">@ingredient.CaloPerUnit.ToString("F1") cal</td>
+                                    <td class="text-white" style="background-color: transparent;">
                                         @if (ingredient.Allergies != null && ingredient.Allergies.Any())
                                         {
                                             @foreach (var allergy in ingredient.Allergies)
@@ -131,6 +172,7 @@
                                             <span class="text-muted">None</span>
                                         }
                                     </td>
+<<<<<<< HEAD
                                     <td class="text-end">
                                         <div class="action-buttons">
                                             <a asp-action="Details" asp-route-id="@ingredient.Id" 

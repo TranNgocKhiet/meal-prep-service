@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Menu Management";
+    var activeTab = ViewBag.ActiveTab ?? "current";
 }
 
 <div class="container mt-4">
@@ -28,33 +29,61 @@
         </div>
     }
 
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-3" id="menuTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(activeTab == "current" ? "active" : "")" 
+               href="@Url.Action("Index", new { tab = "current" })" 
+               role="tab">
+                <i class="bi bi-calendar-check"></i> Current & Future Menus
+            </a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(activeTab == "past" ? "active" : "")" 
+               href="@Url.Action("Index", new { tab = "past" })" 
+               role="tab">
+                <i class="bi bi-calendar-x"></i> Past Menus
+            </a>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
     <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">Menus for Next 30 Days</h5>
-            <small class="text-muted">@ViewBag.StartDate.ToString("MMM dd, yyyy") - @ViewBag.EndDate.ToString("MMM dd, yyyy")</small>
+        <div class="card-header" style="background-color: #1e293b; border-color: rgba(34,197,94,.25);">
+            <h5 class="mb-0 text-white">
+                @if (activeTab == "current")
+                {
+                    <text>Current & Future Menus (Next 30 Days)</text>
+                }
+                else
+                {
+                    <text>Past Menus (Last 90 Days)</text>
+                }
+            </h5>
+            <small class="text-white" style="opacity: 0.7;">@ViewBag.StartDate.ToString("MMM dd, yyyy") - @ViewBag.EndDate.ToString("MMM dd, yyyy")</small>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="background-color: #0F172A;">
             @if (Model.Any())
             {
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Day</th>
-                                <th>Status</th>
-                                <th>Meals Count</th>
-                                <th>Total Available</th>
-                                <th>Actions</th>
+                                <th class="text-white" style="background-color: transparent;">Date</th>
+                                <th class="text-white" style="background-color: transparent;">Day</th>
+                                <th class="text-white" style="background-color: transparent;">Status</th>
+                                <th class="text-white" style="background-color: transparent;">Meals Count</th>
+                                <th class="text-white" style="background-color: transparent;">Total Available</th>
+                                <th class="text-white" style="background-color: transparent;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var menu in Model)
                             {
                                 <tr>
-                                    <td>@menu.MenuDate.ToString("MMM dd, yyyy")</td>
-                                    <td>@menu.MenuDate.ToString("dddd")</td>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">@menu.MenuDate.ToString("MMM dd, yyyy")</td>
+                                    <td class="text-white" style="background-color: transparent;">@menu.MenuDate.ToString("dddd")</td>
+                                    <td class="text-white" style="background-color: transparent;">
                                         @if (menu.Status.Equals("draft", StringComparison.OrdinalIgnoreCase))
                                         {
                                             <span class="badge bg-secondary">Draft</span>
@@ -72,23 +101,26 @@
                                             <span class="badge bg-warning">@menu.Status</span>
                                         }
                                     </td>
-                                    <td>@menu.MenuMeals.Count</td>
-                                    <td>@menu.MenuMeals.Sum(m => m.AvailableQuantity)</td>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">@menu.MenuMeals.Count</td>
+                                    <td class="text-white" style="background-color: transparent;">@menu.MenuMeals.Sum(m => m.AvailableQuantity)</td>
+                                    <td class="text-white" style="background-color: transparent;">
                                         <a asp-action="Details" asp-route-id="@menu.Id" class="btn btn-sm btn-info">
                                             <i class="bi bi-eye"></i> View
                                         </a>
-                                        @if (menu.Status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+                                        @if (activeTab == "current")
                                         {
-                                            <a asp-action="AddMeal" asp-route-menuId="@menu.Id" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-plus"></i> Add Meal
-                                            </a>
-                                            <form asp-action="Publish" asp-route-menuId="@menu.Id" method="post" class="d-inline">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to publish this menu?')">
-                                                    <i class="bi bi-check-circle"></i> Publish
-                                                </button>
-                                            </form>
+                                            @if (menu.Status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <a asp-action="AddMeal" asp-route-menuId="@menu.Id" class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-plus"></i> Add Meal
+                                                </a>
+                                                <form asp-action="Publish" asp-route-menuId="@menu.Id" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Are you sure you want to publish this menu?')">
+                                                        <i class="bi bi-check-circle"></i> Publish
+                                                    </button>
+                                                </form>
+                                            }
                                         }
                                     </td>
                                 </tr>
@@ -100,7 +132,15 @@
             else
             {
                 <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> No menus found for the next 30 days. Create a new menu to get started.
+                    <i class="bi bi-info-circle"></i> 
+                    @if (activeTab == "current")
+                    {
+                        <text>No menus found for the next 30 days. Create a new menu to get started.</text>
+                    }
+                    else
+                    {
+                        <text>No past menus found in the last 90 days.</text>
+                    }
                 </div>
             }
         </div>
@@ -112,3 +152,23 @@
         </a>
     </div>
 </div>
+
+<style>
+    .nav-tabs .nav-link {
+        color: #fff;
+        background-color: #1e293b;
+        border: 1px solid rgba(34,197,94,.25);
+        margin-right: 5px;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background-color: #334155;
+        border-color: rgba(34,197,94,.5);
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #fff;
+        background-color: #22c55e;
+        border-color: #22c55e;
+    }
+</style>

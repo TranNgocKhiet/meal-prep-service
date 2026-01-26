@@ -230,6 +230,21 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 menuMealId, newQuantity);
         }
 
+        public async Task RemoveMealFromMenuAsync(Guid menuMealId)
+        {
+            var menuMeal = await _unitOfWork.MenuMeals.GetByIdAsync(menuMealId);
+            if (menuMeal == null)
+            {
+                throw new BusinessException($"Menu meal with ID {menuMealId} not found");
+            }
+
+            await _unitOfWork.MenuMeals.DeleteAsync(menuMealId);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Menu meal {MenuMealId} removed from menu {MenuId}", 
+                menuMealId, menuMeal.MenuId);
+        }
+
         private DailyMenuDto MapToDto(DailyMenu dailyMenu)
         {
             var menuMeals = dailyMenu.MenuMeals?.Select(MapMenuMealToDto).ToList() ?? new List<MenuMealDto>();

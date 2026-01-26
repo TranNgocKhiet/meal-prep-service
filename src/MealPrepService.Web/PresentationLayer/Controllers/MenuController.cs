@@ -28,15 +28,27 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
         // GET: Menu/Index - List all menus
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string tab = "current")
         {
             try
             {
-                // Get menus for the next 30 days
-                var startDate = DateTime.Today;
-                var endDate = DateTime.Today.AddDays(30);
-                
                 var menuList = new List<DailyMenuDto>();
+                DateTime startDate;
+                DateTime endDate;
+                
+                if (tab == "past")
+                {
+                    // Get past menus (last 90 days)
+                    startDate = DateTime.Today.AddDays(-90);
+                    endDate = DateTime.Today.AddDays(-1);
+                }
+                else
+                {
+                    // Get current and future menus (today + next 30 days)
+                    tab = "current"; // Ensure tab is set to current
+                    startDate = DateTime.Today;
+                    endDate = DateTime.Today.AddDays(30);
+                }
                 
                 // Get menus for each day in the range
                 for (var date = startDate; date <= endDate; date = date.AddDays(1))
@@ -48,10 +60,11 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     }
                 }
 
-                var viewModels = menuList.Select(MapToViewModel).OrderBy(m => m.MenuDate).ToList();
+                var viewModels = menuList.Select(MapToViewModel).OrderByDescending(m => m.MenuDate).ToList();
                 
                 ViewBag.StartDate = startDate;
                 ViewBag.EndDate = endDate;
+                ViewBag.ActiveTab = tab;
                 
                 return View(viewModels);
             }
@@ -177,10 +190,10 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return NotFound("Menu not found.");
                 }
 
-                // Check if menu is still in draft status
-                if (!menuDto.Status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+                // Check if menu is in draft or inactive status (can be edited)
+                if (menuDto.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
                 {
-                    TempData["ErrorMessage"] = "Cannot add meals to a published menu.";
+                    TempData["ErrorMessage"] = "Cannot add meals to an active menu. Please deactivate it first.";
                     return RedirectToAction(nameof(Details), new { id = menuId });
                 }
 
@@ -429,10 +442,10 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return NotFound("Menu meal not found.");
                 }
 
-                // Check if menu is still in draft status
-                if (!parentMenu.Status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+                // Check if menu is in draft or inactive status (can be edited)
+                if (parentMenu.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
                 {
-                    TempData["ErrorMessage"] = "Cannot update quantities for a published menu.";
+                    TempData["ErrorMessage"] = "Cannot update quantities for an active menu. Please deactivate it first.";
                     return RedirectToAction(nameof(Details), new { id = parentMenu.Id });
                 }
 
@@ -498,6 +511,61 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 _logger.LogError(ex, "Error occurred while updating quantity for menu meal {MenuMealId}", model.MenuMealId);
                 ModelState.AddModelError(string.Empty, "An error occurred while updating the quantity. Please try again.");
                 return View(model);
+            }
+        }
+
+        // POST: Menu/RemoveMeal - Remove meal from menu
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveMeal(Guid menuMealId, Guid menuId)
+        {
+            try
+            {
+                // Find the menu to check its status
+                DailyMenuDto? parentMenu = null;
+                
+                // Search through recent dates to find the menu
+                for (var date = DateTime.Today.AddDays(-30); date <= DateTime.Today.AddDays(30); date = date.AddDays(1))
+                {
+                    var menu = await _menuService.GetByDateAsync(date);
+                    if (menu?.Id == menuId)
+                    {
+                        parentMenu = menu;
+                        break;
+                    }
+                }
+                
+                if (parentMenu == null)
+                {
+                    TempData["ErrorMessage"] = "Menu not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Check if menu is in draft or inactive status (can be edited)
+                if (parentMenu.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
+                {
+                    TempData["ErrorMessage"] = "Cannot remove meals from an active menu. Please deactivate it first.";
+                    return RedirectToAction(nameof(Details), new { id = menuId });
+                }
+
+                await _menuService.RemoveMealFromMenuAsync(menuMealId);
+                
+                _logger.LogInformation("Meal {MenuMealId} removed from menu {MenuId}", menuMealId, menuId);
+                
+                TempData["SuccessMessage"] = "Meal removed from menu successfully!";
+                return RedirectToAction(nameof(Details), new { id = menuId });
+            }
+            catch (BusinessException ex)
+            {
+                _logger.LogError(ex, "Business error occurred while removing meal {MenuMealId} from menu {MenuId}", menuMealId, menuId);
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id = menuId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while removing meal {MenuMealId} from menu {MenuId}", menuMealId, menuId);
+                TempData["ErrorMessage"] = "An error occurred while removing the meal. Please try again.";
+                return RedirectToAction(nameof(Details), new { id = menuId });
             }
         }
 

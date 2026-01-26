@@ -100,7 +100,7 @@
                 <div class="mb-3">
                     <div class="input-group">
                         <span class="input-group-text bg-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" class="bi bi-search" viewBox="0 0 16 16">
                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                             </svg>
                         </span>
@@ -125,30 +125,30 @@
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0" id="fridgeTable">
-                                <thead class="table-light">
+                                <thead class="table-light bg-primary" >
                                     <tr>
-                                        <th>Ingredient</th>
-                                        <th>Amount</th>
-                                        <th>Expiry Date</th>
-                                        <th>Status</th>
-                                        <th>Days Until Expiry</th>
-                                        <th class="text-end">Actions</th>
+                                        <th class="text-white" style="background-color: transparent;">Ingredient</th>
+                                        <th class="text-white" style="background-color: transparent;">Amount</th>
+                                        <th class="text-white" style="background-color: transparent;">Expiry Date</th>
+                                        <th class="text-white" style="background-color: transparent;">Status</th>
+                                        <th class="text-white" style="background-color: transparent;">Days Until Expiry</th>
+                                        <th class="text-white text-end" style="background-color: transparent;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var item in Model.FridgeItems.OrderBy(i => i.ExpiryDate))
                                     {
                                         <tr class="@(item.IsExpired ? "table-danger" : item.IsExpiring ? "table-warning" : "")">
-                                            <td>
+                                            <td class="text-white" style="background-color: transparent;">
                                                 <strong>@item.IngredientName</strong>
                                             </td>
-                                            <td>
+                                            <td class="text-white" style="background-color: transparent;">
                                                 @item.CurrentAmount.ToString("F2") @item.Unit
                                             </td>
-                                            <td>
+                                            <td class="text-white" style="background-color: transparent;">
                                                 @item.ExpiryDate.ToString("MMM dd, yyyy")
                                             </td>
-                                            <td>
+                                            <td class="text-white" style="background-color: transparent;">
                                                 <span class="badge @(item.IsExpired ? "bg-danger" : item.IsExpiring ? "bg-warning text-dark" : "bg-success")">
                                                     @if (item.IsExpired)
                                                     {
@@ -176,7 +176,7 @@
                                                     }
                                                 </span>
                                             </td>
-                                            <td class="@item.ExpiryStatusClass">
+                                            <td class="@item.ExpiryStatusClass text-white" style="background-color: transparent;">
                                                 @if (item.DaysUntilExpiry < 0)
                                                 {
                                                     <strong>@Math.Abs(item.DaysUntilExpiry) days ago</strong>
@@ -194,7 +194,7 @@
                                                     <span>@item.DaysUntilExpiry days</span>
                                                 }
                                             </td>
-                                            <td class="text-end">
+                                            <td class="text-white text-end" style="background-color: transparent;">
                                                 <div class="btn-group btn-group-sm" role="group">
                                                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#updateItemModal-@item.Id" title="Edit Item">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
@@ -219,15 +219,15 @@
                                         <!-- Update Item Modal (Unified) -->
                                         <div class="modal fade" id="updateItemModal-@item.Id" tabindex="-1" aria-labelledby="updateItemModalLabel-@item.Id" aria-hidden="true">
                                             <div class="modal-dialog modal-lg">
-                                                <div class="modal-content">
+                                                <div class="modal-content" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
                                                     <form asp-action="UpdateItem" method="post">
                                                         <input type="hidden" name="FridgeItemId" value="@item.Id" />
                                                         <input type="hidden" name="IngredientName" value="@item.IngredientName" />
                                                         <input type="hidden" name="Unit" value="@item.Unit" />
                                                         <input type="hidden" name="CurrentAmount" value="@item.CurrentAmount" />
                                                         <input type="hidden" name="CurrentExpiryDate" value="@item.ExpiryDate.ToString("yyyy-MM-dd")" />
-                                                        <div class="modal-header bg-primary text-white">
-                                                            <h5 class="modal-title" id="updateItemModalLabel-@item.Id">
+                                                        <div class="modal-header text-white" style="background-color: #1e293b; border-bottom: 1px solid rgba(34,197,94,.25);">
+                                                            <h5 class="modal-title text-white" id="updateItemModalLabel-@item.Id">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-pencil-square me-2" viewBox="0 0 16 16">
                                                                     <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
                                                                     <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
@@ -236,8 +236,8 @@
                                                             </h5>
                                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                         </div>
-                                                        <div class="modal-body">
-                                                            <div class="alert alert-info">
+                                                        <div class="modal-body" style="background-color: #0F172A;">
+                                                            <div class="alert alert-info" style="background-color: #1e293b !important; border-color: rgba(34,197,94,.25); color: #fff;">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle me-2" viewBox="0 0 16 16">
                                                                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                                                                     <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
@@ -245,7 +245,7 @@
                                                                 <small><strong>Note:</strong> If you change the expiry date to match another item with the same ingredient, they will be automatically merged.</small>
                                                             </div>
                                                             
-                                                            <h6 class="text-primary mb-3">
+                                                            <h6 class="text-white mb-3">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-box-seam me-2" viewBox="0 0 16 16">
                                                                     <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2l-2.218-.887zm3.564 1.426L5.596 5 8 5.961 14.154 3.5l-2.404-.961zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
                                                                 </svg>
@@ -254,8 +254,8 @@
 
                                                             <div class="row">
                                                                 <div class="col-md-6">
-                                                                    <div class="card mb-3">
-                                                                        <div class="card-header bg-light">
+                                                                    <div class="card mb-3" style="background-color: #1e293b; border-color: rgba(34,197,94,.25);">
+                                                                        <div class="card-header text-white" style="background-color: #1e293b; border-bottom: 1px solid rgba(34,197,94,.25);">
                                                                             <small class="fw-bold">
                                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-calculator me-1" viewBox="0 0 16 16">
                                                                                     <path d="M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
@@ -264,10 +264,10 @@
                                                                                 Amount
                                                                             </small>
                                                                         </div>
-                                                                        <div class="card-body">
-                                                                            <p class="mb-2"><small class="text-muted">Current:</small> <strong>@item.CurrentAmount.ToString("F2") @item.Unit</strong></p>
+                                                                        <div class="card-body" style="background-color: #1e293b;">
+                                                                            <p class="mb-2 text-white"><small class="text-muted">Current:</small> <strong>@item.CurrentAmount.ToString("F2") @item.Unit</strong></p>
                                                                             <div class="mb-0">
-                                                                                <label for="newAmount-@item.Id" class="form-label">New Amount</label>
+                                                                                <label for="newAmount-@item.Id" class="form-label text-white">New Amount</label>
                                                                                 <div class="input-group">
                                                                                     <input type="number" step="0.01" class="form-control" id="newAmount-@item.Id" name="NewAmount" value="@item.CurrentAmount" required min="0.01" max="10000" />
                                                                                     <span class="input-group-text">@item.Unit</span>
@@ -277,8 +277,8 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-6">
-                                                                    <div class="card mb-3">
-                                                                        <div class="card-header bg-light">
+                                                                    <div class="card mb-3" style="background-color: #1e293b; border-color: rgba(34,197,94,.25);">
+                                                                        <div class="card-header text-white" style="background-color: #1e293b; border-bottom: 1px solid rgba(34,197,94,.25);">
                                                                             <small class="fw-bold">
                                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-calendar-event me-1" viewBox="0 0 16 16">
                                                                                     <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
@@ -287,15 +287,15 @@
                                                                                 Expiry Date
                                                                             </small>
                                                                         </div>
-                                                                        <div class="card-body">
-                                                                            <p class="mb-2">
+                                                                        <div class="card-body" style="background-color: #1e293b;">
+                                                                            <p class="mb-2 text-white">
                                                                                 <small class="text-muted">Current:</small> 
                                                                                 <span class="badge @(item.IsExpired ? "bg-danger" : item.IsExpiring ? "bg-warning text-dark" : "bg-success")">
                                                                                     @item.ExpiryDate.ToString("MMM dd, yyyy")
                                                                                 </span>
                                                                             </p>
                                                                             <div class="mb-0">
-                                                                                <label for="newExpiryDate-@item.Id" class="form-label">New Expiry Date</label>
+                                                                                <label for="newExpiryDate-@item.Id" class="form-label text-white">New Expiry Date</label>
                                                                                 <input type="date" class="form-control" id="newExpiryDate-@item.Id" name="NewExpiryDate" value="@item.ExpiryDate.ToString("yyyy-MM-dd")" required min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
                                                                                 <small class="text-muted">Must be in the future</small>
                                                                             </div>
@@ -304,7 +304,7 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="modal-footer">
+                                                        <div class="modal-footer" style="background-color: #0F172A; border-top: 1px solid rgba(34,197,94,.25);">
                                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
                                                                     <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
@@ -327,6 +327,105 @@
                             </table>
                         </div>
                     </div>
+                    
+                    <!-- Pagination Controls -->
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="card-footer bg-white">
+                            <nav aria-label="Fridge items pagination">
+                                <ul class="pagination justify-content-center mb-0">
+                                    <!-- Previous Button -->
+                                    <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                                        <a class="page-link" 
+                                           style="color: #000 !important;"
+                                           href="@(Model.HasPreviousPage ? Url.Action("Index", new { page = Model.CurrentPage - 1 }) : "#")"
+                                           aria-label="Previous">
+                                            <span aria-hidden="true" style="color: #000 !important;">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    
+                                    @{
+                                        var startPage = Math.Max(1, Model.CurrentPage - 2);
+                                        var endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
+                                        
+                                        // Adjust if we're near the start or end
+                                        if (endPage - startPage < 4)
+                                        {
+                                            if (Model.CurrentPage < 3)
+                                            {
+                                                endPage = Math.Min(Model.TotalPages, startPage + 4);
+                                            }
+                                            else
+                                            {
+                                                startPage = Math.Max(1, endPage - 4);
+                                            }
+                                        }
+                                    }
+                                    
+                                    <!-- First Page -->
+                                    @if (startPage > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" style="color: #000 !important;" href="@Url.Action("Index", new { page = 1 })">1</a>
+                                        </li>
+                                        @if (startPage > 2)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link" style="color: #000 !important;">...</span>
+                                            </li>
+                                        }
+                                    }
+                                    
+                                    <!-- Page Numbers -->
+                                    @for (int i = startPage; i <= endPage; i++)
+                                    {
+                                        if (i == Model.CurrentPage)
+                                        {
+                                            <li class="page-item active">
+                                                <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link" style="color: #000 !important;" href="@Url.Action("Index", new { page = i })">@i</a>
+                                            </li>
+                                        }
+                                    }
+                                    
+                                    <!-- Last Page -->
+                                    @if (endPage < Model.TotalPages)
+                                    {
+                                        @if (endPage < Model.TotalPages - 1)
+                                        {
+                                            <li class="page-item disabled">
+                                                <span class="page-link" style="color: #000 !important;">...</span>
+                                            </li>
+                                        }
+                                        <li class="page-item">
+                                            <a class="page-link" style="color: #000 !important;" href="@Url.Action("Index", new { page = Model.TotalPages })">@Model.TotalPages</a>
+                                        </li>
+                                    }
+                                    
+                                    <!-- Next Button -->
+                                    <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                                        <a class="page-link" 
+                                           style="color: #000 !important;"
+                                           href="@(Model.HasNextPage ? Url.Action("Index", new { page = Model.CurrentPage + 1 }) : "#")"
+                                           aria-label="Next">
+                                            <span aria-hidden="true" style="color: #000 !important;">&raquo;</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
+                            <div class="text-center mt-2">
+                                <small style="color: #000 !important;">
+                                    Showing page @Model.CurrentPage of @Model.TotalPages 
+                                    (@((Model.CurrentPage - 1) * Model.PageSize + 1)-@Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems) of @Model.TotalItems items)
+                                </small>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
             else

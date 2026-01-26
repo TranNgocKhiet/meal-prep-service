@@ -107,14 +107,6 @@
                 </div>
             }
         </div>
-
-        @if (User.Identity.IsAuthenticated && User.IsInRole("Customer"))
-        {
-            <div class="alert alert-info text-center mt-4">
-                <i class="bi bi-info-circle"></i> 
-                <strong>Note:</strong> Order and delivery features will be available in Checkpoint 2.
-            </div>
-        }
     }
     else
     {
