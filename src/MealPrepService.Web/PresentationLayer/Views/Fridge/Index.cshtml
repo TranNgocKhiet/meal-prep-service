@@ -336,11 +336,10 @@
                                 <ul class="pagination justify-content-center mb-0">
                                     <!-- Previous Button -->
                                     <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
-                                        <a class="page-link" 
-                                           style="color: #000 !important;"
+                                        <a class="page-link text-muted" 
                                            href="@(Model.HasPreviousPage ? Url.Action("Index", new { page = Model.CurrentPage - 1 }) : "#")"
                                            aria-label="Previous">
-                                            <span aria-hidden="true" style="color: #000 !important;">&laquo;</span>
+                                            <span aria-hidden="true">&laquo;</span>
                                         </a>
                                     </li>
                                     
@@ -366,12 +365,12 @@
                                     @if (startPage > 1)
                                     {
                                         <li class="page-item">
-                                            <a class="page-link" style="color: #000 !important;" href="@Url.Action("Index", new { page = 1 })">1</a>
+                                            <a class="page-link text-muted" href="@Url.Action("Index", new { page = 1 })">1</a>
                                         </li>
                                         @if (startPage > 2)
                                         {
                                             <li class="page-item disabled">
-                                                <span class="page-link" style="color: #000 !important;">...</span>
+                                                <span class="page-link text-muted">...</span>
                                             </li>
                                         }
                                     }
@@ -388,7 +387,7 @@
                                         else
                                         {
                                             <li class="page-item">
-                                                <a class="page-link" style="color: #000 !important;" href="@Url.Action("Index", new { page = i })">@i</a>
+                                                <a class="page-link text-muted" href="@Url.Action("Index", new { page = i })">@i</a>
                                             </li>
                                         }
                                     }
@@ -399,27 +398,26 @@
                                         @if (endPage < Model.TotalPages - 1)
                                         {
                                             <li class="page-item disabled">
-                                                <span class="page-link" style="color: #000 !important;">...</span>
+                                                <span class="page-link text-muted">...</span>
                                             </li>
                                         }
                                         <li class="page-item">
-                                            <a class="page-link" style="color: #000 !important;" href="@Url.Action("Index", new { page = Model.TotalPages })">@Model.TotalPages</a>
+                                            <a class="page-link text-muted" href="@Url.Action("Index", new { page = Model.TotalPages })">@Model.TotalPages</a>
                                         </li>
                                     }
                                     
                                     <!-- Next Button -->
                                     <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
-                                        <a class="page-link" 
-                                           style="color: #000 !important;"
+                                        <a class="page-link text-muted" 
                                            href="@(Model.HasNextPage ? Url.Action("Index", new { page = Model.CurrentPage + 1 }) : "#")"
                                            aria-label="Next">
-                                            <span aria-hidden="true" style="color: #000 !important;">&raquo;</span>
+                                            <span aria-hidden="true">&raquo;</span>
                                         </a>
                                     </li>
                                 </ul>
                             </nav>
                             <div class="text-center mt-2">
-                                <small style="color: #000 !important;">
+                                <small class="text-muted">
                                     Showing page @Model.CurrentPage of @Model.TotalPages 
                                     (@((Model.CurrentPage - 1) * Model.PageSize + 1)-@Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems) of @Model.TotalItems items)
                                 </small>
