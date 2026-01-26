@@ -8,8 +8,14 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+  box-shadow:
+    0 0 0 0.1rem white,
+    0 0 0 0.25rem #258cfb;
 }
 
 html {
@@ -18,15 +24,17 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  /* Removed margin-bottom to allow footer to stick to bottom */
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
   text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
 
@@ -86,13 +94,42 @@ select.form-control {
 }
 
 .select2-container--bootstrap-5 .select2-selection {
+  background-color: #000000 !important;
+  border-color: rgba(
+    34,
+    197,
+    94,
+    0.25
+  ) !important; /* Matches your card border */
+  color: #ffffff !important;
+}
+
+.select2-dropdown {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border-color: rgba(34, 197, 94, 0.25) !important;
+}
+
+.select2-results__option--selectable {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.select2-container--bootstrap-5 .select2-results__option--highlighted {
+  background-color: #198754 !important; /* Bootstrap green or your choice */
+  color: #ffffff !important;
+}
+
+.select2-container--bootstrap-5 .select2-selection {
   min-height: 38px;
   border: 1px solid #ced4da;
   border-radius: 0.375rem;
   background-color: #fff;
   position: relative;
   display: block !important;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
 }
 
 .select2-container--bootstrap-5 .select2-selection--single {
@@ -101,7 +138,9 @@ select.form-control {
   display: block;
 }
 
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+.select2-container--bootstrap-5
+  .select2-selection--single
+  .select2-selection__rendered {
   line-height: 1.5;
   padding-left: 0;
   padding-right: 30px;
@@ -113,12 +152,17 @@ select.form-control {
 }
 
 /* Show placeholder properly when nothing is selected */
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered .select2-selection__placeholder {
+.select2-container--bootstrap-5
+  .select2-selection--single
+  .select2-selection__rendered
+  .select2-selection__placeholder {
   color: #6c757d;
   font-weight: normal;
 }
 
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow {
+.select2-container--bootstrap-5
+  .select2-selection--single
+  .select2-selection__arrow {
   height: 36px;
   right: 5px;
   top: 1px;
@@ -157,7 +201,9 @@ select.form-control {
   border-radius: 0.375rem 0.375rem 0 0;
 }
 
-.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+.select2-container--bootstrap-5
+  .select2-search--dropdown
+  .select2-search__field {
   border: none;
   border-radius: 0.375rem 0.375rem 0 0;
   padding: 0.5rem 0.75rem;
@@ -170,7 +216,9 @@ select.form-control {
   box-sizing: border-box;
 }
 
-.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field:focus {
+.select2-container--bootstrap-5
+  .select2-search--dropdown
+  .select2-search__field:focus {
   outline: none;
   box-shadow: none;
 }
@@ -196,7 +244,8 @@ select.form-control {
   color: white !important;
 }
 
-.select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected="true"] {
+.select2-container--bootstrap-5
+  .select2-results__option--highlighted[aria-selected="true"] {
   background-color: #0b5ed7 !important;
   color: white !important;
 }
@@ -235,8 +284,13 @@ select.form-control {
   padding: 0.5rem 1rem;
 }
 
-.form-select-lg + .select2-container .select2-selection--single .select2-selection__rendered,
-.select2-container.form-select-lg .select2-selection--single .select2-selection__rendered {
+.form-select-lg
+  + .select2-container
+  .select2-selection--single
+  .select2-selection__rendered,
+.select2-container.form-select-lg
+  .select2-selection--single
+  .select2-selection__rendered {
   line-height: 2;
 }
 
@@ -262,7 +316,9 @@ select.form-control {
 }
 
 /* Ensure parent containers don't clip dropdown */
-.mb-4, .mb-3, .form-group {
+.mb-4,
+.mb-3,
+.form-group {
   position: relative;
   overflow: visible !important;
 }
@@ -281,7 +337,6 @@ form {
 .select2-container--open {
   z-index: 1060;
 }
-
 
 /* Clear button styling */
 .select2-container--bootstrap-5 .select2-selection__clear {
@@ -352,7 +407,6 @@ form {
   display: none !important;
 }
 
-
 /* Placeholder styling */
 .select2-container--bootstrap-5 .select2-selection__placeholder {
   color: #6c757d;
@@ -361,7 +415,9 @@ form {
 }
 
 /* Ensure rendered selection doesn't look like an input */
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+.select2-container--bootstrap-5
+  .select2-selection--single
+  .select2-selection__rendered {
   padding-right: 30px;
   display: block;
   overflow: hidden;
@@ -370,7 +426,10 @@ form {
 }
 
 /* Make sure the selection arrow is visible */
-.select2-container--bootstrap-5 .select2-selection--single .select2-selection__arrow b {
+.select2-container--bootstrap-5
+  .select2-selection--single
+  .select2-selection__arrow
+  b {
   border-color: #999 transparent transparent transparent;
   border-style: solid;
   border-width: 5px 4px 0 4px;
@@ -383,7 +442,10 @@ form {
   width: 0;
 }
 
-.select2-container--bootstrap-5.select2-container--open .select2-selection--single .select2-selection__arrow b {
+.select2-container--bootstrap-5.select2-container--open
+  .select2-selection--single
+  .select2-selection__arrow
+  b {
   border-color: transparent transparent #999 transparent;
   border-width: 0 4px 5px 4px;
 }
@@ -403,7 +465,12 @@ form {
 body {
   background-color: #000 !important;
   color: #fff !important;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
 /* HEADER */
@@ -433,16 +500,24 @@ header *,
 /* CARDS */
 .card,
 .box {
-  background-color: #0F172A;
-  border: 1px solid rgba(34,197,94,.25);
+  background-color: #0f172a;
+  border: 1px solid rgba(34, 197, 94, 0.25);
   border-radius: 14px;
   color: #fff;
-  box-shadow: 0 10px 30px rgba(0,0,0,.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 /* TEXT */
-main h1, main h2, main h3, main h4, main h5, main h6,
-main p, main span, main label, main small,
+main h1,
+main h2,
+main h3,
+main h4,
+main h5,
+main h6,
+main p,
+main span,
+main label,
+main small,
 main .text-muted {
   color: #fff !important;
 }
@@ -461,40 +536,60 @@ input,
 textarea,
 select {
   background-color: #020617 !important;
-  border: 1px solid rgba(34,197,94,.35) !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
   color: #fff !important;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgba(255,255,255,.6);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Make all input placeholders white with good visibility */
+input.form-control::placeholder,
+textarea.form-control::placeholder,
+select.form-select::placeholder {
+  color: #fff !important;
+  opacity: 0.7;
 }
 
 input:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: #22C55E !important;
-  box-shadow: 0 0 0 2px rgba(34,197,94,.25) !important;
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25) !important;
+}
+
+/* INPUT GROUP TEXT - Black background with white text for all unit labels */
+.input-group-text {
+  background-color: #000 !important;
+  color: #fff !important;
+  border: 1px solid rgba(34, 197, 94, 0.35) !important;
+}
+
+.input-group-text svg {
+  fill: #fff !important;
+  color: #fff !important;
 }
 
 /* BUTTONS */
 .btn-primary {
-  background-color: #22C55E !important;
-  border-color: #22C55E !important;
+  background-color: #22c55e !important;
+  border-color: #22c55e !important;
   color: #fff !important;
   font-weight: 600;
 }
 
 .btn-primary:hover {
-  background-color: #16A34A !important;
-  border-color: #16A34A !important;
+  background-color: #16a34a !important;
+  border-color: #16a34a !important;
 }
 
 /* SHOW ALL BUTTON */
 .btn-success {
-  background-color: #0c9cf0 !important;
-  border-color: #0c9cf0 !important;
+  background-color: #16a34a !important;
+  border-color: #16a34a !important;
   color: #fff !important;
 }
 
@@ -510,7 +605,7 @@ select:focus {
 
 /* FOOTER */
 .footer {
-  background: linear-gradient(135deg, #16A34A, #22C55E) !important;
+  background: linear-gradient(135deg, #16a34a, #22c55e) !important;
   padding: 2.5rem 0;
   color: #fff !important;
 }
@@ -522,5 +617,3 @@ select:focus {
 .footer a:hover {
   text-decoration: underline;
 }
-
-

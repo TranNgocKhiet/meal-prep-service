@@ -32,7 +32,7 @@
                         </div>
                         <div class="col-md-3 col-6 mb-3">
                             <div class="card bg-light">
-                                <div class="card-body text-center">
+                                <div class="card-body text-center" style="background-color: #1e293b !important;">
                                     <h4 class="text-primary mb-0">@Model.TotalCalories.ToString("F0")</h4>
                                     <small class="text-muted">Calories</small>
                                 </div>
@@ -40,7 +40,7 @@
                         </div>
                         <div class="col-md-3 col-6 mb-3">
                             <div class="card bg-light">
-                                <div class="card-body text-center">
+                                <div class="card-body text-center" style="background-color: #1e293b !important;">
                                     <h4 class="text-success mb-0">@Model.ProteinG.ToString("F1")g</h4>
                                     <small class="text-muted">Protein</small>
                                 </div>
@@ -48,7 +48,7 @@
                         </div>
                         <div class="col-md-3 col-6 mb-3">
                             <div class="card bg-light">
-                                <div class="card-body text-center">
+                                <div class="card-body text-center" style="background-color: #1e293b !important;">
                                     <h4 class="text-warning mb-0">@Model.FatG.ToString("F1")g</h4>
                                     <small class="text-muted">Fat</small>
                                 </div>
@@ -56,7 +56,7 @@
                         </div>
                         <div class="col-md-3 col-6 mb-3">
                             <div class="card bg-light">
-                                <div class="card-body text-center">
+                                <div class="card-body text-center" style="background-color: #1e293b !important;">
                                     <h4 class="text-info mb-0">@Model.CarbsG.ToString("F1")g</h4>
                                     <small class="text-muted">Carbs</small>
                                 </div>
@@ -69,12 +69,12 @@
                     {
                         <div class="row mb-4">
                             <div class="col-md-12">
-                                <h5 class="mb-3">
+                                <h5 class="mb-3" style="background-color: #1e293b !important;">
                                     <i class="bi bi-list-ol me-2 text-primary"></i>
                                     Instructions
                                 </h5>
                                 <div class="card bg-light">
-                                    <div class="card-body">
+                                    <div class="card-body" style="background-color: #1e293b !important;">
                                         <p class="mb-0" style="white-space: pre-wrap;">@Model.Instructions</p>
                                     </div>
                                 </div>
@@ -95,20 +95,20 @@
                                     <table class="table table-hover">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>Ingredient</th>
-                                                <th>Amount</th>
-                                                <th>Unit</th>
+                                                <th class="text-white" style="background-color: transparent;">Ingredient</th>
+                                                <th class="text-white" style="background-color: transparent;">Amount</th>
+                                                <th class="text-white" style="background-color: transparent;">Unit</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach (var ingredient in Model.Ingredients)
                                             {
                                                 <tr>
-                                                    <td>
+                                                    <td class="text-white" style="background-color: transparent;">
                                                         <strong>@ingredient.IngredientName</strong>
-                                                    </td>
-                                                    <td>@ingredient.Amount</td>
-                                                    <td>@ingredient.Unit</td>
+                                                    </td class="text-white" style="background-color: transparent;">
+                                                    <td class="text-white" style="background-color: transparent;">@ingredient.Amount</td>
+                                                    <td class="text-white" style="background-color: transparent;">@ingredient.Unit</td>
                                                 </tr>
                                             }
                                         </tbody>
@@ -126,13 +126,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-footer bg-light">
-                    <div class="d-flex justify-content-between">
+                <div class="card-footer bg-light" style="background-color: #1e293b !important;">
+                    <div class="d-flex justify-content-between" style="background-color: #1e293b !important;">
                         <a asp-action="Index" class="btn btn-secondary">
                             <i class="bi bi-arrow-left me-2"></i>
                             Back to List
                         </a>
-                        <div>
+                        <div style="background-color: #1e293b !important;">
                             @if (!Model.Ingredients.Any())
                             {
                                 <a asp-action="AddIngredient" asp-route-id="@Model.Id" class="btn btn-success me-2">

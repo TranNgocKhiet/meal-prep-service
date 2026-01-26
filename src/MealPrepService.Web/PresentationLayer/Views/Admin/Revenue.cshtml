@@ -79,27 +79,27 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded">
+                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
                         <h6 class="text-muted mb-2">Total Revenue</h6>
                         <h3 class="text-primary mb-0">@Model.YearlySummary.TotalRevenue.ToString("C")</h3>
                     </div>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded">
+                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
                         <h6 class="text-muted mb-2">Order Revenue</h6>
                         <h3 class="text-success mb-0">@Model.YearlySummary.TotalOrderRevenue.ToString("C")</h3>
                         <small class="text-muted">@Model.YearlySummary.TotalOrders orders</small>
                     </div>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded">
+                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
                         <h6 class="text-muted mb-2">Subscription Revenue</h6>
                         <h3 class="text-info mb-0">@Model.YearlySummary.TotalSubscriptionRevenue.ToString("C")</h3>
                         <small class="text-muted">Deferred to Checkpoint 2</small>
                     </div>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded">
+                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
                         <h6 class="text-muted mb-2">Avg Monthly Revenue</h6>
                         <h3 class="text-secondary mb-0">@Model.YearlySummary.AverageMonthlyRevenue.ToString("C")</h3>
                     </div>
@@ -129,20 +129,20 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>Month</th>
-                                <th class="text-end">Order Revenue</th>
-                                <th class="text-end">Subscription Revenue</th>
-                                <th class="text-end">Total Revenue</th>
-                                <th class="text-end">Orders</th>
-                                <th class="text-end">Avg Order Value</th>
+                                <th class="text-white" style="background-color: transparent;">Month</th>
+                                <th class="text-end text-white" style="background-color: transparent;">Order Revenue</th>
+                                <th class="text-end text-white" style="background-color: transparent;">Subscription Revenue</th>
+                                <th class="text-end text-white" style="background-color: transparent;">Total Revenue</th>
+                                <th class="text-end text-white" style="background-color: transparent;">Orders</th>
+                                <th class="text-end text-white" style="background-color: transparent;">Avg Order Value</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var report in Model.MonthlyReports)
                             {
                                 <tr>
-                                    <td><strong>@report.MonthName</strong></td>
-                                    <td class="text-end">
+                                    <td class="text-end text-white" style="background-color: transparent;"><strong>@report.MonthName</strong></td>
+                                    <td class="text-end text-white" style="background-color: transparent;">
                                         @if (report.HasOrderRevenue)
                                         {
                                             <span class="text-success">@report.TotalOrderRevenue.ToString("C")</span>
@@ -152,7 +152,7 @@
                                             <span class="text-muted">$0.00</span>
                                         }
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end text-white" style="background-color: transparent;">
                                         @if (report.HasSubscriptionRevenue)
                                         {
                                             <span class="text-info">@report.TotalSubscriptionRevenue.ToString("C")</span>
@@ -162,10 +162,10 @@
                                             <span class="text-muted">$0.00</span>
                                         }
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end text-white" style="background-color: transparent;">
                                         <strong class="text-primary">@report.TotalRevenue.ToString("C")</strong>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end text-white" style="background-color: transparent;">
                                         @if (report.HasOrders)
                                         {
                                             <span>@report.TotalOrdersCount</span>
@@ -175,7 +175,7 @@
                                             <span class="text-muted">0</span>
                                         }
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end text-white" style="background-color: transparent;">
                                         @if (report.HasOrders)
                                         {
                                             <span>@report.AverageOrderValue.ToString("C")</span>
@@ -190,12 +190,12 @@
                         </tbody>
                         <tfoot class="table-light">
                             <tr>
-                                <th>Total</th>
-                                <th class="text-end text-success">@Model.YearlySummary.TotalOrderRevenue.ToString("C")</th>
-                                <th class="text-end text-info">@Model.YearlySummary.TotalSubscriptionRevenue.ToString("C")</th>
-                                <th class="text-end text-primary"><strong>@Model.YearlySummary.TotalRevenue.ToString("C")</strong></th>
-                                <th class="text-end">@Model.YearlySummary.TotalOrders</th>
-                                <th class="text-end">-</th>
+                                <th class="text-white text-success"style="background-color: transparent;">Total</th>
+                                <th class="text-end text-success" style="background-color: transparent;">@Model.YearlySummary.TotalOrderRevenue.ToString("C")</th>
+                                <th class="text-end text-info" style="background-color: transparent;">@Model.YearlySummary.TotalSubscriptionRevenue.ToString("C")</th>
+                                <th class="text-end text-primary" style="background-color: transparent;"><strong>@Model.YearlySummary.TotalRevenue.ToString("C")</strong></th>
+                                <th class="text-end text-white" style="background-color: transparent;">@Model.YearlySummary.TotalOrders</th>
+                                <th class="text-end text-white" style="background-color: transparent;">-</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -205,7 +205,7 @@
 
         <!-- Revenue Chart (Placeholder for future implementation) -->
         <div class="card mt-4">
-            <div class="card-header bg-light">
+            <div class="card-header bg-light" style="background-color: #1e293b !important;">
                 <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Revenue Trends</h5>
             </div>
             <div class="card-body">

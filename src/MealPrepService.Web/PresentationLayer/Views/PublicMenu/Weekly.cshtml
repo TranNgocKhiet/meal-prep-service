@@ -29,14 +29,6 @@
         </div>
     }
 
-    @if (User.Identity.IsAuthenticated && User.IsInRole("Customer"))
-    {
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> 
-            <strong>Note:</strong> Order and delivery features will be available in Checkpoint 2.
-        </div>
-    }
-
     @if (Model.DailyMenus.Any())
     {
         @foreach (var dailyMenu in Model.DailyMenus)

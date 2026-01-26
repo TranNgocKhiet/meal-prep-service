@@ -170,7 +170,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
         {
             try
             {
-                var recipeDto = await _recipeService.GetByIdAsync(id);
+                var recipeDto = await _recipeService.GetByIdWithIngredientsAsync(id);
                 
                 if (recipeDto == null)
                 {
@@ -186,7 +186,13 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     ProteinG = recipeDto.ProteinG,
                     FatG = recipeDto.FatG,
                     CarbsG = recipeDto.CarbsG,
-                    Ingredients = new List<RecipeIngredientViewModel>()
+                    Ingredients = recipeDto.Ingredients?.Select(i => new RecipeIngredientViewModel
+                    {
+                        IngredientId = i.IngredientId,
+                        IngredientName = i.IngredientName,
+                        Amount = i.Amount,
+                        Unit = i.Unit
+                    }).ToList() ?? new List<RecipeIngredientViewModel>()
                 };
 
                 return View(viewModel);
@@ -442,6 +448,58 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 }).ToList();
 
                 return View(viewModel);
+            }
+        }
+
+        // POST: Recipe/UpdateIngredient - Update ingredient amount in recipe
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateIngredient(Guid recipeId, Guid ingredientId, float amount)
+        {
+            try
+            {
+                await _recipeService.UpdateRecipeIngredientAsync(recipeId, ingredientId, amount);
+
+                TempData["SuccessMessage"] = "Ingredient amount updated successfully.";
+                return RedirectToAction(nameof(Edit), new { id = recipeId });
+            }
+            catch (BusinessException ex)
+            {
+                _logger.LogWarning(ex, "Business error while updating ingredient in recipe");
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Edit), new { id = recipeId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating ingredient in recipe {RecipeId}", recipeId);
+                TempData["ErrorMessage"] = "An error occurred while updating the ingredient.";
+                return RedirectToAction(nameof(Edit), new { id = recipeId });
+            }
+        }
+
+        // POST: Recipe/RemoveIngredient - Remove ingredient from recipe
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveIngredient(Guid recipeId, Guid ingredientId)
+        {
+            try
+            {
+                await _recipeService.RemoveIngredientFromRecipeAsync(recipeId, ingredientId);
+
+                TempData["SuccessMessage"] = "Ingredient removed from recipe successfully.";
+                return RedirectToAction(nameof(Edit), new { id = recipeId });
+            }
+            catch (BusinessException ex)
+            {
+                _logger.LogWarning(ex, "Business error while removing ingredient from recipe");
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Edit), new { id = recipeId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while removing ingredient from recipe {RecipeId}", recipeId);
+                TempData["ErrorMessage"] = "An error occurred while removing the ingredient.";
+                return RedirectToAction(nameof(Edit), new { id = recipeId });
             }
         }
 

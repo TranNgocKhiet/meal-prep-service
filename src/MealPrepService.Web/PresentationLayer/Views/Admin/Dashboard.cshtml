@@ -72,45 +72,48 @@
 
     <div class="row">
         <!-- Quick Actions -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100 bg-light text-dark">
+        <div class="col-12 mb-4">
+            <div class="card h-100 text-white" style="min-height: 600px; background-color: #0F172A; border-color: rgba(34,197,94,.25);">
                 <div class="card-header bg-success text-white">
                     <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
                 </div>
              
                     <div class="card-body">
-                        <div class="d-grid gap-2">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <a asp-action="SystemConfiguration" class="btn btn-outline-success">
+                                        <i class="bi bi-gear"></i> System Configuration
+                                    </a>
 
-                            <a asp-action="SystemConfiguration" class="btn btn-outline-success">
-                                <i class="bi bi-gear"></i> System Configuration
-                            </a>
+                                    <a asp-action="StaffAccounts" class="btn btn-outline-success">
+                                        <i class="bi bi-people-gear"></i> Manage Staff Accounts
+                                    </a>
 
-                            <a asp-action="StaffAccounts" class="btn btn-outline-success">
-                                <i class="bi bi-people-gear"></i> Manage Staff Accounts
-                            </a>
+                                    <a asp-action="Revenue" class="btn btn-outline-success">
+                                        <i class="bi bi-graph-up"></i> View Revenue Reports
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <a asp-controller="Menu" asp-action="Index" class="btn btn-outline-info">
+                                        <i class="bi bi-calendar-week"></i> Manage Menus
+                                    </a>
 
-                            <a asp-action="Revenue" class="btn btn-outline-success">
-                                <i class="bi bi-graph-up"></i> View Revenue Reports
-                            </a>
+                                    <a asp-controller="Recipe" asp-action="Index" class="btn btn-outline-info">
+                                        <i class="bi bi-book"></i> Manage Recipes
+                                    </a>
 
-                            <hr class="my-2">
+                                    <a asp-controller="Ingredient" asp-action="Index" class="btn btn-outline-info">
+                                        <i class="bi bi-egg"></i> Manage Ingredients
+                                    </a>
 
-                            <a asp-controller="Menu" asp-action="Index" class="btn btn-outline-info">
-                                <i class="bi bi-calendar-week"></i> Manage Menus
-                            </a>
-
-                            <a asp-controller="Recipe" asp-action="Index" class="btn btn-outline-info">
-                                <i class="bi bi-book"></i> Manage Recipes
-                            </a>
-
-                            <a asp-controller="Ingredient" asp-action="Index" class="btn btn-outline-info">
-                                <i class="bi bi-egg"></i> Manage Ingredients
-                            </a>
-
-                            <a asp-controller="Allergy" asp-action="Index" class="btn btn-outline-info">
-                                <i class="bi bi-exclamation-triangle"></i> Manage Allergies
-                            </a>
-
+                                    <a asp-controller="Allergy" asp-action="Index" class="btn btn-outline-info">
+                                        <i class="bi bi-exclamation-triangle"></i> Manage Allergies
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -121,17 +124,17 @@
     <div class="row">
         <div class="col-12">
             <div class="card h-100 bg-light text-dark">
-                <div class="card-header bg-success text-white">
+                <div class="card-header bg-success text-white" style="background-color: #1e293b !important;">
                     <h5 class="mb-0"><i class="bi bi-info-circle"></i> System Status</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="background-color: #1e293b !important;">
                     <div class="row">
                         <div class="col-md-4">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="me-3">
                                     <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
                                 </div>
-                                <div>
+                                <div style="background-color: #1e293b !important;">
                                     <h6 class="mb-0">Database</h6>
                                     <small class="text-success">Connected</small>
                                 </div>
@@ -142,7 +145,7 @@
                                 <div class="me-3">
                                     <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
                                 </div>
-                                <div>
+                                <div style="background-color: #1e293b !important;">
                                     <h6 class="mb-0">Payment Gateway</h6>
                                     <small class="text-success">Operational</small>
                                 </div>
@@ -153,7 +156,7 @@
                                 <div class="me-3">
                                     <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
                                 </div>
-                                <div>
+                                <div style="background-color: #1e293b !important;">
                                     <h6 class="mb-0">AI Services</h6>
                                     <small class="text-success">Active</small>
                                 </div>

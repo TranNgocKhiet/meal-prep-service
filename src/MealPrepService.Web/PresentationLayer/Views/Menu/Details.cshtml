@@ -37,7 +37,7 @@
                         </a>
                         <form asp-action="Publish" asp-route-menuId="@Model.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to publish this menu? You won\'t be able to edit it after publishing.')">
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to publish this menu? It will be visible to customers.')">
                                 <i class="bi bi-check-circle"></i> Publish Menu
                             </button>
                         </form>
@@ -53,6 +53,9 @@
                     }
                     else if (Model.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
                     {
+                        <a asp-action="AddMeal" asp-route-menuId="@Model.Id" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add Meal
+                        </a>
                         <form asp-action="Reactivate" asp-route-menuId="@Model.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to reactivate this menu? It will appear in public menus again.')">
@@ -86,14 +89,14 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Recipe Name</th>
-                                <th>Price</th>
-                                <th>Available Quantity</th>
-                                <th>Status</th>
-                                <th>Nutrition</th>
-                                @if (Model.Status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+                                <th class="text-white" style="background-color: transparent;">Recipe Name</th>
+                                <th class="text-white" style="background-color: transparent;">Price</th>
+                                <th class="text-white" style="background-color: transparent;">Available Quantity</th>
+                                <th class="text-white" style="background-color: transparent;">Status</th>
+                                <th class="text-white" style="background-color: transparent;">Nutrition</th>
+                                @if (Model.Status.Equals("draft", StringComparison.OrdinalIgnoreCase) || Model.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <th>Actions</th>
+                                    <th class="text-white" style="background-color: transparent;">Actions</th>
                                 }
                             </tr>
                         </thead>
@@ -101,7 +104,7 @@
                             @foreach (var meal in Model.MenuMeals)
                             {
                                 <tr>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">
                                         <strong>@meal.RecipeName</strong>
                                         @if (meal.Recipe != null && !string.IsNullOrEmpty(meal.Recipe.Instructions))
                                         {
@@ -122,8 +125,8 @@
                                             </small>
                                         }
                                     </td>
-                                    <td>$@meal.Price.ToString("F2")</td>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">$@meal.Price.ToString("F2")</td>
+                                    <td class="text-white" style="background-color: transparent;">
                                         @if (meal.IsSoldOut)
                                         {
                                             <span class="badge bg-danger">Sold Out</span>
@@ -133,7 +136,7 @@
                                             <span class="badge bg-info">@meal.AvailableQuantity</span>
                                         }
                                     </td>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">
                                         @if (meal.IsSoldOut)
                                         {
                                             <span class="badge bg-danger">Sold Out</span>
@@ -147,7 +150,7 @@
                                             <span class="badge bg-success">Available</span>
                                         }
                                     </td>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">
                                         @if (meal.Recipe != null)
                                         {
                                             <small>
@@ -158,15 +161,53 @@
                                             </small>
                                         }
                                     </td>
-                                    @if (Model.Status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+                                    @if (Model.Status.Equals("draft", StringComparison.OrdinalIgnoreCase) || Model.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        <td>
-                                            <a asp-action="UpdateQuantity" asp-route-menuMealId="@meal.Id" class="btn btn-sm btn-warning">
-                                                <i class="bi bi-pencil"></i> Update Qty
-                                            </a>
+                                        <td class="text-white" style="background-color: transparent;">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a asp-action="UpdateQuantity" asp-route-menuMealId="@meal.Id" class="btn btn-warning">
+                                                    <i class="bi bi-pencil"></i> Update
+                                                </a>
+                                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#removeMealModal-@meal.Id">
+                                                    <i class="bi bi-trash"></i> Remove
+                                                </button>
+                                            </div>
                                         </td>
                                     }
                                 </tr>
+                                
+                                @* Remove Meal Confirmation Modal *@
+                                @if (Model.Status.Equals("draft", StringComparison.OrdinalIgnoreCase) || Model.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <div class="modal fade" id="removeMealModal-@meal.Id" tabindex="-1" aria-labelledby="removeMealModalLabel-@meal.Id" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+                                                <div class="modal-header text-white" style="background-color: #1e293b; border-bottom: 1px solid rgba(34,197,94,.25);">
+                                                    <h5 class="modal-title text-white" id="removeMealModalLabel-@meal.Id">
+                                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                                        Confirm Remove Meal
+                                                    </h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body text-white" style="background-color: #0F172A;">
+                                                    <p>Are you sure you want to remove <strong>@meal.RecipeName</strong> from this menu?</p>
+                                                    <p class="text-muted mb-0">This action cannot be undone.</p>
+                                                </div>
+                                                <div class="modal-footer" style="background-color: #0F172A; border-top: 1px solid rgba(34,197,94,.25);">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form asp-action="RemoveMeal" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="menuMealId" value="@meal.Id" />
+                                                        <input type="hidden" name="menuId" value="@Model.Id" />
+                                                        <button type="submit" class="btn btn-danger">
+                                                            <i class="bi bi-trash"></i> Remove Meal
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                             }
                         </tbody>
                     </table>
@@ -175,7 +216,7 @@
                 <div class="mt-3">
                     <div class="row">
                         <div class="col-md-4">
-                            <div class="card bg-light">
+                            <div class="card bg-light" style="background-color: #1e293b !important; color: #FFFFFF !important">
                                 <div class="card-body">
                                     <h6 class="card-title">Total Meals</h6>
                                     <h3>@Model.MenuMeals.Count</h3>
@@ -183,7 +224,7 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card bg-light">
+                            <div class="card bg-light" style="background-color: #1e293b !important; color: #FFFFFF !important">
                                 <div class="card-body">
                                     <h6 class="card-title">Total Available</h6>
                                     <h3>@Model.MenuMeals.Sum(m => m.AvailableQuantity)</h3>
@@ -191,7 +232,7 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card bg-light">
+                            <div class="card bg-light" style="background-color: #1e293b !important; color: #FFFFFF !important">
                                 <div class="card-body">
                                     <h6 class="card-title">Avg Price</h6>
                                     <h3>$@Model.MenuMeals.Average(m => m.Price).ToString("F2")</h3>
@@ -205,7 +246,7 @@
             {
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i> No meals have been added to this menu yet.
-                    @if (Model.Status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+                    @if (Model.Status.Equals("draft", StringComparison.OrdinalIgnoreCase) || Model.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase))
                     {
                         <a asp-action="AddMeal" asp-route-menuId="@Model.Id" class="alert-link">Add your first meal</a>
                     }

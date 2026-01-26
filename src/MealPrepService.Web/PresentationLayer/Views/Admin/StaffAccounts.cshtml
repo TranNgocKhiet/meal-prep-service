@@ -63,12 +63,12 @@
     </div>
 
     <!-- Filter -->
-    <div class="card mb-4">
+    <div class="card mb-4" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
         <div class="card-body">
             <form method="get" asp-action="StaffAccounts" class="row g-3">
                 <div class="col-md-4">
-                    <label for="role" class="form-label">Filter by Role</label>
-                    <select name="role" id="role" class="form-select" onchange="this.form.submit()" data-placeholder="Select a role...">
+                    <label for="role" class="form-label text-white">Filter by Role</label>
+                    <select name="role" id="role" class="form-select" onchange="this.form.submit()" data-placeholder="Select a role..." style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
                         <option value="">All Staff</option>
                         <option value="Manager" selected="@(Model.FilterRole == "Manager")">Managers</option>
                         <option value="DeliveryMan" selected="@(Model.FilterRole == "DeliveryMan")">Delivery Men</option>
@@ -80,8 +80,8 @@
     </div>
 
     <!-- Staff Accounts Table -->
-    <div class="card">
-        <div class="card-header">
+    <div class="card" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+        <div class="card-header text-white" style="background-color: #1e293b;">
             <h5 class="mb-0">
                 @if (!string.IsNullOrEmpty(Model.FilterRole))
                 {
@@ -100,24 +100,24 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Full Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th class="text-end">Actions</th>
+                                <th class="text-white" style="background-color: transparent;">Full Name</th>
+                                <th class="text-white" style="background-color: transparent;">Email</th>
+                                <th class="text-white" style="background-color: transparent;">Role</th>
+                                <th class="text-end text-white" style="background-color: transparent;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var account in Model.Accounts)
                             {
                                 <tr>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">
                                         <strong>@account.FullName</strong>
                                     </td>
-                                    <td>@account.Email</td>
-                                    <td>
+                                    <td class="text-white" style="background-color: transparent;">@account.Email</td>
+                                    <td style="background-color: transparent;">
                                         <span class="@account.RoleBadgeClass">@account.Role</span>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end" style="background-color: transparent;">
                                         <a asp-action="EditStaffAccount" asp-route-id="@account.Id" 
                                            class="btn btn-sm btn-outline-primary" title="Edit">
                                             <i class="fas fa-edit"></i> Edit
