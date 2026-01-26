@@ -44,6 +44,18 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 
                 var viewModels = mealPlanDtos.Select(MapToViewModel).ToList();
                 
+                // Calculate nutrition totals for each meal plan
+                foreach (var viewModel in viewModels)
+                {
+                    CalculateNutritionTotals(viewModel);
+                }
+                
+                // Sort meal plans: Active plans first, then by start date descending
+                viewModels = viewModels
+                    .OrderByDescending(p => p.IsActive)
+                    .ThenByDescending(p => p.StartDate)
+                    .ToList();
+                
                 return View(viewModels);
             }
             catch (Exception ex)
@@ -548,9 +560,16 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return Json(new { success = false, message = "Meal not found." });
                 }
 
-                // Get fridge items
+                // Get fridge items - group by ingredient ID and sum amounts to handle multiple items of same ingredient
                 var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
-                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => new { f.Id, f.CurrentAmount });
+                var fridgeInventory = fridgeItems
+                    .GroupBy(f => f.IngredientId)
+                    .ToDictionary(
+                        g => g.Key, 
+                        g => new { 
+                            Items = g.ToList(), 
+                            TotalAmount = g.Sum(f => f.CurrentAmount) 
+                        });
 
                 // Calculate required ingredients
                 var requiredIngredients = new Dictionary<Guid, float>();
@@ -600,27 +619,42 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     }
                     else
                     {
-                        var fridgeItem = fridgeInventory[ingredientId];
-                        if (fridgeItem.CurrentAmount < requiredAmount)
+                        var fridgeGroup = fridgeInventory[ingredientId];
+                        if (fridgeGroup.TotalAmount < requiredAmount)
                         {
                             insufficientIngredients.Add(new
                             {
                                 name = ingredientName,
                                 required = requiredAmount,
-                                available = fridgeItem.CurrentAmount,
+                                available = fridgeGroup.TotalAmount,
                                 unit = unit
                             });
                         }
                         else
                         {
-                            consumptionPlan.Add(new
+                            // Show which fridge items will be consumed (ordered by expiry date)
+                            var itemsToConsume = fridgeGroup.Items.OrderBy(f => f.ExpiryDate).ToList();
+                            var remainingToConsume = requiredAmount;
+                            
+                            foreach (var item in itemsToConsume)
                             {
-                                fridgeItemId = fridgeItem.Id,
-                                ingredientName = ingredientName,
-                                amount = requiredAmount,
-                                newAmount = fridgeItem.CurrentAmount - requiredAmount,
-                                unit = unit
-                            });
+                                if (remainingToConsume <= 0) break;
+                                
+                                var amountToConsume = Math.Min(item.CurrentAmount, remainingToConsume);
+                                var newAmount = item.CurrentAmount - amountToConsume;
+                                
+                                consumptionPlan.Add(new
+                                {
+                                    fridgeItemId = item.Id,
+                                    ingredientName = ingredientName,
+                                    amount = amountToConsume,
+                                    newAmount = newAmount,
+                                    unit = unit,
+                                    expiryDate = item.ExpiryDate
+                                });
+                                
+                                remainingToConsume -= amountToConsume;
+                            }
                         }
                     }
                 }
@@ -671,9 +705,9 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     return RedirectToAction(nameof(Details), new { id = planId });
                 }
 
-                // Get fridge items
+                // Get fridge items - sorted by expiry date (closest first)
                 var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
-                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => new { f.Id, f.CurrentAmount });
+                var fridgeItemsList = fridgeItems.OrderBy(f => f.ExpiryDate).ToList();
 
                 // Calculate required ingredients
                 var requiredIngredients = new Dictionary<Guid, float>();
@@ -695,7 +729,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     }
                 }
 
-                // Consume ingredients
+                // Consume ingredients - prioritize items with closest expiry date
                 var updatedCount = 0;
                 var removedCount = 0;
                 foreach (var required in requiredIngredients)
@@ -703,12 +737,23 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                     var ingredientId = required.Key;
                     var requiredAmount = required.Value;
 
-                    if (fridgeInventory.ContainsKey(ingredientId))
+                    // Get all fridge items for this ingredient, ordered by expiry date (closest first)
+                    var availableItems = fridgeItemsList
+                        .Where(f => f.IngredientId == ingredientId)
+                        .OrderBy(f => f.ExpiryDate)
+                        .ToList();
+
+                    var remainingRequired = requiredAmount;
+
+                    foreach (var fridgeItem in availableItems)
                     {
-                        var fridgeItem = fridgeInventory[ingredientId];
-                        var newAmount = Math.Max(0, fridgeItem.CurrentAmount - requiredAmount);
-                        
-                        if (newAmount == 0)
+                        if (remainingRequired <= 0) break;
+
+                        var amountToConsume = Math.Min(fridgeItem.CurrentAmount, remainingRequired);
+                        var newAmount = fridgeItem.CurrentAmount - amountToConsume;
+                        remainingRequired -= amountToConsume;
+
+                        if (newAmount <= 0.001f) // Use small epsilon for floating point comparison
                         {
                             // Remove item from fridge when quantity reaches 0
                             await _fridgeService.RemoveItemAsync(fridgeItem.Id);
@@ -826,6 +871,14 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             viewModel.TotalFatG = viewModel.Meals.Sum(m => m.MealFatG);
             viewModel.TotalCarbsG = viewModel.Meals.Sum(m => m.MealCarbsG);
 
+            // Calculate finished nutrition (from completed meals only)
+            var finishedMeals = viewModel.Meals.Where(m => m.MealFinished).ToList();
+            viewModel.FinishedCalories = finishedMeals.Sum(m => m.MealCalories);
+            viewModel.FinishedProteinG = finishedMeals.Sum(m => m.MealProteinG);
+            viewModel.FinishedFatG = finishedMeals.Sum(m => m.MealFatG);
+            viewModel.FinishedCarbsG = finishedMeals.Sum(m => m.MealCarbsG);
+            viewModel.FinishedMealCount = finishedMeals.Count;
+
             // Calculate daily nutrition breakdown
             var dailyNutrition = new Dictionary<DateTime, DailyNutritionViewModel>();
             
@@ -870,9 +923,15 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             {
                 var accountId = Guid.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "");
                 
+                // If unmarking a finished meal, restore ingredients to the fridge
+                if (!finished)
+                {
+                    await RestoreIngredientsToFridge(mealId, planId, accountId);
+                }
+                
                 await _mealPlanService.MarkMealAsFinishedAsync(mealId, accountId, finished);
                 
-                TempData["SuccessMessage"] = finished ? "Meal marked as finished!" : "Meal marked as not finished.";
+                TempData["SuccessMessage"] = finished ? "Meal marked as finished!" : "Meal marked as not finished and ingredients restored to fridge.";
                 return RedirectToAction(nameof(Details), new { id = planId });
             }
             catch (NotFoundException ex)
@@ -885,11 +944,110 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
                 TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction(nameof(Details), new { id = planId });
             }
+            catch (BusinessException ex)
+            {
+                _logger.LogError(ex, "Business error marking meal as finished");
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id = planId });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error marking meal as finished");
                 TempData["ErrorMessage"] = "An error occurred while updating the meal status.";
                 return RedirectToAction(nameof(Details), new { id = planId });
+            }
+        }
+
+        private async Task RestoreIngredientsToFridge(Guid mealId, Guid planId, Guid accountId)
+        {
+            try
+            {
+                // Get the meal plan and meal details
+                var mealPlan = await _mealPlanService.GetByIdAsync(planId);
+                if (mealPlan == null || mealPlan.AccountId != accountId)
+                {
+                    throw new AuthorizationException("Access denied to this meal plan.");
+                }
+
+                var meal = mealPlan.Meals.FirstOrDefault(m => m.Id == mealId);
+                if (meal == null)
+                {
+                    throw new NotFoundException("Meal not found.");
+                }
+
+                // Calculate ingredients to restore
+                var ingredientsToRestore = new Dictionary<Guid, (string Name, float Amount, string Unit)>();
+                foreach (var recipe in meal.Recipes)
+                {
+                    if (recipe.Ingredients != null)
+                    {
+                        foreach (var ingredient in recipe.Ingredients)
+                        {
+                            if (ingredientsToRestore.ContainsKey(ingredient.IngredientId))
+                            {
+                                var existing = ingredientsToRestore[ingredient.IngredientId];
+                                ingredientsToRestore[ingredient.IngredientId] = (
+                                    existing.Name,
+                                    existing.Amount + ingredient.Amount,
+                                    existing.Unit
+                                );
+                            }
+                            else
+                            {
+                                ingredientsToRestore[ingredient.IngredientId] = (
+                                    ingredient.IngredientName,
+                                    ingredient.Amount,
+                                    ingredient.Unit
+                                );
+                            }
+                        }
+                    }
+                }
+
+                // Get current fridge items
+                var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
+                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => f);
+
+                int restoredCount = 0;
+                int addedCount = 0;
+
+                // Restore ingredients to fridge
+                foreach (var ingredient in ingredientsToRestore)
+                {
+                    var ingredientId = ingredient.Key;
+                    var (name, amount, unit) = ingredient.Value;
+
+                    if (fridgeInventory.ContainsKey(ingredientId))
+                    {
+                        // Update existing fridge item
+                        var fridgeItem = fridgeInventory[ingredientId];
+                        var newAmount = fridgeItem.CurrentAmount + amount;
+                        await _fridgeService.UpdateItemQuantityAsync(fridgeItem.Id, newAmount);
+                        restoredCount++;
+                    }
+                    else
+                    {
+                        // Add new fridge item (ingredient was completely consumed before)
+                        // Set a default expiry date of 7 days from now when restoring ingredients
+                        await _fridgeService.AddItemAsync(new FridgeItemDto
+                        {
+                            AccountId = accountId,
+                            IngredientId = ingredientId,
+                            CurrentAmount = amount,
+                            ExpiryDate = DateTime.UtcNow.Date.AddDays(7)
+                        });
+                        addedCount++;
+                    }
+                }
+
+                _logger.LogInformation(
+                    "Restored ingredients for meal {MealId}: {RestoredCount} updated, {AddedCount} added back to fridge for account {AccountId}",
+                    mealId, restoredCount, addedCount, accountId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error restoring ingredients for meal {MealId}", mealId);
+                throw;
             }
         }
 

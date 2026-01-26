@@ -1,4 +1,4 @@
-@model GroceryListViewModel
+﻿@model GroceryListViewModel
 @{
     ViewData["Title"] = "Grocery List";
 }
@@ -90,7 +90,7 @@
                             <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
                         </svg>
                         <strong>Priority Items:</strong> 
-                        You have <strong>@Model.MissingIngredients.Count(i => i.IsNeededSoon)</strong> item(s) needed for today or tomorrow's meals (marked with ?).
+                        You have <strong>@Model.MissingIngredients.Count(i => i.IsNeededSoon)</strong> item(s) needed for today or tomorrow's meals (marked with *).
                     </div>
                 }
 
@@ -108,22 +108,24 @@
                         <form id="groceryForm" asp-action="SyncFridge" asp-controller="Fridge" method="post">
                             <input type="hidden" name="MealPlanId" value="@Model.MealPlanId" />
                             <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead class="table-light">
+                                <table class="table table-hover align-middle mb-0 grocery-table">
+                                    <thead class="table">
                                         <tr>
-                                            <th width="5%">
+                                            <th width="4%" class="text-center">
                                                 <input type="checkbox" id="checkAll" class="form-check-input" title="Select All" />
                                             </th>
-                                            <th>Ingredient</th>
-                                            <th>Need to Buy</th>
-                                            <th>Needed By</th>
+                                            <th width="30%">Ingredient</th>
+                                            <th width="26%">Quantity Needed</th>
+                                            <th width="20%">Purchase Quantity</th>
+                                            <th width="20%">Expiry Date</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach (var item in Model.MissingIngredients.OrderByDescending(i => i.IsNeededSoon).ThenBy(i => i.EarliestNeededDate).ThenBy(i => i.IngredientName))
                                         {
-                                            <tr data-ingredient-id="@item.IngredientId" class="@(item.IsNeededSoon ? "table-active" : "")">
-                                                <td>
+                                            var index = Model.MissingIngredients.IndexOf(item);
+                                            <tr data-ingredient-id="@item.IngredientId" class="grocery-row @(item.IsNeededSoon ? "priority-item" : "")">
+                                                <td class="text-center">
                                                     <input type="checkbox" 
                                                            class="form-check-input item-checkbox" 
                                                            name="PurchasedIngredients[@item.IngredientId].IsPurchased"
@@ -133,31 +135,55 @@
                                                            name="PurchasedIngredients[@item.IngredientId].IngredientId" 
                                                            value="@item.IngredientId" />
                                                     <input type="hidden" 
-                                                           name="PurchasedIngredients[@item.IngredientId].Amount" 
-                                                           value="@item.NeededAmount" />
+                                                           name="PurchasedIngredients[@item.IngredientId].Unit" 
+                                                           value="@item.Unit" />
                                                 </td>
                                                 <td>
-                                                    <strong>@item.IngredientName</strong>
-                                                    @if (item.IsNeededSoon)
-                                                    {
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill text-warning ms-1" viewBox="0 0 16 16" title="Needed soon!">
-                                                            <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-                                                        </svg>
-                                                    }
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-success fs-6">@item.NeededAmountDisplay</span>
-                                                </td>
-                                                <td>
-                                                    <span class="@(item.IsNeededSoon ? "fw-bold text-primary" : "text-muted")">
+                                                    <div class="d-flex align-items-center">
                                                         @if (item.IsNeededSoon)
                                                         {
-                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-star-fill text-warning me-1" viewBox="0 0 16 16">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-star-fill text-warning me-2 flex-shrink-0" viewBox="0 0 16 16" title="Urgent - Needed soon!">
                                                                 <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
                                                             </svg>
                                                         }
-                                                        @item.NeededByDisplay
-                                                    </span>
+                                                        <strong class="ingredient-name">@item.IngredientName</strong>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex flex-column">
+                                                        <span class="badge bg-success mb-1" style="width: fit-content;">@item.NeededAmountDisplay</span>
+                                                        <small class="@(item.IsNeededSoon ? "text-danger fw-semibold" : "text-muted")">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-calendar3 me-1" viewBox="0 0 16 16">
+                                                                <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857V3.857z"/>
+                                                                <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                                                            </svg>
+                                                            Needed: @item.NeededByDisplay
+                                                        </small>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="input-group input-group-sm">
+                                                        <input type="number" 
+                                                               class="form-control quantity-input" 
+                                                               name="PurchasedIngredients[@item.IngredientId].Amount" 
+                                                               value="@item.NeededAmount.ToString("F2")"
+                                                               step="0.01"
+                                                               min="0.01"
+                                                               max="10000"
+                                                               data-ingredient-id="@item.IngredientId"
+                                                               title="Edit purchase quantity" />
+                                                        <span class="input-group-text bg-light">@item.Unit</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input type="date" 
+                                                           class="form-control form-control-sm expiry-input" 
+                                                           name="PurchasedIngredients[@item.IngredientId].ExpiryDate" 
+                                                           value="@DateTime.Today.AddDays(7).ToString("yyyy-MM-dd")"
+                                                           min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                                           max="@DateTime.Today.AddYears(5).ToString("yyyy-MM-dd")"
+                                                           data-ingredient-id="@item.IngredientId"
+                                                           title="Set expiry date" />
                                                 </td>
                                             </tr>
                                         }
@@ -221,8 +247,11 @@
                 </svg>
                 <strong>How it works:</strong> 
                 <ul class="mb-0 mt-2">
-                    <li><strong>Priority items</strong> (light gray background with star icon ?) are needed for today or tomorrow's meals - shop for these first!</li>
+                    <li><strong>Priority items</strong> (yellow background with star icon *) are needed for today or tomorrow's meals - shop for these first!</li>
                     <li><strong>Other items</strong> are for meals coming up later this week.</li>
+                    <li><strong>Edit quantities:</strong> Adjust the purchase quantity if you plan to buy more or less than the recommended amount.</li>
+                    <li><strong>Set expiry dates:</strong> Update the expiry date based on the actual product you purchase (default is 7 days from today).</li>
+                    <li><strong>Multiple expiry dates:</strong> The same ingredient with different expiry dates will be stored as separate items in your fridge for better inventory tracking.</li>
                     <li>After shopping, check the items you purchased and click "Mark as Purchased" to automatically update your virtual fridge.</li>
                 </ul>
             </div>
@@ -292,13 +321,11 @@
         function toggleRowStyle(checkbox) {
             const row = checkbox.closest('tr');
             if (checkbox.checked) {
-                row.style.textDecoration = 'line-through';
-                row.style.opacity = '0.6';
                 row.classList.add('table-success');
+                row.style.textDecoration = 'line-through';
             } else {
-                row.style.textDecoration = 'none';
-                row.style.opacity = '1';
                 row.classList.remove('table-success');
+                row.style.textDecoration = 'none';
             }
         }
 
@@ -310,12 +337,95 @@
             }
         }
 
+        // Validate quantity inputs
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const value = parseFloat(this.value);
+                if (isNaN(value) || value <= 0) {
+                    alert('Please enter a valid quantity greater than 0.');
+                    this.value = this.getAttribute('data-original-value') || '1.00';
+                } else if (value > 10000) {
+                    alert('Quantity cannot exceed 10000.');
+                    this.value = '10000';
+                } else {
+                    // Store the original value for validation
+                    this.setAttribute('data-original-value', this.value);
+                }
+            });
+            
+            // Store initial value
+            input.setAttribute('data-original-value', input.value);
+        });
+
+        // Validate expiry date inputs
+        document.querySelectorAll('.expiry-input').forEach(input => {
+            input.addEventListener('change', function() {
+                const selectedDate = new Date(this.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const maxDate = new Date();
+                maxDate.setFullYear(maxDate.getFullYear() + 5);
+                
+                if (selectedDate < today) {
+                    alert('Expiry date cannot be in the past. Please select today or a future date.');
+                    // Reset to default (7 days from today)
+                    const defaultDate = new Date();
+                    defaultDate.setDate(defaultDate.getDate() + 7);
+                    this.value = defaultDate.toISOString().split('T')[0];
+                } else if (selectedDate > maxDate) {
+                    alert('Expiry date cannot be more than 5 years in the future.');
+                    this.value = maxDate.toISOString().split('T')[0];
+                }
+            });
+        });
+
         // Confirm purchase button
         document.getElementById('confirmPurchaseBtn')?.addEventListener('click', function() {
-            const selectedItems = document.querySelectorAll('.item-checkbox:checked').length;
+            const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
             
-            if (selectedItems === 0) {
+            if (selectedCheckboxes.length === 0) {
                 alert('Please select at least one item to purchase.');
+                return;
+            }
+            
+            // Validate all quantity and expiry inputs for selected items
+            let hasErrors = false;
+            selectedCheckboxes.forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const ingredientId = checkbox.getAttribute('data-ingredient-id');
+                
+                // Validate quantity
+                const quantityInput = row.querySelector(`.quantity-input[data-ingredient-id="${ingredientId}"]`);
+                if (quantityInput) {
+                    const qty = parseFloat(quantityInput.value);
+                    if (isNaN(qty) || qty <= 0 || qty > 10000) {
+                        hasErrors = true;
+                        quantityInput.classList.add('is-invalid');
+                        alert('Please correct the quantity values before proceeding.');
+                        return;
+                    }
+                    quantityInput.classList.remove('is-invalid');
+                }
+                
+                // Validate expiry date
+                const expiryInput = row.querySelector(`.expiry-input[data-ingredient-id="${ingredientId}"]`);
+                if (expiryInput) {
+                    const expiryDate = new Date(expiryInput.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (expiryDate < today) {
+                        hasErrors = true;
+                        expiryInput.classList.add('is-invalid');
+                        alert('Please correct the expiry dates before proceeding.');
+                        return;
+                    }
+                    expiryInput.classList.remove('is-invalid');
+                }
+            });
+            
+            if (hasErrors) {
                 return;
             }
             
@@ -326,6 +436,17 @@
         // Update count when modal is shown
         document.getElementById('confirmPurchaseModal')?.addEventListener('show.bs.modal', function() {
             updateSelectedCount();
+        });
+
+        // Add visual feedback when editing quantity/expiry
+        document.querySelectorAll('.quantity-input, .expiry-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.classList.add('border-primary');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.classList.remove('border-primary');
+            });
         });
     </script>
 }
@@ -341,5 +462,88 @@
         .card-body {
             padding: 0 !important;
         }
+    }
+    
+    /* Grocery Table Styling */
+    .grocery-table {
+        font-size: 0.95rem;
+    }
+    
+    .grocery-table thead th {
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        vertical-align: middle;
+        padding: 0.9rem 0.75rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .grocery-table tbody td {
+        padding: 0.85rem 0.75rem;
+        vertical-align: middle;
+    }
+    
+    .grocery-row {
+        transition: all 0.2s ease;
+    }
+    
+    .grocery-row:hover {
+        background-color: #f8f9fa !important;
+        transform: translateX(2px);
+    }
+    
+    .priority-item {
+        background-color: #fff9e6 !important;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .priority-item:hover {
+        background-color: #fff5d6 !important;
+    }
+    
+    .grocery-row.table-success {
+        background-color: #d1e7dd !important;
+        opacity: 0.7;
+    }
+    
+    .ingredient-name {
+        font-size: 1rem;
+        color: #2c3e50;
+    }
+    
+    .quantity-input, .expiry-input {
+        border: 1px solid #ced4da;
+        transition: all 0.2s ease;
+    }
+    
+    .quantity-input:focus, .expiry-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+    }
+    
+    .quantity-input.is-invalid, .expiry-input.is-invalid {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.15);
+    }
+    
+    .input-group-text {
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .badge {
+        font-weight: 500;
+        padding: 0.4rem 0.6rem;
+        font-size: 0.875rem;
+    }
+    
+    .form-check-input {
+        cursor: pointer;
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+    
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
     }
 </style>

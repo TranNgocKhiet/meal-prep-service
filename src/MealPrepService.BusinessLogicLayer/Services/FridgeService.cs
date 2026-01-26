@@ -117,6 +117,69 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 itemId, newQuantity);
         }
 
+        public async Task UpdateExpiryDateAsync(Guid itemId, DateTime newExpiryDate)
+        {
+            if (newExpiryDate <= DateTime.UtcNow.Date)
+            {
+                throw new BusinessException("Expiry date must be in the future");
+            }
+
+            var fridgeItem = await _unitOfWork.FridgeItems.GetByIdAsync(itemId);
+            if (fridgeItem == null)
+            {
+                throw new BusinessException($"Fridge item with ID {itemId} not found");
+            }
+
+            var oldExpiryDate = fridgeItem.ExpiryDate;
+            fridgeItem.ExpiryDate = newExpiryDate;
+            fridgeItem.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.FridgeItems.UpdateAsync(fridgeItem);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Fridge item {ItemId} expiry date updated from {OldDate} to {NewDate}", 
+                itemId, oldExpiryDate, newExpiryDate);
+
+            // Check if there are other items with the same ingredient and same new expiry date
+            // If so, merge them
+            var accountId = fridgeItem.AccountId;
+            var ingredientId = fridgeItem.IngredientId;
+            
+            var allFridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(accountId);
+            var itemsToMerge = allFridgeItems
+                .Where(f => f.IngredientId == ingredientId && 
+                           f.ExpiryDate.Date == newExpiryDate.Date && 
+                           f.Id != itemId)
+                .ToList();
+
+            if (itemsToMerge.Any())
+            {
+                _logger.LogInformation("Found {Count} items to merge with fridge item {ItemId}", 
+                    itemsToMerge.Count, itemId);
+
+                // Sum up the amounts
+                var totalAmount = fridgeItem.CurrentAmount + itemsToMerge.Sum(f => f.CurrentAmount);
+                
+                // Update the main item with the total amount
+                fridgeItem.CurrentAmount = totalAmount;
+                fridgeItem.UpdatedAt = DateTime.UtcNow;
+                await _unitOfWork.FridgeItems.UpdateAsync(fridgeItem);
+
+                // Delete the duplicate items
+                foreach (var duplicateItem in itemsToMerge)
+                {
+                    await _unitOfWork.FridgeItems.DeleteAsync(duplicateItem.Id);
+                    _logger.LogInformation("Merged and deleted duplicate fridge item {DuplicateItemId}", 
+                        duplicateItem.Id);
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully merged {Count} items with total amount {TotalAmount} for ingredient {IngredientId}", 
+                    itemsToMerge.Count + 1, totalAmount, ingredientId);
+            }
+        }
+
         public async Task RemoveItemAsync(Guid itemId)
         {
             var fridgeItem = await _unitOfWork.FridgeItems.GetByIdAsync(itemId);
