@@ -215,7 +215,9 @@
                                 <nav aria-label="Page navigation" class="mt-4">
                                     <ul class="pagination justify-content-center">
                                         <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
-                                            <a class="page-link" asp-action="AddMeal" 
+                                            <a class="page-link" 
+                                               style="color: #000 !important;"
+                                               asp-action="AddMeal" 
                                                asp-route-planId="@Model.PlanId"
                                                asp-route-searchTerm="@Model.SearchTerm" 
                                                asp-route-showAll="@Model.ShowAll"
@@ -232,7 +234,9 @@
                                             if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 2 && i <= Model.CurrentPage + 2))
                                             {
                                                 <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                                    <a class="page-link" asp-action="AddMeal" 
+                                                    <a class="page-link" 
+                                                       style="color: #000 !important;"
+                                                       asp-action="AddMeal" 
                                                        asp-route-planId="@Model.PlanId"
                                                        asp-route-searchTerm="@Model.SearchTerm" 
                                                        asp-route-showAll="@Model.ShowAll"
@@ -244,13 +248,15 @@
                                             else if (i == Model.CurrentPage - 3 || i == Model.CurrentPage + 3)
                                             {
                                                 <li class="page-item disabled">
-                                                    <span class="page-link">...</span>
+                                                    <span class="page-link" style="color: #000 !important;">...</span>
                                                 </li>
                                             }
                                         }
                                         
                                         <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
-                                            <a class="page-link" asp-action="AddMeal" 
+                                            <a class="page-link" 
+                                               style="color: #000 !important;"
+                                               asp-action="AddMeal" 
                                                asp-route-planId="@Model.PlanId"
                                                asp-route-searchTerm="@Model.SearchTerm" 
                                                asp-route-showAll="@Model.ShowAll"
@@ -262,7 +268,7 @@
                                             </a>
                                         </li>
                                     </ul>
-                                    <p class="text-center text-muted">
+                                    <p class="text-center" style="color: #000 !important;">
                                         Showing @((Model.CurrentPage - 1) * Model.PageSize + 1) to @Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems) of @Model.TotalItems recipes
                                     </p>
                                 </nav>
