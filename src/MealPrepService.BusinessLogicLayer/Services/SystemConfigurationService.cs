@@ -13,8 +13,10 @@ public class SystemConfigurationService : ISystemConfigurationService
     
     private const string MAX_MEAL_PLANS_KEY = "MaxMealPlansPerCustomer";
     private const string MAX_FRIDGE_ITEMS_KEY = "MaxFridgeItemsPerCustomer";
+    private const string MAX_MEAL_PLAN_DAYS_KEY = "MaxMealPlanDays";
     private const int DEFAULT_MAX_MEAL_PLANS = 5;
     private const int DEFAULT_MAX_FRIDGE_ITEMS = 100;
+    private const int DEFAULT_MAX_MEAL_PLAN_DAYS = 7;
 
     public SystemConfigurationService(
         IUnitOfWork unitOfWork,
@@ -46,6 +48,18 @@ public class SystemConfigurationService : ISystemConfigurationService
         }
         
         return int.TryParse(config.ConfigValue, out var value) ? value : DEFAULT_MAX_FRIDGE_ITEMS;
+    }
+
+    public async Task<int> GetMaxMealPlanDaysAsync()
+    {
+        var config = await GetConfigurationAsync(MAX_MEAL_PLAN_DAYS_KEY);
+        if (config == null)
+        {
+            await InitializeDefaultConfigurationsAsync();
+            return DEFAULT_MAX_MEAL_PLAN_DAYS;
+        }
+        
+        return int.TryParse(config.ConfigValue, out var value) ? value : DEFAULT_MAX_MEAL_PLAN_DAYS;
     }
 
     public async Task UpdateMaxMealPlansAsync(int maxValue, string updatedBy)
@@ -88,6 +102,27 @@ public class SystemConfigurationService : ISystemConfigurationService
             updatedBy);
         
         _logger.LogInformation("Max fridge items updated to {MaxValue} by {UpdatedBy}", maxValue, updatedBy);
+    }
+
+    public async Task UpdateMaxMealPlanDaysAsync(int maxDays, string updatedBy)
+    {
+        if (maxDays < 1)
+        {
+            throw new BusinessException("Maximum meal plan days must be at least 1");
+        }
+
+        if (maxDays > 30)
+        {
+            throw new BusinessException("Maximum meal plan days cannot exceed 30");
+        }
+
+        await UpdateConfigurationAsync(
+            MAX_MEAL_PLAN_DAYS_KEY, 
+            maxDays.ToString(), 
+            "Maximum number of days for a meal plan",
+            updatedBy);
+        
+        _logger.LogInformation("Max meal plan days updated to {MaxDays} by {UpdatedBy}", maxDays, updatedBy);
     }
 
     public async Task<Dictionary<string, string>> GetAllConfigurationsAsync()
