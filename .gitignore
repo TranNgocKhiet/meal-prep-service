@@ -92,5 +92,5 @@ $RECYCLE.BIN/
 .DS_Store
 
 # App setting
-appsettings.Development.json
-appsettings.json
+# appsettings.Development.json
+# appsettings.json
