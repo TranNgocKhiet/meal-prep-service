@@ -33,8 +33,7 @@ MealPrepService/
 │       ├── Data/                      # DbContext
 │       ├── Entities/                  # Entity models
 │       └── Repositories/              # Repository pattern
-├── files/                             # Dataset Excel files
-└── .kiro/specs/                       # Feature specifications
+└── files/                             # Dataset Excel files
 ```
 
 ## Technology Stack
