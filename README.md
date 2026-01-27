@@ -33,8 +33,6 @@ MealPrepService/
 │       ├── Data/                      # DbContext
 │       ├── Entities/                  # Entity models
 │       └── Repositories/              # Repository pattern
-├── tests/
-│   └── MealPrepService.Tests/         # Unit and integration tests
 ├── files/                             # Dataset Excel files
 └── .kiro/specs/                       # Feature specifications
 ```
