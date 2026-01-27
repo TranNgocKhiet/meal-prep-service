@@ -16,6 +16,7 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
         private readonly IMealPlanService _mealPlanService;
         private readonly IRecipeService _recipeService;
         private readonly IFridgeService _fridgeService;
+        private readonly ISystemConfigurationService _systemConfigService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<MealPlanController> _logger;
 
@@ -23,12 +24,14 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             IMealPlanService mealPlanService,
             IRecipeService recipeService,
             IFridgeService fridgeService,
+            ISystemConfigurationService systemConfigService,
             IUnitOfWork unitOfWork,
             ILogger<MealPlanController> logger)
         {
             _mealPlanService = mealPlanService;
             _recipeService = recipeService;
             _fridgeService = fridgeService;
+            _systemConfigService = systemConfigService;
             _unitOfWork = unitOfWork;
             _logger = logger;
         }
@@ -103,13 +106,17 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
         // GET: MealPlan/Create - Show create meal plan form
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var maxDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
+            
             var viewModel = new CreateMealPlanViewModel
             {
                 StartDate = DateTime.Today,
-                EndDate = DateTime.Today.AddDays(7)
+                EndDate = DateTime.Today.AddDays(maxDays)
             };
+            
+            ViewBag.MaxMealPlanDays = maxDays;
             
             return View(viewModel);
         }
@@ -121,12 +128,25 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
         {
             if (!ModelState.IsValid)
             {
+                var maxDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
+                ViewBag.MaxMealPlanDays = maxDays;
                 return View(model);
             }
 
             try
             {
                 var accountId = GetCurrentAccountId();
+                
+                // Validate max days
+                var maxDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
+                var daysDifference = (model.EndDate - model.StartDate).Days + 1;
+                
+                if (daysDifference > maxDays)
+                {
+                    ModelState.AddModelError(string.Empty, $"Meal plan cannot exceed {maxDays} days. Current selection: {daysDifference} days.");
+                    ViewBag.MaxMealPlanDays = maxDays;
+                    return View(model);
+                }
                 
                 var mealPlanDto = new MealPlanDto
                 {
@@ -148,12 +168,16 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             catch (BusinessException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
+                var maxDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
+                ViewBag.MaxMealPlanDays = maxDays;
                 return View(model);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while creating meal plan for account {AccountId}", GetCurrentAccountId());
                 ModelState.AddModelError(string.Empty, "An error occurred while creating the meal plan. Please try again.");
+                var maxDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
+                ViewBag.MaxMealPlanDays = maxDays;
                 return View(model);
             }
         }
@@ -165,12 +189,25 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
         {
             if (!ModelState.IsValid)
             {
+                var maxDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
+                ViewBag.MaxMealPlanDays = maxDays;
                 return View("Create", model);
             }
 
             try
             {
                 var accountId = GetCurrentAccountId();
+                
+                // Validate max days
+                var maxDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
+                var daysDifference = (model.EndDate - model.StartDate).Days + 1;
+                
+                if (daysDifference > maxDays)
+                {
+                    ModelState.AddModelError(string.Empty, $"Meal plan cannot exceed {maxDays} days. Current selection: {daysDifference} days.");
+                    ViewBag.MaxMealPlanDays = maxDays;
+                    return View("Create", model);
+                }
                 
                 var aiGeneratedPlan = await _mealPlanService.GenerateAiMealPlanAsync(
                     accountId, 
@@ -187,12 +224,16 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             catch (BusinessException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
+                var maxDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
+                ViewBag.MaxMealPlanDays = maxDays;
                 return View("Create", model);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while generating AI meal plan for account {AccountId}", GetCurrentAccountId());
                 ModelState.AddModelError(string.Empty, "An error occurred while generating the AI meal plan. Please try again.");
+                var maxDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
+                ViewBag.MaxMealPlanDays = maxDays;
                 return View("Create", model);
             }
         }
@@ -1006,7 +1047,10 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
                 // Get current fridge items
                 var fridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
-                var fridgeInventory = fridgeItems.ToDictionary(f => f.IngredientId, f => f);
+                // Group by IngredientId and take the first item for each ingredient (in case of duplicates)
+                var fridgeInventory = fridgeItems
+                    .GroupBy(f => f.IngredientId)
+                    .ToDictionary(g => g.Key, g => g.First());
 
                 int restoredCount = 0;
                 int addedCount = 0;

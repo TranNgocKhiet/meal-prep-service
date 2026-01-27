@@ -497,11 +497,13 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
             {
                 var maxMealPlans = await _systemConfigService.GetMaxMealPlansPerCustomerAsync();
                 var maxFridgeItems = await _systemConfigService.GetMaxFridgeItemsPerCustomerAsync();
+                var maxMealPlanDays = await _systemConfigService.GetMaxMealPlanDaysAsync();
 
                 var viewModel = new SystemConfigurationViewModel
                 {
                     MaxMealPlansPerCustomer = maxMealPlans,
-                    MaxFridgeItemsPerCustomer = maxFridgeItems
+                    MaxFridgeItemsPerCustomer = maxFridgeItems,
+                    MaxMealPlanDays = maxMealPlanDays
                 };
 
                 return View(viewModel);
@@ -530,10 +532,11 @@ namespace MealPrepService.Web.PresentationLayer.Controllers
 
                 await _systemConfigService.UpdateMaxMealPlansAsync(model.MaxMealPlansPerCustomer, adminEmail);
                 await _systemConfigService.UpdateMaxFridgeItemsAsync(model.MaxFridgeItemsPerCustomer, adminEmail);
+                await _systemConfigService.UpdateMaxMealPlanDaysAsync(model.MaxMealPlanDays, adminEmail);
 
                 TempData["SuccessMessage"] = "System configuration updated successfully!";
-                _logger.LogInformation("System configuration updated by {AdminEmail}: MaxMealPlans={MaxMealPlans}, MaxFridgeItems={MaxFridgeItems}",
-                    adminEmail, model.MaxMealPlansPerCustomer, model.MaxFridgeItemsPerCustomer);
+                _logger.LogInformation("System configuration updated by {AdminEmail}: MaxMealPlans={MaxMealPlans}, MaxFridgeItems={MaxFridgeItems}, MaxMealPlanDays={MaxMealPlanDays}",
+                    adminEmail, model.MaxMealPlansPerCustomer, model.MaxFridgeItemsPerCustomer, model.MaxMealPlanDays);
 
                 return RedirectToAction(nameof(SystemConfiguration));
             }

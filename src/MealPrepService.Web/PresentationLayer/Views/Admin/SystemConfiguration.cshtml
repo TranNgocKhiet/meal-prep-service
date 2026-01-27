@@ -60,6 +60,16 @@
                             </div>
                         </div>
 
+                        <div class="mb-4">
+                            <label asp-for="MaxMealPlanDays" class="form-label fw-bold"></label>
+                            <input asp-for="MaxMealPlanDays" class="form-control form-control-lg" type="number" min="1" max="30" />
+                            <span asp-validation-for="MaxMealPlanDays" class="text-danger small"></span>
+                            <div class="form-text">
+                                <i class="bi bi-calendar-range"></i> Maximum number of days for a meal plan. 
+                                <strong>Current default: 7 days</strong>
+                            </div>
+                        </div>
+
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle"></i>
                             <strong>Warning:</strong> Reducing these limits will not automatically remove existing data. 

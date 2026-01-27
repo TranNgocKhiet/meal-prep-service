@@ -29,13 +29,29 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label asp-for="StartDate" class="form-label fw-bold"></label>
-                                <input asp-for="StartDate" class="form-control" type="date" />
+                                <div class="input-group">
+                                    <input asp-for="StartDate" class="form-control" type="date" id="StartDate" />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('StartDate').showPicker()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar" viewBox="0 0 16 16">
+                                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                                        </svg>
+                                    </button>
+                                </div>
                                 <span asp-validation-for="StartDate" class="text-danger"></span>
                             </div>
                             <div class="col-md-6">
                                 <label asp-for="EndDate" class="form-label fw-bold"></label>
-                                <input asp-for="EndDate" class="form-control" type="date" />
+                                <div class="input-group">
+                                    <input asp-for="EndDate" class="form-control" type="date" id="EndDate" />
+                                    <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('EndDate').showPicker()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16">
+                                            <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                                        </svg>
+                                    </button>
+                                </div>
                                 <span asp-validation-for="EndDate" class="text-danger"></span>
+                                <small class="text-muted" id="daysCounter"></small>
                             </div>
                         </div>
 
@@ -68,6 +84,8 @@
                             <span id="planTypeInfo">
                                 If you choose manual creation, you'll be able to add meals and recipes after creating the plan.
                             </span>
+                            <br/>
+                            <strong>Maximum meal plan duration: @ViewBag.MaxMealPlanDays days</strong>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
@@ -100,10 +118,104 @@
                     <ul class="mb-0">
                         <li><strong>AI Generation:</strong> Best for personalized nutrition based on your health profile</li>
                         <li><strong>Manual Creation:</strong> Best for specific dietary goals or custom meal selections</li>
-                        <li><strong>Duration:</strong> Plans can be up to 30 days long</li>
+                        <li><strong>Duration:</strong> Plans can be up to @ViewBag.MaxMealPlanDays days long</li>
                         <li><strong>Flexibility:</strong> You can always edit meals after creating the plan</li>
                     </ul>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Date Limit Exceeded Modal -->
+<div class="modal fade" id="dateLimitModal" tabindex="-1" aria-labelledby="dateLimitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: #0F172A; border: 2px solid rgba(239, 68, 68, 0.5);">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.3);">
+                <h5 class="modal-title text-white" id="dateLimitModalLabel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#ef4444" class="bi bi-exclamation-triangle-fill me-2" viewBox="0 0 16 16">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                    </svg>
+                    Meal Plan Duration Limit Exceeded
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-white">
+                <div class="alert alert-danger" style="background-color: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                    <p class="mb-2"><strong>Your selected date range exceeds the maximum allowed duration.</strong></p>
+                    <hr style="border-color: rgba(239, 68, 68, 0.3);">
+                    <p class="mb-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-x me-2" viewBox="0 0 16 16">
+                            <path d="M6.146 7.146a.5.5 0 0 1 .708 0L8 8.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 9l1.147 1.146a.5.5 0 0 1-.708.708L8 9.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 9 6.146 7.854a.5.5 0 0 1 0-.708z"/>
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                        </svg>
+                        <strong>Selected duration:</strong> <span id="selectedDays" class="text-danger">0</span> days
+                    </p>
+                    <p class="mb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-check me-2" viewBox="0 0 16 16">
+                            <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                        </svg>
+                        <strong>Maximum allowed:</strong> <span class="text-success">@ViewBag.MaxMealPlanDays</span> days
+                    </p>
+                </div>
+                <p class="text-center mb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#22c55e" class="bi bi-info-circle me-2" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                    </svg>
+                    The end date has been automatically adjusted to the maximum allowed duration.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid rgba(239, 68, 68, 0.3);">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle me-2" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                    </svg>
+                    Got It
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Loading Screen -->
+<div id="aiLoadingScreen">
+    <div class="loading-content">
+        <div class="robot-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25.286 25.286 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135Z"/>
+                <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z"/>
+            </svg>
+        </div>
+        <div class="loading-text">
+            AI is Creating Your Meal Plan<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+        </div>
+        <div class="loading-subtext">
+            Analyzing your health profile and preferences
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar"></div>
+        </div>
+        <div class="ai-features">
+            <div class="ai-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+                <span>Personalized Nutrition</span>
+            </div>
+            <div class="ai-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+                <span>Allergy-Safe Recipes</span>
+            </div>
+            <div class="ai-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+                <span>Balanced Meals</span>
             </div>
         </div>
     </div>
@@ -132,11 +244,147 @@
         .form-check-input:focus {
             box-shadow: 0 0 0 0.25rem rgba(34, 197, 94, 0.25) !important;
         }
+
+        /* Loading Screen Styles */
+        #aiLoadingScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #aiLoadingScreen.show {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: #fff;
+        }
+
+        .robot-icon {
+            font-size: 120px;
+            color: #22c55e;
+            animation: robotBounce 1.5s ease-in-out infinite;
+        }
+
+        @@keyframes robotBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-20px) rotate(-5deg);
+            }
+            75% {
+                transform: translateY(-10px) rotate(5deg);
+            }
+        }
+
+        .loading-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            color: #fff;
+        }
+
+        .loading-subtext {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 1rem;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots span {
+            animation: dotPulse 1.5s infinite;
+            opacity: 0;
+        }
+
+        .loading-dots span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @@keyframes dotPulse {
+            0%, 100% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .progress-bar-container {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 2rem auto 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            border-radius: 10px;
+            animation: progressAnimation 2s ease-in-out infinite;
+        }
+
+        @@keyframes progressAnimation {
+            0% {
+                width: 0%;
+            }
+            50% {
+                width: 70%;
+            }
+            100% {
+                width: 100%;
+            }
+        }
+
+        .ai-features {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .ai-feature {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+
+        .ai-feature svg {
+            color: #22c55e;
+        }
     </style>
     <script>
         const form = document.getElementById('mealPlanForm');
         const generateWithAICheckbox = document.getElementById('generateWithAI');
         const infoText = document.getElementById('planTypeInfo');
+        const startDateInput = document.getElementById('StartDate');
+        const endDateInput = document.getElementById('EndDate');
+        const daysCounter = document.getElementById('daysCounter');
+        const maxMealPlanDays = @ViewBag.MaxMealPlanDays;
         
         // Update info text when checkbox changes
         generateWithAICheckbox.addEventListener('change', function() {
@@ -147,11 +395,83 @@
             }
         });
         
-        // Change form action based on checkbox state
+        // Update days counter
+        function updateDaysCounter() {
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+            
+            if (startDate && endDate && endDate >= startDate) {
+                const daysDifference = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (daysDifference > maxMealPlanDays) {
+                    daysCounter.innerHTML = `<span style="color: #ef4444;">⚠ ${daysDifference} days (exceeds limit)</span>`;
+                } else if (daysDifference === maxMealPlanDays) {
+                    daysCounter.innerHTML = `<span style="color: #22c55e;">✓ ${daysDifference} days (maximum)</span>`;
+                } else {
+                    daysCounter.innerHTML = `<span style="color: #22c55e;">✓ ${daysDifference} days</span>`;
+                }
+            } else {
+                daysCounter.innerHTML = '';
+            }
+        }
+        
+        // Validate date range and show modal if exceeded
+        function validateDateRange() {
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+            
+            if (startDate && endDate && endDate >= startDate) {
+                const daysDifference = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (daysDifference > maxMealPlanDays) {
+                    // Update modal with selected days
+                    document.getElementById('selectedDays').textContent = daysDifference;
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('dateLimitModal'));
+                    modal.show();
+                    
+                    // Reset end date to max allowed
+                    const maxEndDate = new Date(startDate);
+                    maxEndDate.setDate(maxEndDate.getDate() + maxMealPlanDays - 1);
+                    endDateInput.value = maxEndDate.toISOString().split('T')[0];
+                    
+                    // Update counter after adjustment
+                    updateDaysCounter();
+                    
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        // Add event listeners for date validation and counter update
+        startDateInput.addEventListener('change', function() {
+            updateDaysCounter();
+            validateDateRange();
+        });
+        
+        endDateInput.addEventListener('change', function() {
+            updateDaysCounter();
+            validateDateRange();
+        });
+        
+        // Initialize counter on page load
+        updateDaysCounter();
+        
+        // Change form action based on checkbox state and show loading screen
         form.addEventListener('submit', function(e) {
+            if (!validateDateRange()) {
+                e.preventDefault();
+                return false;
+            }
+            
             if (generateWithAICheckbox.checked) {
                 // Change action to GenerateAI
                 form.action = '@Url.Action("GenerateAI", "MealPlan")';
+                
+                // Show loading screen
+                document.getElementById('aiLoadingScreen').classList.add('show');
             } else {
                 // Keep default Create action
                 form.action = '@Url.Action("Create", "MealPlan")';
