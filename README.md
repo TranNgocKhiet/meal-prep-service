@@ -35,7 +35,6 @@ MealPrepService/
 - **Database**: SQL Server (production), SQLite (development/testing)
 - **Logging**: Serilog
 - **Validation**: FluentValidation
-- **Testing**: xUnit, FsCheck (property-based testing)
 - **Excel Processing**: EPPlus
 
 ## Features
@@ -70,7 +69,6 @@ The application automatically imports data from Excel files in the `files/` dire
 - 20 allergies
 - 240 ingredients
 - 84 recipes
-- 749 recipe-ingredient relationships
 
 ## Getting Started
 
