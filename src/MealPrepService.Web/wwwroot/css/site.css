@@ -454,6 +454,7 @@ header *,
   border-radius: 14px;
   color: #fff;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  overflow: visible !important;
 }
 
 main h1, main h2, main h3, main h4, main h5, main h6,
@@ -1114,6 +1115,11 @@ thead.table-light + tbody tr td {
 .card-footer {
   background-color: rgba(15, 23, 42, 0.8) !important;
   border-top: 1px solid rgba(34, 197, 94, 0.25) !important;
+  overflow: visible !important;
+}
+
+.card-footer .d-flex {
+  overflow: visible !important;
 }
 
 .badge {
@@ -1215,7 +1221,6 @@ thead.table-light + tbody tr td {
   background-color: #22C55E !important;
   border-color: #22C55E !important;
   color: #fff !important;
-  transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
 }
 
@@ -1235,7 +1240,6 @@ thead.table-light + tbody tr td {
   background-color: rgba(255, 255, 255, 0.2) !important;
   border-color: rgba(255, 255, 255, 0.6) !important;
   color: #fff !important;
-  transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
 }
 
@@ -1255,7 +1259,6 @@ thead.table-light + tbody tr td {
   background-color: #ef4444 !important;
   border-color: #ef4444 !important;
   color: #fff !important;
-  transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
