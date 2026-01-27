@@ -18,7 +18,7 @@ MealPrepService/
 │   ├── MealPrepService.Web/           # Presentation Layer (MVC)
 │   │   ├── PresentationLayer/
 │   │   │   ├── Controllers/           # MVC Controllers
-│   │   │   ├── Views/                 # Razor Views
+│   │   │   ├── Views/                 # Views
 │   │   │   ├── ViewModels/            # View Models
 │   │   │   └── Filters/               # Authorization filters
 │   │   ├── Data/                      # Database seeding
