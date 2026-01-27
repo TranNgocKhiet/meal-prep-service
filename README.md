@@ -2,14 +2,6 @@
 
 A comprehensive ASP.NET Core MVC web application for meal preparation and delivery services, built with a clean 3-layer architecture.
 
-## Quick Start
-
-See **[SETUP_AND_TROUBLESHOOTING.md](SETUP_AND_TROUBLESHOOTING.md)** for:
-- Database setup instructions
-- Dataset import guide
-- Common issues and solutions
-- Utility scripts
-
 ## Project Structure
 
 ```
@@ -131,20 +123,6 @@ dotnet test --filter "Feature=dataset-import-service"
 - **Unit of Work Pattern**: Transaction management
 - **DTO/ViewModel Pattern**: Data transfer between layers
 - **SOLID Principles**: Single responsibility, dependency inversion
-
-## Documentation
-
-- **[SETUP_AND_TROUBLESHOOTING.md](SETUP_AND_TROUBLESHOOTING.md)** - Setup and common issues
-- **[DATABASE_QUICK_START.md](DATABASE_QUICK_START.md)** - Database setup guide
-- **[MSSQL_SETUP_GUIDE.md](MSSQL_SETUP_GUIDE.md)** - SQL Server configuration
-- **[USER_GUIDE.md](USER_GUIDE.md)** - User documentation
-- **[ALLERGY_IMPORT_FIX.md](ALLERGY_IMPORT_FIX.md)** - Allergy import details
-- **[CLEAR_AND_REIMPORT.md](CLEAR_AND_REIMPORT.md)** - Database clearing guide
-
-## Utility Scripts
-
-- **ClearDatabase.ps1** - Clear imported data
-- **TestDatasetImport.ps1** - Test dataset import
 
 ## License
 
