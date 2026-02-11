@@ -1,0 +1,162 @@
+erDiagram
+    ACCOUNT {
+        uuid account_id PK
+        string email
+        string password_hash
+        string full_name
+        string role
+        datetime created_at
+    }
+
+    HEALTH_PROFILE {
+        uuid profile_id PK
+        uuid account_id FK
+        int age
+        float weight
+        float height
+        string gender
+        text health_notes
+    }
+
+    ALLERGY {
+        uuid allergy_id PK
+        string allergy_name
+    }
+
+    FOOD_PREFERENCE {
+        uuid preference_id PK
+        string preference_name
+    }
+
+    SUBSCRIPTION_PACKAGE {
+        uuid package_id PK
+        string package_name
+        decimal price
+        int duration_days
+        text description
+    }
+
+    USER_SUBSCRIPTION {
+        uuid user_sub_id PK
+        uuid account_id FK
+        uuid package_id FK
+        datetime start_date
+        datetime end_date
+        string status
+    }
+
+    MEAL_PLAN {
+        uuid plan_id PK
+        uuid account_id FK
+        string plan_name
+        date start_date
+        date end_date
+        boolean is_ai_generated
+    }
+
+    MEAL {
+        uuid meal_id PK
+        uuid plan_id FK
+        string meal_type
+        date serve_date
+    }
+
+    RECIPE {
+        uuid recipe_id PK
+        string recipe_name
+        text instructions
+        float total_calories
+        float protein_g
+        float fat_g
+        float carbs_g
+    }
+
+    INGREDIENT {
+        uuid ingredient_id PK
+        string ingredient_name
+        string unit
+        float calo_per_unit
+        boolean is_allergen
+    }
+
+    RECIPE_INGREDIENT {
+        uuid recipe_id PK, FK
+        uuid ingredient_id PK, FK
+        float amount
+    }
+
+    FRIDGE_ITEM {
+        uuid fridge_item_id PK
+        uuid account_id FK
+        uuid ingredient_id FK
+        float current_amount
+        date expiry_date
+    }
+
+    DAILY_MENU {
+        uuid menu_id PK
+        date menu_date
+        string status
+    }
+
+    MENU_MEAL {
+        uuid menu_meal_id PK
+        uuid menu_id FK
+        uuid recipe_id FK
+        decimal price
+        int available_quantity
+    }
+
+    ORDER {
+        uuid order_id PK
+        uuid account_id FK
+        datetime order_date
+        decimal total_amount
+        string payment_method
+        string status
+    }
+
+    ORDER_DETAIL {
+        uuid order_detail_id PK
+        uuid order_id FK
+        uuid menu_meal_id FK
+        int quantity
+        decimal unit_price
+    }
+
+    DELIVERY_SCHEDULE {
+        uuid delivery_id PK
+        uuid order_id FK
+        datetime delivery_time
+        string address
+        string driver_contact
+    }
+
+    REVENUE_REPORT {
+        uuid report_id PK
+        int month
+        int year
+        decimal total_subscription_rev
+        decimal total_order_rev
+        int total_orders_count
+    }
+
+    %% Relationships
+    ACCOUNT ||--|| HEALTH_PROFILE : "owns"
+    HEALTH_PROFILE }|--|{ ALLERGY : "link"
+    HEALTH_PROFILE }|--|{ FOOD_PREFERENCE : "link"
+    ACCOUNT ||--o{ USER_SUBSCRIPTION : "pay"
+    SUBSCRIPTION_PACKAGE ||--o{ USER_SUBSCRIPTION : "type"
+    ACCOUNT ||--o{ MEAL_PLAN : "creates"
+    MEAL_PLAN ||--|{ MEAL : "divided_into"
+    MEAL }|--|{ RECIPE : "has_dishes"
+    RECIPE ||--|{ RECIPE_INGREDIENT : "needs"
+    INGREDIENT ||--|{ RECIPE_INGREDIENT : "is_part_of"
+    ACCOUNT ||--o{ FRIDGE_ITEM : "stores"
+    INGREDIENT ||--o{ FRIDGE_ITEM : "refers_to"
+    DAILY_MENU ||--|{ MENU_MEAL : "lists"
+    RECIPE ||--|{ MENU_MEAL : "offered_as"
+    ACCOUNT ||--o{ ORDER : "places"
+    ORDER ||--|{ ORDER_DETAIL : "contains"
+    MENU_MEAL ||--o{ ORDER_DETAIL : "sold_in"
+    ORDER ||--|| DELIVERY_SCHEDULE : "tracks"

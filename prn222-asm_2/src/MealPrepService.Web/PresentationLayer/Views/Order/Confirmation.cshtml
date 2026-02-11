@@ -1,0 +1,130 @@
+@model MealPrepService.Web.PresentationLayer.ViewModels.OrderConfirmationViewModel
+
+@{
+    ViewData["Title"] = "Order Confirmation";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white text-center">
+                    <i class="bi bi-check-circle" style="font-size: 3rem;"></i>
+                    <h3 class="mt-2">Order Confirmed!</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <p class="lead">Thank you for your order!</p>
+                        <p class="text-muted">Order #@Model.OrderId.ToString().Substring(0, 8)</p>
+                        <p class="text-muted">Placed on @Model.OrderDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                    </div>
+
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Order Status</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Status:</span>
+                                @if (Model.Status.Equals("pending_payment", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-info">Pending Payment (COD)</span>
+                                }
+                                else if (Model.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-success">Confirmed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@Model.Status</span>
+                                }
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span>Payment Method:</span>
+                                <strong>@Model.PaymentMethod</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.Status.Equals("pending_payment", StringComparison.OrdinalIgnoreCase) && 
+                         Model.PaymentMethod.Equals("COD", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Cash on Delivery:</strong> Please prepare the exact amount for payment upon delivery. 
+                            The delivery person will confirm your payment when they arrive.
+                        </div>
+                    }
+
+                    <h5 class="mb-3">Order Details</h5>
+                    <div class="table-responsive mb-4">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var detail in Model.OrderDetails)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@detail.RecipeName</strong>
+                                            @if (detail.Recipe != null)
+                                            {
+                                                <br />
+                                                <small class="text-muted">
+                                                    @detail.Recipe.TotalCalories.ToString("F0") kcal | 
+                                                    P: @detail.Recipe.ProteinG.ToString("F1")g | 
+                                                    F: @detail.Recipe.FatG.ToString("F1")g | 
+                                                    C: @detail.Recipe.CarbsG.ToString("F1")g
+                                                </small>
+                                            }
+                                        </td>
+                                        <td>@detail.Quantity</td>
+                                        <td>$@detail.UnitPrice.ToString("F2")</td>
+                                        <td>$@((detail.Quantity * detail.UnitPrice).ToString("F2"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" class="text-end">Total:</th>
+                                    <th>$@Model.TotalAmount.ToString("F2")</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    @if (Model.DeliveryInfo != null)
+                    {
+                        <h5 class="mb-3">Delivery Information</h5>
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Delivery Time:</strong> @Model.DeliveryInfo.DeliveryTime.ToString("MMM dd, yyyy hh:mm tt")</p>
+                                <p class="mb-1"><strong>Address:</strong> @Model.DeliveryInfo.Address</p>
+                                @if (!string.IsNullOrEmpty(Model.DeliveryInfo.DriverContact))
+                                {
+                                    <p class="mb-0"><strong>Driver Contact:</strong> @Model.DeliveryInfo.DriverContact</p>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="text-center">
+                        <a asp-action="Details" asp-route-id="@Model.OrderId" class="btn btn-primary">
+                            <i class="bi bi-eye"></i> View Order Details
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-list"></i> View All Orders
+                        </a>
+                        <a asp-controller="PublicMenu" asp-action="Today" class="btn btn-outline-primary">
+                            <i class="bi bi-cart-plus"></i> Order More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

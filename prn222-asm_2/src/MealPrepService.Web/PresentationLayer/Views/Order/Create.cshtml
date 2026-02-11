@@ -1,0 +1,180 @@
+@model MealPrepService.Web.PresentationLayer.ViewModels.CreateOrderViewModel
+
+@{
+    ViewData["Title"] = "Create Order";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Create Order</h4>
+            <small class="text-muted">Menu for @Model.MenuDate.ToString("dddd, MMMM dd, yyyy")</small>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" id="orderForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="MenuDate" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <h5 class="mb-3">Select Meals</h5>
+                
+                @if (Model.AvailableMeals.Any())
+                {
+                    <div class="row">
+                        @for (int i = 0; i < Model.OrderItems.Count; i++)
+                        {
+                            var item = Model.OrderItems[i];
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <input type="hidden" asp-for="OrderItems[i].MenuMealId" />
+                                        <input type="hidden" asp-for="OrderItems[i].RecipeName" />
+                                        <input type="hidden" asp-for="OrderItems[i].UnitPrice" />
+                                        <input type="hidden" asp-for="OrderItems[i].AvailableQuantity" />
+                                        
+                                        <h6 class="card-title">@item.RecipeName</h6>
+                                        
+                                        @if (item.Recipe != null)
+                                        {
+                                            <div class="mb-2">
+                                                <small class="text-muted">
+                                                    <strong>@item.Recipe.TotalCalories.ToString("F0")</strong> kcal | 
+                                                    P: @item.Recipe.ProteinG.ToString("F1")g | 
+                                                    F: @item.Recipe.FatG.ToString("F1")g | 
+                                                    C: @item.Recipe.CarbsG.ToString("F1")g
+                                                </small>
+                                            </div>
+                                        }
+
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h5 class="text-primary mb-0">$@item.UnitPrice.ToString("F2")</h5>
+                                            <small class="text-muted">@item.AvailableQuantity available</small>
+                                        </div>
+
+                                        <div class="input-group">
+                                            <span class="input-group-text">Quantity</span>
+                                            <input asp-for="OrderItems[i].Quantity" 
+                                                   type="number" 
+                                                   min="0" 
+                                                   max="@item.AvailableQuantity" 
+                                                   class="form-control quantity-input" 
+                                                   data-price="@item.UnitPrice"
+                                                   data-index="@i" />
+                                        </div>
+                                        <span asp-validation-for="OrderItems[i].Quantity" class="text-danger"></span>
+                                        
+                                        <div class="mt-2">
+                                            <strong>Subtotal:</strong> <span class="subtotal" id="subtotal-@i">$0.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mb-3">Delivery Information</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DeliveryAddress" class="form-label">Delivery Address</label>
+                            <textarea asp-for="DeliveryAddress" class="form-control" rows="3" placeholder="Enter your delivery address"></textarea>
+                            <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="DeliveryNotes" class="form-label">Delivery Notes (Optional)</label>
+                            <textarea asp-for="DeliveryNotes" class="form-control" rows="3" placeholder="Any special instructions?"></textarea>
+                            <span asp-validation-for="DeliveryNotes" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PreferredDeliveryTime" class="form-label">Preferred Delivery Time</label>
+                        <input asp-for="PreferredDeliveryTime" type="datetime-local" class="form-control" />
+                        <span asp-validation-for="PreferredDeliveryTime" class="text-danger"></span>
+                    </div>
+
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h5>Order Summary</h5>
+                            <div class="d-flex justify-content-between">
+                                <span>Total Items:</span>
+                                <strong id="totalItems">0</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <h4>Total Amount:</h4>
+                                <h4 class="text-primary" id="totalAmount">$0.00</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-controller="PublicMenu" asp-action="Today" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                            <i class="bi bi-cart-check"></i> Proceed to Payment
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-circle"></i> No meals are available for this date.
+                    </div>
+                    <a asp-controller="PublicMenu" asp-action="Today" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Menu
+                    </a>
+                }
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const quantityInputs = document.querySelectorAll('.quantity-input');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            function updateTotals() {
+                let totalItems = 0;
+                let totalAmount = 0;
+                
+                quantityInputs.forEach(input => {
+                    const quantity = parseInt(input.value) || 0;
+                    const price = parseFloat(input.getAttribute('data-price'));
+                    const index = input.getAttribute('data-index');
+                    const subtotal = quantity * price;
+                    
+                    document.getElementById('subtotal-' + index).textContent = '$' + subtotal.toFixed(2);
+                    
+                    totalItems += quantity;
+                    totalAmount += subtotal;
+                });
+                
+                document.getElementById('totalItems').textContent = totalItems;
+                document.getElementById('totalAmount').textContent = '$' + totalAmount.toFixed(2);
+                
+                submitBtn.disabled = totalItems === 0;
+            }
+            
+            quantityInputs.forEach(input => {
+                input.addEventListener('input', updateTotals);
+            });
+            
+            updateTotals();
+        });
+    </script>
+}

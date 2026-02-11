@@ -1,0 +1,59 @@
+@model string
+
+@{
+    var paymentMethod = Model?.ToUpper() ?? "";
+}
+
+@if (paymentMethod == "COD" || paymentMethod == "CASH ON DELIVERY")
+{
+    <div class="alert alert-info">
+        <h6 class="alert-heading">
+            <i class="bi bi-cash-coin"></i> Cash on Delivery (COD)
+        </h6>
+        <p class="mb-2">With Cash on Delivery, you can pay for your order when it arrives at your doorstep.</p>
+        <hr />
+        <ul class="mb-0 small">
+            <li>Prepare the exact amount in cash</li>
+            <li>Payment will be confirmed by the delivery person</li>
+            <li>Your order will be marked as "Pending Payment" until delivery</li>
+            <li>Once payment is confirmed, your order status will update to "Confirmed"</li>
+        </ul>
+    </div>
+}
+else if (paymentMethod == "VNPAY")
+{
+    <div class="alert alert-primary">
+        <h6 class="alert-heading">
+            <i class="bi bi-credit-card"></i> VNPAY Online Payment
+        </h6>
+        <p class="mb-2">VNPAY is a secure online payment gateway that accepts multiple payment methods.</p>
+        <hr />
+        <ul class="mb-0 small">
+            <li>You'll be redirected to VNPAY's secure payment page</li>
+            <li>Choose from various payment options (ATM cards, credit cards, e-wallets)</li>
+            <li>Complete the payment following VNPAY's instructions</li>
+            <li>You'll be redirected back after payment completion</li>
+            <li>Your order will be confirmed immediately upon successful payment</li>
+        </ul>
+    </div>
+}
+else
+{
+    <div class="alert alert-light">
+        <h6 class="alert-heading">
+            <i class="bi bi-info-circle"></i> Payment Information
+        </h6>
+        <p class="mb-0">Please select a payment method to see more details.</p>
+    </div>
+}
+
+<div class="card border-0 bg-light">
+    <div class="card-body">
+        <h6 class="card-title">
+            <i class="bi bi-shield-check"></i> Secure Payment
+        </h6>
+        <p class="card-text small mb-0">
+            All transactions are secure and encrypted. Your payment information is protected.
+        </p>
+    </div>
+</div>
