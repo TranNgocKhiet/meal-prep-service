@@ -2,9 +2,10 @@ namespace MealPrepService.Web.PresentationLayer.Middleware
 {
     public static class GlobalExceptionHandlerExtensions
     {
-        public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder builder)
+        public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder app)
         {
-            return builder.UseMiddleware<GlobalExceptionHandler>();
+            app.UseExceptionHandler(options => { });
+            return app;
         }
     }
 }

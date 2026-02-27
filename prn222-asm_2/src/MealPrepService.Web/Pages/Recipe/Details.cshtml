@@ -1,0 +1,192 @@
+@page "{id:guid}"
+@model MealPrepService.Web.Pages.Recipe.DetailsModel
+@{
+    ViewData["Title"] = "Recipe Details";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-book me-2"></i>
+                        Recipe Details
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h3 class="text-primary">@Model.RecipeName</h3>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Nutrition Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="mb-3">
+                                <i class="bi bi-heart-pulse me-2 text-danger"></i>
+                                Nutrition Information
+                            </h5>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center" style="background-color: #1e293b !important;">
+                                    <h4 class="text-primary mb-0">@Model.TotalCalories.ToString("F0")</h4>
+                                    <small class="text-muted">Calories</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center" style="background-color: #1e293b !important;">
+                                    <h4 class="text-success mb-0">@Model.ProteinG.ToString("F1")g</h4>
+                                    <small class="text-muted">Protein</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center" style="background-color: #1e293b !important;">
+                                    <h4 class="text-warning mb-0">@Model.FatG.ToString("F1")g</h4>
+                                    <small class="text-muted">Fat</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center" style="background-color: #1e293b !important;">
+                                    <h4 class="text-info mb-0">@Model.CarbsG.ToString("F1")g</h4>
+                                    <small class="text-muted">Carbs</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions -->
+                    @if (!string.IsNullOrWhiteSpace(Model.Instructions))
+                    {
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5 class="mb-3" style="background-color: #1e293b !important;">
+                                    <i class="bi bi-list-ol me-2 text-primary"></i>
+                                    Instructions
+                                </h5>
+                                <div class="card bg-light">
+                                    <div class="card-body" style="background-color: #1e293b !important;">
+                                        <p class="mb-0" style="white-space: pre-wrap;">@Model.Instructions</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Ingredients -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h5 class="mb-3">
+                                <i class="bi bi-egg me-2 text-warning"></i>
+                                Ingredients (@Model.Ingredients.Count)
+                            </h5>
+                            @if (Model.Ingredients.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-white" style="background-color: transparent;">Ingredient</th>
+                                                <th class="text-white" style="background-color: transparent;">Amount</th>
+                                                <th class="text-white" style="background-color: transparent;">Unit</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var ingredient in Model.Ingredients)
+                                            {
+                                                <tr>
+                                                    <td class="text-white" style="background-color: transparent;">
+                                                        <strong>@ingredient.IngredientName</strong>
+                                                    </td class="text-white" style="background-color: transparent;">
+                                                    <td class="text-white" style="background-color: transparent;">@ingredient.Amount</td>
+                                                    <td class="text-white" style="background-color: transparent;">@ingredient.Unit</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    No ingredients have been added to this recipe yet.
+                                    <a asp-page="AddIngredient" asp-route-id="@Model.Id" class="alert-link">Add ingredients now</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light" style="background-color: #1e293b !important;">
+                    <div class="d-flex justify-content-between" style="background-color: #1e293b !important;">
+                        <a asp-page="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Back to List
+                        </a>
+                        <div style="background-color: #1e293b !important;">
+                            @if (!Model.Ingredients.Any())
+                            {
+                                <a asp-page="AddIngredient" asp-route-id="@Model.Id" class="btn btn-success me-2">
+                                    <i class="bi bi-plus-circle me-2"></i>
+                                    Add Ingredients
+                                </a>
+                            }
+                            <a asp-page="Edit" asp-route-id="@Model.Id" class="btn btn-primary me-2">
+                                <i class="bi bi-pencil me-2"></i>
+                                Edit
+                            </a>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="bi bi-trash me-2"></i>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Confirm Delete
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>@Model.RecipeName</strong>?</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone. Recipes used in meal plans cannot be deleted.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <form asp-page="Delete" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>
+                        Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

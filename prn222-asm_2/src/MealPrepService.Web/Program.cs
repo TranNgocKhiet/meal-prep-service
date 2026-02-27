@@ -30,64 +30,11 @@ try
     builder.Host.UseSerilog();
 
     // Add services to the container.
-    // Configure MVC to find controllers in PresentationLayer
-    builder.Services.AddControllersWithViews()
-        .AddApplicationPart(typeof(Program).Assembly);
+    // Add Razor Pages
+    builder.Services.AddRazorPages();
 
-    // Add Swagger/OpenAPI
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen(options =>
-    {
-        options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-        {
-            Title = "Meal Prep Service API",
-            Version = "v1",
-            Description = "API documentation for Meal Prep Service application",
-            Contact = new Microsoft.OpenApi.Models.OpenApiContact
-            {
-                Name = "Meal Prep Service",
-                Email = "support@mealprepservice.com"
-            }
-        });
-
-        // Add JWT authentication to Swagger
-        options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-        {
-            Description = "Cookie authentication using ASP.NET Core Identity",
-            Name = "Authorization",
-            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-            Scheme = "Bearer"
-        });
-
-        options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-        {
-            {
-                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                {
-                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                    {
-                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
-    });
-
-    // Configure Razor to find views in PresentationLayer
-    builder.Services.Configure<Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions>(options =>
-    {
-        options.ViewLocationFormats.Clear();
-        options.ViewLocationFormats.Add("/PresentationLayer/Views/{1}/{0}.cshtml");
-        options.ViewLocationFormats.Add("/PresentationLayer/Views/Shared/{0}.cshtml");
-        
-        options.AreaViewLocationFormats.Clear();
-        options.AreaViewLocationFormats.Add("/PresentationLayer/Views/{2}/{1}/{0}.cshtml");
-        options.AreaViewLocationFormats.Add("/PresentationLayer/Views/{2}/Shared/{0}.cshtml");
-        options.AreaViewLocationFormats.Add("/PresentationLayer/Views/Shared/{0}.cshtml");
-    });
+    // Add SignalR
+    builder.Services.AddSignalR();
 
     // Configure Entity Framework Core with SQL Server and SQLite
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -153,16 +100,8 @@ try
         options.AddPolicy("DeliveryManOnly", policy => policy.RequireRole("DeliveryMan"));
         options.AddPolicy("AdminOrManager", policy => policy.RequireRole("Admin", "Manager"));
         options.AddPolicy("CustomerOrManager", policy => policy.RequireRole("Customer", "Manager"));
-        
-        // Resource owner policies
-        options.AddPolicy("ResourceOwner_id", policy => 
-            policy.Requirements.Add(new MealPrepService.Web.PresentationLayer.Filters.ResourceOwnerRequirement("id")));
-        options.AddPolicy("ResourceOwner_accountId", policy => 
-            policy.Requirements.Add(new MealPrepService.Web.PresentationLayer.Filters.ResourceOwnerRequirement("accountId")));
     });
 
-    // Register authorization handlers
-    builder.Services.AddSingleton<IAuthorizationHandler, MealPrepService.Web.PresentationLayer.Filters.ResourceOwnerAuthorizationHandler>();
     builder.Services.AddHttpContextAccessor();
 
     // Register Data Access Layer dependencies
@@ -246,21 +185,6 @@ try
     // Add global exception handler (should be early in the pipeline)
     app.UseGlobalExceptionHandler();
 
-    // Enable Swagger in all environments
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Meal Prep Service API v1");
-        options.RoutePrefix = "swagger"; // Access at /swagger
-        options.DocumentTitle = "Meal Prep Service API Documentation";
-        
-        // Dark theme for Swagger UI
-        options.DefaultModelsExpandDepth(-1); // Hide models section by default
-        options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None); // Collapse all endpoints by default
-        options.EnableDeepLinking();
-        options.DisplayRequestDuration();
-    });
-
     if (!app.Environment.IsDevelopment())
     {
         // Remove the default exception handler since we have our global one
@@ -281,10 +205,14 @@ try
 
     app.MapStaticAssets();
 
-    app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}")
-        .WithStaticAssets();
+    // Map Razor Pages
+    app.MapRazorPages();
+    
+    // Map SignalR Hubs
+    app.MapHub<MealPrepService.Web.Hubs.OrderHub>("/hubs/order");
+    app.MapHub<MealPrepService.Web.Hubs.DeliveryHub>("/hubs/delivery");
+    app.MapHub<MealPrepService.Web.Hubs.MenuHub>("/hubs/menu");
+    app.MapHub<MealPrepService.Web.Hubs.NotificationHub>("/hubs/notification");
 
     app.Run();
 }

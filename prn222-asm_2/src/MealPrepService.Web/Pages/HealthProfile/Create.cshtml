@@ -1,0 +1,162 @@
+@page
+@model MealPrepService.Web.Pages.HealthProfile.CreateModel
+@{
+    ViewData["Title"] = "Create Health Profile";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-heart-pulse me-2" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                            <path d="M8.5 5.5a.5.5 0 0 0-1 0v1.518l-.5 1.5-1-3a.5.5 0 0 0-.95.316l1.5 4.5a.5.5 0 0 0 .95 0l.5-1.5.5 1.5a.5.5 0 0 0 .95 0l1.5-4.5a.5.5 0 1 0-.95-.316l-1 3-.5-1.5V5.5z"/>
+                        </svg>
+                        Create Your Health Profile
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Help us personalize your meal plans by providing your health information.</p>
+                    
+                    <form asp-page="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        
+                        <input type="hidden" asp-for="AccountId" />
+                        
+                        <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Age" class="form-label"></label>
+                                <input asp-for="Age" class="form-control" type="number" min="1" max="150" />
+                                <span asp-validation-for="Age" class="text-danger small"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Gender" class="form-label"></label>
+                                <select asp-for="Gender" class="form-select" data-placeholder="Select your gender...">
+                                    <option value="">-- Select Gender --</option>
+                                    @foreach (var gender in CreateModel.GenderOptions)
+                                    {
+                                        <option value="@gender">@gender</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Gender" class="text-danger small"></span>
+                            </div>
+
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Weight" class="form-label"></label>
+                                <div class="input-group">
+                                    <input asp-for="Weight" class="form-control" type="number" step="0.1" min="0.1" />
+                                    <span class="input-group-text">kg</span>
+                                </div>
+                                <span asp-validation-for="Weight" class="text-danger small"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Height" class="form-label"></label>
+                                <div class="input-group">
+                                    <input asp-for="Height" class="form-control" type="number" step="0.1" min="0.1" />
+                                    <span class="input-group-text">cm</span>
+                                </div>
+                                <span asp-validation-for="Height" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="HealthNotes" class="form-label"></label>
+                            <textarea asp-for="HealthNotes" class="form-control" rows="3" 
+                                      placeholder="Any health conditions, dietary restrictions, or notes we should know about..."></textarea>
+                            <span asp-validation-for="HealthNotes" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DietaryRestrictions" class="form-label"></label>
+                                <textarea asp-for="DietaryRestrictions" class="form-control" rows="2" 
+                                          placeholder="e.g., vegetarian, vegan, keto, low-carb, high-protein..."></textarea>
+                                <span asp-validation-for="DietaryRestrictions" class="text-danger small"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CalorieGoal" class="form-label"></label>
+                                <div class="input-group">
+                                    <input asp-for="CalorieGoal" class="form-control" type="number" min="800" max="5000" />
+                                    <span class="input-group-text">cal/day</span>
+                                </div>
+                                <span asp-validation-for="CalorieGoal" class="text-danger small"></span>
+                                <div class="form-text">Recommended: 1500-2500 calories per day</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="FoodPreferences" class="form-label"></label>
+                                <textarea asp-for="FoodPreferences" class="form-control" rows="3" 
+                                          placeholder="e.g., loves chicken, prefers spicy food, dislikes mushrooms, enjoys Italian cuisine..."></textarea>
+                                <span asp-validation-for="FoodPreferences" class="text-danger small"></span>
+                                <div class="form-text">Tell us about your food preferences to help AI generate better meal plans</div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="border-bottom pb-2 mb-3 mt-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-exclamation-triangle me-2" viewBox="0 0 16 16">
+                                <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+                                <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+                            </svg>
+                            Allergies
+                        </h5>
+                        
+                        @if (Model.AvailableAllergies?.Any() == true)
+                        {
+                            <div class="mb-3">
+                                <p class="text-muted small">Select any allergies you have:</p>
+                                <div class="row">
+                                    @foreach (var allergy in Model.AvailableAllergies)
+                                    {
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" 
+                                                       name="SelectedAllergyIds" 
+                                                       value="@allergy.Id" 
+                                                       id="allergy_@allergy.Id" />
+                                                <label class="form-check-label" for="allergy_@allergy.Id">
+                                                    @allergy.AllergyName
+                                                </label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No allergies available in the system.</p>
+                        }
+                        
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle me-2" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                    <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                </svg>
+                                Create Health Profile
+                            </button>
+                            <a asp-page="/Home/Index" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

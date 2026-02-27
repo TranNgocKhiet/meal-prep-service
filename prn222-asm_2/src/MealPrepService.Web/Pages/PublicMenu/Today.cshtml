@@ -1,0 +1,255 @@
+@page
+@model MealPrepService.Web.Pages.PublicMenu.TodayModel
+@{
+    ViewData["Title"] = "Today's Menu";
+}
+
+<div class="container mt-4">
+    <div class="text-center mb-4">
+        <h2>Today's Menu</h2>
+        <p class="lead">@Model.MenuDate.ToString("dddd, MMMM dd, yyyy")</p>
+        
+        <!-- SignalR Connection Status Indicator -->
+        <div id="signalr-status" class="badge bg-secondary">
+            <i class="bi bi-circle-fill"></i> Connecting...
+        </div>
+    </div>
+
+    @if (Model.NoMenuMessage != null)
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> @Model.NoMenuMessage
+        </div>
+        <div class="text-center mt-3">
+            <a asp-page="Weekly" class="btn btn-primary">
+                <i class="bi bi-calendar-week"></i> View Weekly Menu
+            </a>
+        </div>
+    }
+    else if (Model.ErrorMessage != null)
+    {
+        <div class="alert alert-danger text-center">
+            <i class="bi bi-exclamation-triangle"></i> @Model.ErrorMessage
+        </div>
+    }
+    else if (Model.AvailableMeals.Any())
+    {
+        <div class="row">
+            @foreach (var meal in Model.AvailableMeals)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">@meal.RecipeName</h5>
+                            
+                            @if (meal.Recipe != null)
+                            {
+                                <div class="mb-3">
+                                    <h6 class="text-muted">Nutrition Information</h6>
+                                    <div class="row text-center">
+                                        <div class="col-6 mb-2">
+                                            <small class="text-muted">Calories</small>
+                                            <div><strong>@meal.Recipe.TotalCalories.ToString("F0")</strong> kcal</div>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <small class="text-muted">Protein</small>
+                                            <div><strong>@meal.Recipe.ProteinG.ToString("F1")</strong>g</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Fat</small>
+                                            <div><strong>@meal.Recipe.FatG.ToString("F1")</strong>g</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Carbs</small>
+                                            <div><strong>@meal.Recipe.CarbsG.ToString("F1")</strong>g</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(meal.Recipe.Instructions))
+                                {
+                                    <p class="card-text text-muted small recipe-instructions-preview">
+                                        @{
+                                            var truncatedInstructions = meal.Recipe.Instructions.Length > 150 
+                                                ? meal.Recipe.Instructions.Substring(0, 150) + "..." 
+                                                : meal.Recipe.Instructions;
+                                        }
+                                        @Html.Raw(truncatedInstructions
+                                            .Replace("&#xA;", "<br>")
+                                            .Replace("&#10;", "<br>")
+                                            .Replace("\\n", "<br>")
+                                            .Replace("\n", "<br>")
+                                            .Replace("\r\n", "<br>")
+                                            .Replace("\r", "<br>"))
+                                    </p>
+                                }
+                            }
+
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div>
+                                    <h4 class="text-primary mb-0">$@meal.Price.ToString("F2")</h4>
+                                    <small class="text-muted">@meal.AvailableQuantity available</small>
+                                </div>
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    @if (User.IsInRole("Customer"))
+                                    {
+                                        <button class="btn btn-secondary" disabled title="Order feature coming in Checkpoint 2">
+                                            <i class="bi bi-cart-plus"></i> Order (Coming Soon)
+                                        </button>
+                                    }
+                                    @* No order button for Admin, Manager, or DeliveryMan *@
+                                }
+                                else
+                                {
+                                    <a asp-page="/Account/Login" asp-route-returnUrl="@Url.Page("/PublicMenu/Today")" class="btn btn-outline-primary">
+                                        Login to Order
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning text-center">
+            <i class="bi bi-exclamation-circle"></i> No meals are currently available for today.
+        </div>
+    }
+
+    <div class="text-center mt-4">
+        <a asp-page="Weekly" class="btn btn-outline-secondary">
+            <i class="bi bi-calendar-week"></i> View Weekly Menu
+        </a>
+        <a asp-page="/Home/Index" class="btn btn-outline-secondary">
+            <i class="bi bi-house"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        console.log('Initializing SignalR for Today menu...');
+        
+        const statusIndicator = document.getElementById('signalr-status');
+        let menuConnection = null;
+        
+        function updateStatus(status, message) {
+            const statusClasses = {
+                'connecting': 'bg-secondary',
+                'connected': 'bg-success',
+                'disconnected': 'bg-danger',
+                'reconnecting': 'bg-warning'
+            };
+            
+            statusIndicator.className = `badge ${statusClasses[status]}`;
+            statusIndicator.innerHTML = `<i class="bi bi-circle-fill"></i> ${message}`;
+        }
+        
+        function showMenuStatusAlert(title, message, type) {
+            console.log('Showing alert:', title, message, type);
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.minWidth = '400px';
+            alertDiv.innerHTML = `
+                <strong><i class="bi bi-${type === 'warning' ? 'exclamation-triangle' : 'check-circle'}"></i> ${title}:</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(function() {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        function registerMenuHandlers(connection) {
+            console.log('Registering event handlers on MenuHub connection');
+            
+            // Handle menu status changes (activate/deactivate)
+            connection.on("ReceiveMenuStatusChange", function (menuId, menuDate, isActive) {
+                console.log('=== MENU STATUS CHANGE RECEIVED ===');
+                console.log('Menu ID:', menuId);
+                console.log('Menu Date:', menuDate);
+                console.log('Is Active:', isActive);
+                console.log('===================================');
+                
+                const statusText = isActive ? 'activated' : 'deactivated';
+                const alertType = isActive ? 'success' : 'warning';
+                
+                showMenuStatusAlert('Menu Updated', `A menu has been ${statusText}. The page will refresh to show the latest menus.`, alertType);
+                
+                setTimeout(function() {
+                    console.log('Refreshing page...');
+                    window.location.reload();
+                }, 2000);
+            });
+            
+            // Handle menu updates (new meals added, quantity changes)
+            connection.on("ReceiveMenuUpdate", function (menuDate, mealId, quantityRemaining) {
+                console.log('=== MENU UPDATE RECEIVED ===');
+                console.log('Menu Date:', menuDate);
+                console.log('Meal ID:', mealId);
+                console.log('Quantity:', quantityRemaining);
+                console.log('============================');
+                
+                showMenuStatusAlert('Menu Updated', 'New meals have been added to the menu. The page will refresh.', 'info');
+                
+                setTimeout(function() {
+                    console.log('Refreshing page...');
+                    window.location.reload();
+                }, 2000);
+            });
+        }
+        
+        // Create our own connection directly instead of relying on global manager
+        function initializeConnection() {
+            console.log('Creating SignalR connection to MenuHub...');
+            updateStatus('connecting', 'Connecting...');
+            
+            menuConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/menu")
+                .withAutomaticReconnect()
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+            
+            // Register handlers before starting
+            registerMenuHandlers(menuConnection);
+            
+            // Handle connection events
+            menuConnection.onreconnecting(function(error) {
+                console.warn('Reconnecting to MenuHub...', error);
+                updateStatus('reconnecting', 'Reconnecting...');
+            });
+
+            menuConnection.onreconnected(function(connectionId) {
+                console.log('Reconnected to MenuHub. Connection ID:', connectionId);
+                updateStatus('connected', 'Live Updates Active');
+            });
+
+            menuConnection.onclose(function(error) {
+                console.error('Disconnected from MenuHub', error);
+                updateStatus('disconnected', 'Disconnected');
+            });
+            
+            // Start the connection
+            menuConnection.start()
+                .then(function() {
+                    console.log('✓ Connected to MenuHub. Connection ID:', menuConnection.connectionId);
+                    updateStatus('connected', 'Live Updates Active');
+                })
+                .catch(function(err) {
+                    console.error('✗ Failed to connect to MenuHub:', err);
+                    updateStatus('disconnected', 'Connection Failed');
+                });
+        }
+        
+        // Initialize when page loads
+        initializeConnection();
+    </script>
+}

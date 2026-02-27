@@ -1,0 +1,1244 @@
+@page "{id:guid}"
+@model MealPrepService.Web.Pages.MealPlan.DetailsModel
+@{
+    ViewData["Title"] = Model.PlanName;
+}
+
+<style>
+    .collapse-icon {
+        transition: transform 0.3s ease;
+    }
+    
+    [aria-expanded="true"] .collapse-icon {
+        transform: rotate(180deg);
+    }
+    
+    .card-header[data-bs-toggle="collapse"]:hover {
+        opacity: 0.9;
+    }
+    
+    /* Recipe button styling */
+    .recipe-info-btn.btn-outline-primary,
+    .btn-outline-danger {
+        background-color: white;
+    }
+    
+    .recipe-info-btn.btn-outline-primary:hover {
+        background-color: #0d6efd;
+        color: white;
+    }
+    
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-calendar-check me-2" viewBox="0 0 16 16">
+                        <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                    </svg>
+                    @Model.PlanName
+                    @if (Model.IsAiGenerated)
+                    {
+                        <span class="badge bg-primary ms-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot me-1" viewBox="0 0 16 16">
+                                <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25.286 25.286 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135Z"/>
+                                <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z"/>
+                            </svg>
+                            AI Generated
+                        </span>
+                    }
+                </h2>
+                <div class="d-flex gap-2">
+                    <a asp-page="AddMeal" asp-route-planId="@Model.Id" class="btn btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle me-2" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                        </svg>
+                        Add Meal
+                    </a>
+                    <a asp-page="Index" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-2" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                        </svg>
+                        Back to Plans
+                    </a>
+                    <a asp-page="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash me-2" viewBox="0 0 16 16">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                        </svg>
+                        Delete Meal Plan
+                    </a>
+                </div>
+            </div>
+
+
+            <!-- Plan Overview Card -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Plan Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Duration:</strong> @Model.StartDate.ToString("MMM dd, yyyy") - @Model.EndDate.ToString("MMM dd, yyyy")</p>
+                            <p><strong>Total Days:</strong> @((Model.EndDate - Model.StartDate).Days + 1) days</p>
+                            <p><strong>Total Meals:</strong> @Model.Meals.Count meals</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-2 fw-bold">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bar-chart me-1" viewBox="0 0 16 16">
+                                    <path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/>
+                                </svg>
+                                Nutrition Tracking Progress
+                            </h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="border rounded p-2 text-center">
+                                        <small class="text-muted">Calories</small>
+                                        <div class="fw-bold">
+                                            <span class="text-primary">@Model.FinishedCalories.ToString("F0")</span>
+                                            <span class="text-muted"> / @Model.TotalCalories.ToString("F0")</span>
+                                        </div>
+                                        <small class="text-muted">kcal</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-2 text-center">
+                                        <small class="text-muted">Protein</small>
+                                        <div class="fw-bold">
+                                            <span class="text-primary">@Model.FinishedProteinG.ToString("F1")</span>
+                                            <span class="text-muted"> / @Model.TotalProteinG.ToString("F1")</span>
+                                        </div>
+                                        <small class="text-muted">g</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-2 text-center">
+                                        <small class="text-muted">Fat</small>
+                                        <div class="fw-bold">
+                                            <span class="text-primary">@Model.FinishedFatG.ToString("F1")</span>
+                                            <span class="text-muted"> / @Model.TotalFatG.ToString("F1")</span>
+                                        </div>
+                                        <small class="text-muted">g</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-2 text-center">
+                                        <small class="text-muted">Carbs</small>
+                                        <div class="fw-bold">
+                                            <span class="text-primary">@Model.FinishedCarbsG.ToString("F1")</span>
+                                            <span class="text-muted"> / @Model.TotalCarbsG.ToString("F1")</span>
+                                        </div>
+                                        <small class="text-muted">g</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Daily Breakdown -->
+            <h4 class="mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-calendar3 me-2" viewBox="0 0 16 16">
+                    <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857V3.857z"/>
+                    <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                </svg>
+                Daily Meal Breakdown
+            </h4>
+
+            @if (Model.DailyNutrition?.Any() == true)
+            {
+                var today = DateTime.Today;
+                @foreach (var day in Model.DailyNutrition.OrderBy(d => d.Key))
+                {
+                    var isToday = day.Key.Date == today;
+                    var hasUnfinishedMeals = day.Key.Date < today && day.Value.Meals.Any(m => !m.MealFinished);
+                    
+                    // Determine card styling
+                    string cardClass;
+                    string headerClass;
+                    string headerTextClass;
+                    
+                    if (isToday)
+                    {
+                        cardClass = "card mb-3 shadow border-primary border-3";
+                        headerClass = "bg-primary text-white";
+                        headerTextClass = "text-white-50";
+                    }
+                    else if (hasUnfinishedMeals)
+                    {
+                        cardClass = "card mb-3 shadow border-warning border-3";
+                        headerClass = "bg-warning bg-opacity-25";
+                        headerTextClass = "text-muted";
+                    }
+                    else
+                    {
+                        cardClass = "card mb-3 shadow-sm";
+                        headerClass = "bg-light";
+                        headerTextClass = "text-muted";
+                    }
+                    
+                    <div class="@cardClass" style="background-color: #1e293b !important;">
+                        <div class="card-header @headerClass" style="background-color: #1e293b !important; cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#day-@day.Key.ToString("yyyyMMdd")" aria-expanded="@(isToday ? "true" : "false")" aria-controls="day-@day.Key.ToString("yyyyMMdd")">
+                            <div class="d-flex justify-content-between align-items-center" style="background-color: #1e293b !important;">
+                                <h5 class="mb-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-calendar-day me-2" viewBox="0 0 16 16">
+                                        <path d="M4.684 11.523v-2.3h2.261v-.61H4.684V6.801h2.464v-.61H4v5.332h.684zm3.296 0h.676V8.98c0-.554.227-1.007.953-1.007.125 0 .258.004.329.015v-.613a1.806 1.806 0 0 0-.254-.02c-.582 0-.891.32-1.012.567h-.02v-.504H7.98v4.105zm2.805-5.093c0 .238.192.425.43.425a.428.428 0 1 0 0-.855.426.426 0 0 0-.43.43zm.094 5.093h.672V7.418h-.672v4.105z"/>
+                                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                                    </svg>
+                                    @day.Key.ToString("dddd, MMMM dd, yyyy")
+                                    @if (isToday)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-star-fill me-1" viewBox="0 0 16 16">
+                                                <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                                            </svg>
+                                            TODAY
+                                        </span>
+                                    }
+                                    @if (hasUnfinishedMeals)
+                                    {
+                                        var unfinishedCount = day.Value.Meals.Count(m => !m.MealFinished);
+                                        <span class="badge bg-warning text-dark ms-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-exclamation-circle-fill me-1" viewBox="0 0 16 16">
+                                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/>
+                                            </svg>
+                                            @unfinishedCount Unfinished Meal@(unfinishedCount > 1 ? "s" : "")
+                                        </span>
+                                    }
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down ms-2 collapse-icon" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                                    </svg>
+                                </h5>
+                                <div class="text-end">
+                                    <small class="@headerTextClass">Daily Total:</small>
+                                    <div class="fw-bold">@day.Value.DailyCalories.ToString("F0") kcal</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="day-@day.Key.ToString("yyyyMMdd")" class="collapse @(isToday ? "show" : "")">
+                            <div class="card-body">
+                            <!-- Daily Nutrition Summary -->
+                            <div class="row mb-3 g-2">
+                                <div class="col-3">
+                                    <div class="text-center p-2 bg-light border rounded" style="background-color: #1e293b !important;">
+                                        <small class="text-muted">Calories</small>
+                                        <div class="fw-bold">@day.Value.DailyCalories.ToString("F0") kcal</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="text-center p-2 bg-light border rounded" style="background-color: #1e293b !important;">
+                                        <small class="text-muted">Protein</small>
+                                        <div class="fw-bold">@day.Value.DailyProteinG.ToString("F1") g</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="text-center p-2 bg-light border rounded" style="background-color: #1e293b !important;">
+                                        <small class="text-muted">Fat</small>
+                                        <div class="fw-bold">@day.Value.DailyFatG.ToString("F1") g</div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="text-center p-2 bg-light border rounded" style="background-color: #1e293b !important;">
+                                        <small class="text-muted">Carbs</small>
+                                        <div class="fw-bold">@day.Value.DailyCarbsG.ToString("F1") g</div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <!-- Meals for this day -->
+                            @foreach (var meal in day.Value.Meals.OrderBy(m => MealPrepService.Web.Pages.MealPlan.DetailsModel.GetMealTypeOrder(m.MealType)))
+                            {
+                                var isPastUnfinished = day.Key.Date < today && !meal.MealFinished;
+                                var mealCardClass = isPastUnfinished 
+                                    ? "meal-card mb-3 border border-warning border-2 rounded p-3 bg-warning bg-opacity-10" 
+                                    : meal.MealFinished 
+                                        ? "meal-card mb-3 border border-warning border-2 rounded p-3 bg-warning meal-finished bg-opacity-10" 
+                                        : "meal-card mb-3 border rounded p-3";
+                                
+                                <div class="@mealCardClass">
+                                    @if (isPastUnfinished)
+                                    {
+                                        <div class="alert alert-warning py-1 px-2 mb-2 d-inline-flex align-items-center" style="font-size: 0.85rem;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-exclamation-triangle-fill me-1" viewBox="0 0 16 16">
+                                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                            </svg>
+                                            <strong>Reminder:</strong> This meal is not yet marked as finished
+                                        </div>
+                                    }
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="mb-0">
+                                            @if (meal.MealType == "Breakfast")
+                                            {
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-sunrise me-2" viewBox="0 0 16 16">
+                                                    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l1.5 1.5a.5.5 0 0 1-.708.708L8.5 2.707V4.5a.5.5 0 0 1-1 0V2.707l-.646.647a.5.5 0 1 1-.708-.708l1.5-1.5zM2.343 4.343a.5.5 0 0 1 .707 0l1.414 1.414a.5.5 0 0 1-.707.707L2.343 5.05a.5.5 0 0 1 0-.707zm11.314 0a.5.5 0 0 1 0 .707l-1.414 1.414a.5.5 0 1 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zM8 7a3 3 0 0 1 2.599 4.5H5.4A3 3 0 0 1 8 7zm3.71 4.5a4 4 0 1 0-7.418 0H.499a.5.5 0 0 0 0 1h15a.5.5 0 0 0 0-1h-3.79zM0 10a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2A.5.5 0 0 1 0 10zm13 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5z"/>
+                                                </svg>
+                                            }
+                                            else if (meal.MealType == "Lunch")
+                                            {
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-sun me-2" viewBox="0 0 16 16">
+                                                    <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                                                </svg>
+                                            }
+                                            else if (meal.MealType == "Dinner")
+                                            {
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-moon-stars me-2" viewBox="0 0 16 16">
+                                                    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/>
+                                                    <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+                                                </svg>
+                                            }
+                                            else
+                                            {
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cup-straw me-2" viewBox="0 0 16 16">
+                                                    <path d="M13.902.334a.5.5 0 0 1-.28.65l-2.254.902-.4 1.927c.376.095.715.215.972.367.228.135.56.396.56.82 0 .046-.004.09-.011.132l-.962 9.068a1.28 1.28 0 0 1-.524.93c-.488.34-1.494.87-3.01.87-1.516 0-2.522-.53-3.01-.87a1.28 1.28 0 0 1-.524-.93L3.51 5.132A.78.78 0 0 1 3.5 5c0-.424.332-.685.56-.82.262-.154.607-.276.99-.372C5.824 3.614 6.867 3.5 8 3.5c.712 0 1.389.045 1.985.127l.464-2.215a.5.5 0 0 1 .303-.356l2.5-1a.5.5 0 0 1 .65.278zM9.768 4.607A13.991 13.991 0 0 0 8 4.5c-1.076 0-2.033.11-2.707.278A3.284 3.284 0 0 0 4.645 5c.146.073.362.15.648.222C5.967 5.39 6.924 5.5 8 5.5c.571 0 1.109-.03 1.588-.085l.18-.808zm.292 1.756C9.445 6.45 8.742 6.5 8 6.5c-1.133 0-2.176-.114-2.95-.308a5.514 5.514 0 0 1-.435-.127l.838 8.03c.013.121.06.186.102.215.357.249 1.168.69 2.438.69 1.27 0 2.081-.441 2.438-.69.042-.029.09-.094.102-.215l.852-8.03a5.517 5.517 0 0 1-.435.127 8.88 8.88 0 0 1-.89.17zM4.467 4.884s.003.002.005.006l-.005-.006zm7.066 0-.005.006c.002-.004.005-.006.005-.006zM11.354 5a3.174 3.174 0 0 0-.604-.21l-.099.445.055-.013c.286-.072.502-.149.648-.222z"/>
+                                                </svg>
+                                            }
+                                            @meal.MealType
+                                        </h6>
+                                        <div class="d-flex align-items-center gap-2">
+                                            @if (meal.MealFinished)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-success finish-meal-btn px-3 py-2" 
+                                                        data-meal-id="@meal.Id" 
+                                                        data-plan-id="@Model.Id"
+                                                        data-meal-type="@meal.MealType"
+                                                        data-is-finished="true"
+                                                        title="Click to mark as unfinished">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill me-1" viewBox="0 0 16 16">
+                                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                                                    </svg>
+                                                    Finished
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-success finish-meal-btn" 
+                                                        data-meal-id="@meal.Id" 
+                                                        data-plan-id="@Model.Id"
+                                                        data-meal-type="@meal.MealType"
+                                                        data-is-finished="false"
+                                                        title="Click to mark as finished">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-circle me-1" viewBox="0 0 16 16">
+                                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                                    </svg>
+                                                    Mark as Finished
+                                                </button>
+                                            }
+                                            <div class="text-end">
+                                                <small class="text-muted">Meal Total:</small>
+                                                <div class="fw-bold text-primary">@meal.MealCalories.ToString("F0") kcal</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Meal Nutrition -->
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-4">
+                                            <small class="text-muted">Protein:</small>
+                                            <div class="fw-bold">@meal.MealProteinG.ToString("F1") g</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted">Fat:</small>
+                                            <div class="fw-bold">@meal.MealFatG.ToString("F1") g</div>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="text-muted">Carbs:</small>
+                                            <div class="fw-bold">@meal.MealCarbsG.ToString("F1") g</div>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- Recipes in this meal -->
+                                    <div class="recipes-list">
+                                        <h6 class="text-muted mb-2">Recipes:</h6>
+                                        @foreach (var recipe in meal.Recipes)
+                                        {
+                                            <div class="recipe-item border-start border-3 border-primary ps-3 mb-2">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div class="flex-grow-1">
+                                                        <strong>@recipe.RecipeName</strong>
+                                                        <div class="small text-muted mt-1">
+                                                            <span class="me-3">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-fire me-1" viewBox="0 0 16 16">
+                                                                    <path d="M8 16c3.314 0 6-2 6-5.5 0-1.5-.5-4-2.5-6 .25 1.5-1.25 2-1.25 2C11 4 9 .5 6 0c.357 2 .5 4-2 6-1.25 1-2 2.729-2 4.5C2 14 4.686 16 8 16Zm0-1c-1.657 0-3-1-3-2.75 0-.75.25-2 1.25-3C6.125 10 7 10.5 7 10.5c-.375-1.25.5-3.25 2-3.5-.179 1-.25 2 1 3 .625.5 1 1.364 1 2.25C11 14 9.657 15 8 15Z"/>
+                                                                </svg>
+                                                                @recipe.TotalCalories.ToString("F0") kcal
+                                                            </span>
+                                                            <span class="me-3">P: @recipe.ProteinG.ToString("F1")g</span>
+                                                            <span class="me-3">F: @recipe.FatG.ToString("F1")g</span>
+                                                            <span>C: @recipe.CarbsG.ToString("F1")g</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ms-2 d-flex gap-1">
+                                                        <button type="button" class="btn btn-sm btn-outline-info recipe-info-btn" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#recipeModal"
+                                                                data-recipe-id="@recipe.Id"
+                                                                data-recipe-name="@Html.Encode(recipe.RecipeName)"
+                                                                data-recipe-instructions="@Html.Encode(recipe.Instructions)"
+                                                                data-recipe-calories="@recipe.TotalCalories"
+                                                                data-recipe-protein="@recipe.ProteinG"
+                                                                data-recipe-fat="@recipe.FatG"
+                                                                data-recipe-carbs="@recipe.CarbsG">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-info-circle me-1" viewBox="0 0 16 16">
+                                                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                                                <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                                                            </svg>
+                                                            Info
+                                                        </button>
+                                                        
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                                data-bs-toggle="modal" 
+                                                                data-bs-target="#removeRecipeModal-@meal.Id-@recipe.Id">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
+                                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                                            </svg>
+                                                            Remove
+                                                        </button>
+                                                        
+                                                        <!-- Remove Recipe Confirmation Modal -->
+                                                        <div class="modal fade" id="removeRecipeModal-@meal.Id-@recipe.Id" tabindex="-1" aria-labelledby="removeRecipeModalLabel-@meal.Id-@recipe.Id" aria-hidden="true">
+                                                            <div class="modal-dialog">
+                                                                <div class="modal-content" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+                                                                    <div class="modal-header text-white" style="background-color: #1e293b; border-bottom: 1px solid rgba(34,197,94,.25);">
+                                                                        <h5 class="modal-title text-white" id="removeRecipeModalLabel-@meal.Id-@recipe.Id">
+                                                                            <i class="bi bi-exclamation-triangle me-2"></i>
+                                                                            Confirm Remove Recipe
+                                                                        </h5>
+                                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                    </div>
+                                                                    <div class="modal-body text-white" style="background-color: #0F172A;">
+                                                                        <p>Are you sure you want to remove <strong>@recipe.RecipeName</strong> from this @meal.MealType meal?</p>
+                                                                        @if (meal.Recipes.Count <= 1)
+                                                                        {
+                                                                            <div class="alert alert-warning" role="alert">
+                                                                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                                                                <strong>Warning:</strong> This is the last recipe in this meal. Removing it will delete the entire meal.
+                                                                            </div>
+                                                                        }
+                                                                        <p class="text-muted mb-0">This action cannot be undone.</p>
+                                                                    </div>
+                                                                    <div class="modal-footer" style="background-color: #0F172A; border-top: 1px solid rgba(34,197,94,.25);">
+                                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                                        <form asp-page="RemoveRecipeFromMeal" method="post" class="d-inline">
+                                                                            @Html.AntiForgeryToken()
+                                                                            <input type="hidden" name="mealId" value="@meal.Id" />
+                                                                            <input type="hidden" name="recipeId" value="@recipe.Id" />
+                                                                            <input type="hidden" name="planId" value="@Model.Id" />
+                                                                            <button type="submit" class="btn btn-danger">
+                                                                                <i class="bi bi-trash"></i> Remove Recipe
+                                                                            </button>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Hidden ingredients data -->
+                                                        <script type="application/json" class="recipe-ingredients-data" data-recipe-id="@recipe.Id">
+                                                            @Html.Raw(Json.Serialize(recipe.Ingredients))
+                                                        </script>
+                                                    </div>
+                                                </div>
+                                                @if (recipe.Ingredients?.Any() == true)
+                                                {
+                                                    <div class="mt-2">
+                                                        <small class="text-muted">Ingredients:</small>
+                                                        <div class="d-flex flex-wrap gap-2 mt-1">
+                                                            @foreach (var ingredient in recipe.Ingredients)
+                                                            {
+                                                                <span class="badge text-white" style="background-color: #000; border: 1px solid rgba(34,197,94,.25); font-size: 0.85rem; font-weight: normal; padding: 0.4rem 0.6rem;">
+                                                                    @ingredient.IngredientName (@ingredient.Amount @ingredient.Unit)
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="mt-2">
+                                                        <small class="text-muted">Ingredients: Click "Info" for details</small>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-exclamation-triangle me-2" viewBox="0 0 16 16">
+                        <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+                        <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+                    </svg>
+                    No meals have been added to this plan yet. 
+                    <a asp-page="AddMeal" asp-route-planId="@Model.Id" class="alert-link">Add your first meal</a> 
+                    to see the daily breakdown.
+                </div>
+            }
+
+            <div class="alert alert-info mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-info-circle me-2" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </svg>
+                <strong>Nutrition Information:</strong> All nutrition values are calculated from the recipes in your meal plan. Values are based on the ingredients and portions specified in each recipe.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recipe Details Modal -->
+<div class="modal fade" id="recipeModal" tabindex="-1" aria-labelledby="recipeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #1e293b !important;">
+            <div class="modal-header" style="background-color: #1e293b !important;">
+                <h5 class="modal-title" id="recipeModalLabel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-book me-2" viewBox="0 0 16 16">
+                        <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+                    </svg>
+                    Recipe Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background-color: #0F172A !important;">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h4 id="modalRecipeName" class="text-primary mb-3"></h4>
+                        
+                        <!-- Ingredients Section -->
+                        <h6 class="text-muted mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul me-2" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                            </svg>
+                            Ingredients:
+                        </h6>
+                        <div id="modalIngredientsList" class="mb-4">
+                            <!-- Ingredients will be populated by JavaScript -->
+                        </div>
+                        
+                        <h6 class="text-muted mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-journal-text me-2" viewBox="0 0 16 16">
+                                <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+                                <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"/>
+                                <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"/>
+                            </svg>
+                            Instructions:
+                        </h6>
+                        <div id="modalRecipeInstructions" class="mb-3"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light" style="background-color: #1e293b !important;">
+                            <div class="card-header" style="background-color: #1e293b !important;">
+                                <h6 class="mb-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bar-chart me-2" viewBox="0 0 16 16">
+                                        <path d="M4 11H2v3h2v-3zm5-4H7v7h2V7zm5-5v12h-2V2h2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1h-2zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3z"/>
+                                    </svg>
+                                    Nutrition Facts
+                                </h6>
+                            </div>
+                            <div class="card-body" style="background-color: #1e293b !important;">
+                                <div class="nutrition-item d-flex justify-content-between mb-2">
+                                    <span class="fw-bold">Calories:</span>
+                                    <span id="modalCalories" class="text-primary fw-bold"></span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="nutrition-item d-flex justify-content-between mb-2">
+                                    <span>Protein:</span>
+                                    <span id="modalProtein"></span>
+                                </div>
+                                <div class="nutrition-item d-flex justify-content-between mb-2">
+                                    <span>Fat:</span>
+                                    <span id="modalFat"></span>
+                                </div>
+                                <div class="nutrition-item d-flex justify-content-between">
+                                    <span>Carbs:</span>
+                                    <span id="modalCarbs"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add event listener when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add click event listeners to all recipe info buttons
+        document.querySelectorAll('.recipe-info-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                showRecipeDetailsFromButton(this);
+            });
+        });
+    });
+
+    function showRecipeDetailsFromButton(button) {
+        // Get data from button attributes
+        const recipeId = button.getAttribute('data-recipe-id');
+        const recipeName = button.getAttribute('data-recipe-name');
+        const instructions = button.getAttribute('data-recipe-instructions');
+        const calories = parseFloat(button.getAttribute('data-recipe-calories'));
+        const protein = parseFloat(button.getAttribute('data-recipe-protein'));
+        const fat = parseFloat(button.getAttribute('data-recipe-fat'));
+        const carbs = parseFloat(button.getAttribute('data-recipe-carbs'));
+        
+        // Find the corresponding ingredients data script
+        let ingredients = [];
+        try {
+            const ingredientsScript = document.querySelector(`.recipe-ingredients-data[data-recipe-id="${recipeId}"]`);
+            if (ingredientsScript && ingredientsScript.textContent) {
+                ingredients = JSON.parse(ingredientsScript.textContent.trim());
+            }
+        } catch (e) {
+            console.error('Error parsing ingredients JSON:', e);
+            ingredients = [];
+        }
+        
+        // Call the main function
+        showRecipeDetails(recipeId, recipeName, instructions, calories, protein, fat, carbs, ingredients);
+    }
+
+    function showRecipeDetails(recipeId, recipeName, instructions, calories, protein, fat, carbs, ingredients) {
+        // Update modal content
+        document.getElementById('modalRecipeName').textContent = recipeName;
+        
+        // Handle line breaks in instructions - convert &#xA to actual line breaks
+        const formattedInstructions = formatInstructionsWithLineBreaks(instructions);
+        document.getElementById('modalRecipeInstructions').innerHTML = formattedInstructions;
+        
+        document.getElementById('modalCalories').textContent = calories.toFixed(0) + ' kcal';
+        document.getElementById('modalProtein').textContent = protein.toFixed(1) + ' g';
+        document.getElementById('modalFat').textContent = fat.toFixed(1) + ' g';
+        document.getElementById('modalCarbs').textContent = carbs.toFixed(1) + ' g';
+        
+        // Update ingredients list
+        const ingredientsList = document.getElementById('modalIngredientsList');
+        ingredientsList.innerHTML = '';
+        
+        console.log('Ingredients data:', ingredients); // Debug log
+        console.log('Ingredients type:', typeof ingredients); // Debug log
+        console.log('Ingredients length:', ingredients ? ingredients.length : 'null/undefined'); // Debug log
+        
+        if (ingredients && Array.isArray(ingredients) && ingredients.length > 0) {
+            const ul = document.createElement('ul');
+            ul.className = 'list-unstyled mb-0';
+            ul.style.backgroundColor = '#1e293b';
+            
+            ingredients.forEach(function(ingredient, index) {
+                console.log(`Ingredient ${index}:`, ingredient); // Debug log
+                
+                // Handle both camelCase and PascalCase property names
+                const name = ingredient.ingredientName || ingredient.IngredientName || 'Unknown Ingredient';
+                const amount = ingredient.amount || ingredient.Amount || 0;
+                const unit = ingredient.unit || ingredient.Unit || 'unit';
+                
+                const li = document.createElement('li');
+                li.className = 'mb-2 p-2 rounded';
+                li.style.backgroundColor = '#000';
+                li.style.border = '1px solid rgba(34,197,94,.25)';
+                li.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-medium text-white">${name}</span>
+                        <span class="text-white" style="opacity: 0.7;">${amount} ${unit}</span>
+                    </div>
+                `;
+                ul.appendChild(li);
+            });
+            
+            ingredientsList.appendChild(ul);
+        } else {
+            console.log('No ingredients found or invalid data'); // Debug log
+            ingredientsList.innerHTML = '<p class="text-muted mb-0">No ingredients information available.</p>';
+        }
+    }
+
+    function formatInstructionsWithLineBreaks(instructions) {
+        if (!instructions) return '';
+        
+        // Convert various line break representations to HTML <br> tags
+        let formatted = instructions
+            // Handle HTML entity for line feed (&#xA or &#10)
+            .replace(/&#xA;?/gi, '<br>')
+            .replace(/&#10;?/gi, '<br>')
+            // Handle escaped newlines
+            .replace(/\\n/g, '<br>')
+            // Handle actual newline characters
+            .replace(/\n/g, '<br>')
+            .replace(/\r\n/g, '<br>')
+            .replace(/\r/g, '<br>')
+            // Handle multiple consecutive <br> tags (clean up)
+            .replace(/(<br\s*\/?>){3,}/gi, '<br><br>');
+        
+        // Escape any remaining HTML to prevent XSS, but preserve our <br> tags
+        const tempDiv = document.createElement('div');
+        tempDiv.textContent = formatted;
+        formatted = tempDiv.innerHTML;
+        
+        // Restore the <br> tags we want to keep
+        formatted = formatted
+            .replace(/&lt;br&gt;/gi, '<br>')
+            .replace(/&lt;br\s*\/&gt;/gi, '<br>');
+        
+        
+        return formatted;
+    }
+</script>
+
+<style>
+    .card-header[data-bs-toggle="collapse"] {
+        transition: background-color 0.3s ease;
+    }
+    
+    .card-header[data-bs-toggle="collapse"]:hover {
+        background-color: rgba(0, 0, 0, 0.05) !important;
+    }
+    
+    .card-header .bi-chevron-down {
+        transition: transform 0.3s ease;
+    }
+    
+    .card-header[aria-expanded="true"] .bi-chevron-down {
+        transform: rotate(180deg);
+    }
+</style>
+
+<script>
+    // Handle chevron rotation on collapse toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all collapsible elements
+        const collapseElements = document.querySelectorAll('[id^="day-"]');
+        
+        collapseElements.forEach(function(collapseEl) {
+            collapseEl.addEventListener('show.bs.collapse', function() {
+                const header = document.querySelector('[data-bs-target="#' + collapseEl.id + '"]');
+                if (header) {
+                    header.setAttribute('aria-expanded', 'true');
+                }
+            });
+            
+            collapseEl.addEventListener('hide.bs.collapse', function() {
+                const header = document.querySelector('[data-bs-target="#' + collapseEl.id + '"]');
+                if (header) {
+                    header.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+        
+        console.log('Collapse handlers initialized for', collapseElements.length, 'day sections');
+    });
+
+</script>
+
+<!-- Finish Meal Confirmation Modal -->
+<div class="modal fade" id="finishMealModal" tabindex="-1" aria-labelledby="finishMealModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="background-color: #0F172A !important;">
+        <div class="modal-content" style="background-color: #0F172A !important;">
+            <div class="modal-header" style="background-color: #0F172A !important;">
+                <h5 class="modal-title" id="finishMealModalLabel" style="background-color: #0F172A !important;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle me-2" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                    </svg>
+                    <span id="finishMealTitle">Finish Meal</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="finishMealContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Checking ingredients availability...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmFinishMealBtn" style="display:none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2 me-1" viewBox="0 0 16 16">
+                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+                    </svg>
+                    Confirm & Finish Meal
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unmark Meal Confirmation Modal -->
+<div class="modal fade" id="unmarkMealModal" tabindex="-1" aria-labelledby="unmarkMealModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="unmarkMealModalLabel">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle me-2" viewBox="0 0 16 16">
+                        <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+                        <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+                    </svg>
+                    Mark Meal as Unfinished
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background-color: #0F172A; !important">
+                <div class="alert alert-info" style="color: #FF0000; !important">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-info-circle me-2" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                    </svg>
+                    <strong>Are you sure you want to mark this meal as unfinished?</strong>
+                </div>
+                <p>This action will:</p>
+                <ul>
+                    <li><strong>Restore all ingredients</strong> used in this meal back to your fridge</li>
+                    <li>Mark the meal as <strong>not completed</strong></li>
+                    <li>Update your meal plan tracking</li>
+                </ul>
+                <p class="text-muted mb-0"><small>You can mark it as finished again later.</small></p>
+            </div>
+            <div class="modal-footer" style="background-color: #0F172A; !important">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x me-1" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-warning" id="confirmUnmarkMealBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise me-1" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"/>
+                        <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"/>
+                    </svg>
+                    Yes, Mark as Unfinished
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="finishMealForm" asp-page="FinishMeal" asp-page="/MealPlan/Index" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="mealId" id="finishMealId" />
+    <input type="hidden" name="planId" id="finishPlanId" />
+    <input type="hidden" name="forceComplete" id="finishForceComplete" value="false" />
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const finishMealModal = new bootstrap.Modal(document.getElementById('finishMealModal'));
+    const unmarkMealModal = new bootstrap.Modal(document.getElementById('unmarkMealModal'));
+    let currentMealData = {};
+
+    // Add event listeners to all finish meal buttons
+    document.querySelectorAll('.finish-meal-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const mealId = this.getAttribute('data-meal-id');
+            const planId = this.getAttribute('data-plan-id');
+            const mealType = this.getAttribute('data-meal-type');
+            const isFinished = this.getAttribute('data-is-finished') === 'true';
+                
+            currentMealData = { mealId, planId, mealType, button: this, isFinished };
+            
+            if (isFinished) {
+                // If meal is already finished, show unmark confirmation modal
+                unmarkMealModal.show();
+            } else {
+                // Show modal with loading state for marking as finished
+                document.getElementById('finishMealTitle').textContent = `Finish ${mealType} Meal`;
+                document.getElementById('finishMealContent').innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Checking ingredients availability...</p>
+                    </div>
+                `;
+                document.getElementById('confirmFinishMealBtn').style.display = 'none';
+                    
+                finishMealModal.show();
+                    
+                // Check ingredients availability
+                checkMealIngredients(mealId, planId);
+            }
+        });
+    });
+
+    // Handle unmark confirmation button click
+    document.getElementById('confirmUnmarkMealBtn').addEventListener('click', function() {
+        const button = this;
+        const originalContent = button.innerHTML;
+        
+        // Disable button and show loading state
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '@Url.Page("/MealPlan/MarkMealFinished")';
+        
+        // Get anti-forgery token
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (!tokenInput) {
+            alert('Security token not found. Please refresh the page and try again.');
+            button.disabled = false;
+            button.innerHTML = originalContent;
+            return;
+        }
+        
+        // Create hidden inputs
+        const mealIdInput = document.createElement('input');
+        mealIdInput.type = 'hidden';
+        mealIdInput.name = 'mealId';
+        mealIdInput.value = currentMealData.mealId;
+        
+        const planIdInput = document.createElement('input');
+        planIdInput.type = 'hidden';
+        planIdInput.name = 'planId';
+        planIdInput.value = currentMealData.planId;
+        
+        const finishedInput = document.createElement('input');
+        finishedInput.type = 'hidden';
+        finishedInput.name = 'finished';
+        finishedInput.value = 'false';
+        
+        const tokenClone = tokenInput.cloneNode(true);
+        
+        // Append inputs to form
+        form.appendChild(mealIdInput);
+        form.appendChild(planIdInput);
+        form.appendChild(finishedInput);
+        form.appendChild(tokenClone);
+        
+        // Add form to body and submit
+        document.body.appendChild(form);
+        form.submit();
+    });
+
+    function markButtonAsFinished(button, animated = false) {
+        if (animated) {
+            // Animate the transition
+            button.style.transition = 'all 0.5s ease';
+        }
+
+        // Update button appearance
+        button.classList.remove('btn-outline-success');
+        button.classList.add('btn-success');
+        button.disabled = true;
+        button.style.cursor = 'not-allowed';
+            
+        // Update button content
+        button.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-circle-fill me-1" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+            Finished
+        `;
+
+        if (animated) {
+            // Add pulse animation
+            button.style.animation = 'pulse-success 0.6s ease';
+        }
+    }
+
+    function checkMealIngredients(mealId, planId) {
+            const url = '@Url.Page("/MealPlan/CheckMealIngredients")' + `?mealId=${mealId}&planId=${planId}`;
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    showError(data.message || 'Failed to check ingredients');
+                    return;
+                }
+
+                displayIngredientStatus(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('An error occurred while checking ingredients');
+            });
+        }
+
+        function displayIngredientStatus(data) {
+            const content = document.getElementById('finishMealContent');
+            let html = '';
+
+            if (!data.hasIssues) {
+                // All ingredients available
+                html = `
+                    <div class="alert alert-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle me-2" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                        </svg>
+                        <strong>All ingredients available!</strong> The following ingredients will be consumed from your fridge:
+                    </div>
+                    <div class="alert alert-info border-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-clock-history me-2" viewBox="0 0 16 16">
+                            <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
+                            <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
+                            <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
+                        </svg>
+                        <strong>Reminder:</strong> Ingredients with the closest expiry dates will be used first to minimize food waste.
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Ingredient</th>
+                                    <th class="text-end">Amount to Consume</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                data.consumptionPlan.forEach(item => {
+                    html += `
+                        <tr>
+                            <td>${item.ingredientName}</td>
+                            <td class="text-end">${item.amount.toFixed(2)} ${item.unit}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                
+                document.getElementById('confirmFinishMealBtn').style.display = 'block';
+            } else {
+                // Missing or insufficient ingredients
+                html = `
+                    <div class="alert alert-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-exclamation-triangle me-2" viewBox="0 0 16 16">
+                            <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+                            <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+                        </svg>
+                        <strong>Warning:</strong> Some ingredients are missing or insufficient in your fridge.
+                    </div>
+                `;
+
+                if (data.missingIngredients.length > 0) {
+                    html += `
+                        <h6 class="text-danger mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle me-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                            Missing Ingredients:
+                        </h6>
+                        <ul class="list-group mb-3 style="background-color: #0F172A !important;">
+                    `;
+                    data.missingIngredients.forEach(item => {
+                        html += `
+                            <li class="list-group-item d-flex justify-content-between" style="background-color: #0F172A !important;">
+                                <span>${item.name}</span>
+                                <span class="badge bg-danger">${item.required.toFixed(2)} ${item.unit}</span>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+
+                if (data.insufficientIngredients.length > 0) {
+                    html += `
+                        <h6 class="text-warning mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle me-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                            </svg>
+                            Insufficient Ingredients:
+                        </h6>
+                        <ul class="list-group mb-3" style="background-color: #0F172A !important;">
+                    `;
+                    data.insufficientIngredients.forEach(item => {
+                        html += `
+                            <li class="list-group-item" style="background-color: #0F172A !important;">
+                                <div class="d-flex justify-content-between">
+                                    <span>${item.name}</span>
+                                    <span class="text-danger">
+                                        <span class="badge bg-secondary">${item.available.toFixed(2)} ${item.unit}</span>
+                                        /
+                                        <span class="badge bg-warning">${item.required.toFixed(2)} ${item.unit}</span>
+                                    </span>
+                                </div>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+
+                if (data.consumptionPlan.length > 0) {
+                    html += `
+                        <h6 class="text-success mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle me-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                            </svg>
+                            Available Ingredients (will be consumed):
+                        </h6>
+                        <ul class="list-group mb-3" style="background-color: #0F172A !important;">
+                    `;
+                    data.consumptionPlan.forEach(item => {
+                        html += `
+                            <li class="list-group-item d-flex justify-content-between" style="background-color: #0F172A !important;">
+                                <span>${item.ingredientName}</span>
+                                <span class="badge bg-success">${item.amount.toFixed(2)} ${item.unit}</span>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+
+                html += `
+                    <div class="alert alert-info" style="color: #FFFFFF !important;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-clock-history me-2" viewBox="0 0 16 16">
+                            <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
+                            <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
+                            <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
+                        </svg>
+                        <strong>Note:</strong> You can still finish this meal. Available ingredients will be consumed from your fridge.
+znt;"><strong>Reminder:</strong> Ingredients with the closest expiry dates will be used first to minimize food waste.</small>
+                    </div>
+                `;
+                
+                document.getElementById('confirmFinishMealBtn').style.display = 'block';
+            }
+
+            content.innerHTML = html;
+        }
+
+        function showError(message) {
+            const content = document.getElementById('finishMealContent');
+            content.innerHTML = `
+                <div class="alert alert-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-x-circle me-2" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+
+        // Handle confirm button click
+        document.getElementById('confirmFinishMealBtn').addEventListener('click', function() {
+            const button = currentMealData.button;
+            
+            // Disable the confirm button to prevent double submission
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+            
+            // Submit the form
+            document.getElementById('finishMealId').value = currentMealData.mealId;
+            document.getElementById('finishPlanId').value = currentMealData.planId;
+            
+            const form = document.getElementById('finishMealForm');
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected) {
+                    // Update the button immediately before redirect
+                    markButtonAsFinished(button, true);
+                    
+                    // Close modal
+                    finishMealModal.hide();
+                    
+                    // Show success animation then redirect
+                    setTimeout(() => {
+                        window.location.href = response.url;
+                    }, 800);
+                } else {
+                    throw new Error('Unexpected response');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while finishing the meal. Please try again.');
+                finishMealModal.hide();
+            });
+        });
+    });
+</script>
+
+<style>
+    @@keyframes pulse-success {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+    
+    
+    .finish-meal-btn {
+        transition: all 0.3s ease;
+    }
+    
+    .finish-meal-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    /* Finished meal visual indicators */
+    .meal-finished {
+        background: #4caf50 !important;
+        border: 2px solid #4caf50 !important;
+        opacity: 0.95;
+    }
+
+    .meal-finished h6,
+    .meal-finished .text-muted {
+        opacity: 0.85;
+    }
+
+    .meal-finished .recipe-item {
+        opacity: 0.9;
+    }
+
+    /* Badge styling for finished */
+    .meal-finished .badge.bg-success {
+        font-size: 0.95rem;
+        padding: 8px 16px !important;
+        box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+    }
+</style>
+
+

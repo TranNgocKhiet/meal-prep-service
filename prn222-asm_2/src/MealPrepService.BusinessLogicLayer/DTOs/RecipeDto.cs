@@ -14,5 +14,8 @@ namespace MealPrepService.BusinessLogicLayer.DTOs
         
         // Ingredients with amounts and units
         public List<RecipeIngredientDto> Ingredients { get; set; } = new List<RecipeIngredientDto>();
+        
+        // UI helper property for selection in forms
+        public bool IsSelected { get; set; }
     }
 }

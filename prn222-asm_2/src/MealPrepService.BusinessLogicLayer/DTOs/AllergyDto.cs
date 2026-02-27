@@ -4,6 +4,7 @@ public class AllergyDto
 {
     public Guid Id { get; set; }
     public string AllergyName { get; set; } = string.Empty;
+    public bool IsSelected { get; set; } // For UI selection in forms
 }
 
 public class CreateAllergyDto

@@ -1,0 +1,183 @@
+@page
+@model MealPrepService.Web.Pages.Delivery.AssignedDeliveriesModel
+@{
+    ViewData["Title"] = "Assigned Deliveries";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Assigned Deliveries</h2>
+        <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model.Deliveries.Any())
+    {
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h3>@Model.Deliveries.Count(d => d.OrderStatus.Equals("pending_payment", StringComparison.OrdinalIgnoreCase))</h3>
+                        <p class="mb-0">Pending Payment</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h3>@Model.Deliveries.Count(d => d.OrderStatus.Equals("confirmed", StringComparison.OrdinalIgnoreCase))</h3>
+                        <p class="mb-0">Ready to Deliver</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h3>@Model.Deliveries.Count(d => d.OrderStatus.Equals("delivered", StringComparison.OrdinalIgnoreCase))</h3>
+                        <p class="mb-0">Delivered</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @foreach (var delivery in Model.Deliveries.OrderBy(d => d.DeliveryTime))
+        {
+            <div class="card mb-3 @(delivery.OrderStatus.Equals("delivered", StringComparison.OrdinalIgnoreCase) ? "border-primary" : "")">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Order #@delivery.OrderId.ToString().Substring(0, 8)</strong>
+                            <br />
+                            <small class="text-muted">Delivery Time: @delivery.DeliveryTime.ToString("MMM dd, yyyy hh:mm tt")</small>
+                        </div>
+                        <div>
+                            @if (delivery.OrderStatus.Equals("pending_payment", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-info">Pending Payment (COD)</span>
+                            }
+                            else if (delivery.OrderStatus.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-success">Ready to Deliver</span>
+                            }
+                            else if (delivery.OrderStatus.Equals("delivered", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-primary">Delivered</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@delivery.OrderStatus</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Customer Information</h6>
+                            <p class="mb-1"><strong>Name:</strong> @delivery.CustomerName</p>
+                            <p class="mb-1"><strong>Contact:</strong> @delivery.CustomerContact</p>
+                            <p class="mb-0"><strong>Address:</strong> @delivery.Address</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Order Details</h6>
+                            <p class="mb-1"><strong>Total Amount:</strong> <span class="text-primary h5">$@delivery.OrderTotal.ToString("F2")</span></p>
+                            <p class="mb-1"><strong>Payment Method:</strong> @delivery.PaymentMethod</p>
+                            <p class="mb-0"><strong>Items:</strong> @delivery.ItemsCount</p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(delivery.DeliveryNotes))
+                    {
+                        <div class="alert alert-light mt-3 mb-0">
+                            <strong>Delivery Notes:</strong> @delivery.DeliveryNotes
+                        </div>
+                    }
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-end gap-2">
+                        @if (delivery.OrderStatus.Equals("pending_payment", StringComparison.OrdinalIgnoreCase) && 
+                             delivery.PaymentMethod.Equals("COD", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <form asp-page="ConfirmCashPayment" asp-route-orderId="@delivery.OrderId" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-warning" onclick="return confirm('Confirm that you have received $@delivery.OrderTotal.ToString("F2") in cash from the customer?')">
+                                    <i class="bi bi-cash-coin"></i> Confirm Cash Payment ($@delivery.OrderTotal.ToString("F2"))
+                                </button>
+                            </form>
+                        }
+                        
+                        @if (delivery.OrderStatus.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <form asp-page="CompleteDelivery" asp-route-deliveryId="@delivery.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-success" onclick="return confirm('Mark this delivery as completed?')">
+                                    <i class="bi bi-check-circle"></i> Complete Delivery
+                                </button>
+                            </form>
+                        }
+
+                        @if (delivery.OrderStatus.Equals("delivered", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="text-success">
+                                <i class="bi bi-check-circle-fill"></i> Delivery Completed
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-truck" style="font-size: 4rem; color: #ccc;"></i>
+                <h4 class="mt-3">No Deliveries Assigned</h4>
+                <p class="text-muted">You don't have any deliveries assigned at the moment. Check back later!</p>
+            </div>
+        </div>
+    }
+
+    <div class="mt-3">
+        <a asp-page="/Home/Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    @@media (max-width: 768px) {
+        .d-flex.gap-2 {
+            flex-direction: column;
+        }
+        
+        .d-flex.gap-2 .btn {
+            width: 100%;
+        }
+    }
+</style>

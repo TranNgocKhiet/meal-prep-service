@@ -1,0 +1,201 @@
+@page
+@model MealPrepService.Web.Pages.Admin.DashboardModel
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+
+<div class="container-fluid mt-4 bg-black text-white p-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+        <div>
+            <span class="text-secondary">Last Updated: @Model.LastUpdated.ToString("MMM dd, yyyy hh:mm tt")</span>
+            <button type="button"
+                    class="btn btn-sm ms-2"
+                    style="background:#6c757d; color:#fff; border:1px solid #6c757d;"
+                    onmouseover="this.style.background='#adb5bd'; this.style.color='#000';"
+                    onmouseout="this.style.background='#6c757d'; this.style.color='#fff';"
+                    onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        @foreach (var card in Model.DashboardCards)
+        {
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card border-@card.CssClass h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted mb-2">@card.Title</h6>
+                                <h3 class="mb-0 text-@card.CssClass">@card.Value</h3>
+                                <small class="text-muted">@card.Description</small>
+                            </div>
+                            <div class="text-@card.CssClass" style="font-size: 2.5rem; opacity: 0.3;">
+                                <i class="@card.Icon"></i>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(card.Trend))
+                        {
+                            <div class="mt-2">
+                                <small class="@card.TrendCssClass">
+                                    <i class="bi bi-arrow-up"></i> @card.Trend
+                                </small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+ 
+
+    <div class="row">
+        <!-- Quick Actions -->
+        <div class="col-12 mb-4">
+            <div class="card h-100 text-white" style="min-height: 600px; background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+                </div>
+             
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <a asp-page="SystemConfiguration" class="btn btn-outline-success">
+                                        <i class="bi bi-gear"></i> System Configuration
+                                    </a>
+
+                                    <a asp-page="StaffAccounts" class="btn btn-outline-success">
+                                        <i class="bi bi-people-gear"></i> Manage Staff Accounts
+                                    </a>
+
+                                    <a asp-page="Revenue" class="btn btn-outline-success">
+                                        <i class="bi bi-graph-up"></i> View Revenue Reports
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <a asp-page="/Menu/Index" class="btn btn-outline-info">
+                                        <i class="bi bi-calendar-week"></i> Manage Menus
+                                    </a>
+
+                                    <a asp-page="/Recipe/Index" class="btn btn-outline-info">
+                                        <i class="bi bi-book"></i> Manage Recipes
+                                    </a>
+
+                                    <a asp-page="/Ingredient/Index" class="btn btn-outline-info">
+                                        <i class="bi bi-egg"></i> Manage Ingredients
+                                    </a>
+
+                                    <a asp-page="/Allergy/Index" class="btn btn-outline-info">
+                                        <i class="bi bi-exclamation-triangle"></i> Manage Allergies
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- System Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card h-100 bg-light text-dark">
+                <div class="card-header bg-success text-white" style="background-color: #1e293b !important;">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> System Status</h5>
+                </div>
+                <div class="card-body" style="background-color: #1e293b !important;">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+                                </div>
+                                <div style="background-color: #1e293b !important;">
+                                    <h6 class="mb-0">Database</h6>
+                                    <small class="text-success">Connected</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+                                </div>
+                                <div style="background-color: #1e293b !important;">
+                                    <h6 class="mb-0">Payment Gateway</h6>
+                                    <small class="text-success">Operational</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+                                </div>
+                                <div style="background-color: #1e293b !important;">
+                                    <h6 class="mb-0">AI Services</h6>
+                                    <small class="text-success">Active</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note about deferred features -->
+    <div class="alert alert-info mt-4">
+        <i class="bi bi-info-circle"></i> 
+        <strong>Note:</strong> Subscription-related statistics and features are deferred to Checkpoint 2. 
+        Current dashboard shows order and customer data only.
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(25, 135, 84, 0.25);
+    }
+    
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+    }
+    
+    .list-group-item:first-child {
+        border-top: none;
+    }
+    
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+</style>

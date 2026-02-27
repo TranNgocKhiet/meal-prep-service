@@ -1,0 +1,146 @@
+@page
+@model MealPrepService.Web.Pages.Admin.StaffAccountsModel
+@{
+    ViewData["Title"] = "Staff Accounts Management";
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-users-cog"></i> Staff Accounts Management</h2>
+            <p class="text-muted">Manage Manager and Delivery Man accounts</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-page="CreateStaffAccount"
+               class="btn text-white"
+               style="background-color:#22B14C; border-color:#22B14C;">
+                <i class="fas fa-plus"></i> Create New Staff Account
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Total Staff</h5>
+                    <h2 class="text-primary">@Model.TotalStaff</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Managers</h5>
+                    <h2 class="text-info">@Model.TotalManagers</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Delivery Men</h5>
+                    <h2 class="text-success">@Model.TotalDeliveryMen</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card mb-4" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+        <div class="card-body">
+            <form method="get" asp-page="StaffAccounts" class="row g-3">
+                <div class="col-md-4">
+                    <label for="role" class="form-label text-white">Filter by Role</label>
+                    <select name="role" id="role" class="form-select" onchange="this.form.submit()" data-placeholder="Select a role..." style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
+                        <option value="">All Staff</option>
+                        <option value="Manager" selected="@(Model.FilterRole == "Manager")">Managers</option>
+                        <option value="DeliveryMan" selected="@(Model.FilterRole == "DeliveryMan")">Delivery Men</option>
+                    </select>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Staff Accounts Table -->
+    <div class="card" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+        <div class="card-header text-white" style="background-color: #1e293b;">
+            <h5 class="mb-0">
+                @if (!string.IsNullOrEmpty(Model.FilterRole))
+                {
+                    <span>@Model.FilterRole Accounts</span>
+                }
+                else
+                {
+                    <span>All Staff Accounts</span>
+                }
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Accounts.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-white" style="background-color: transparent;">Full Name</th>
+                                <th class="text-white" style="background-color: transparent;">Email</th>
+                                <th class="text-white" style="background-color: transparent;">Role</th>
+                                <th class="text-end text-white" style="background-color: transparent;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var account in Model.Accounts)
+                            {
+                                <tr>
+                                    <td class="text-white" style="background-color: transparent;">
+                                        <strong>@account.FullName</strong>
+                                    </td>
+                                    <td class="text-white" style="background-color: transparent;">@account.Email</td>
+                                    <td style="background-color: transparent;">
+                                        <span class="@account.RoleBadgeClass">@account.Role</span>
+                                    </td>
+                                    <td class="text-end" style="background-color: transparent;">
+                                        <a asp-page="EditStaffAccount" asp-route-id="@account.Id" 
+                                           class="btn btn-sm btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <a asp-page="DeleteStaffAccount" asp-route-id="@account.Id" 
+                                           class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No staff accounts found.
+                    <a asp-page="CreateStaffAccount" class="alert-link">Create one now</a>.
+                </div>
+            }
+        </div>
+    </div>
+</div>

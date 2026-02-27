@@ -1,0 +1,58 @@
+@page
+@model MealPrepService.Web.Pages.Recipe.CreateModel
+@{
+    ViewData["Title"] = "Create Recipe";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-plus-circle"></i> Create New Recipe</h3>
+                </div>
+                <div class="card-body">
+                    <form asp-page="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="RecipeName" class="form-label"></label>
+                            <input asp-for="RecipeName" class="form-control" placeholder="Enter recipe name" />
+                            <span asp-validation-for="RecipeName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Instructions" class="form-label"></label>
+                            <textarea asp-for="Instructions" class="form-control" rows="8" 
+                                      placeholder="Enter cooking instructions..."></textarea>
+                            <span asp-validation-for="Instructions" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Provide detailed step-by-step instructions for preparing this recipe.
+                            </small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Note:</strong> After creating the recipe, you can add ingredients to calculate nutrition information.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-page="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Create Recipe
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

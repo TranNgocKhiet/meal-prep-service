@@ -1,0 +1,141 @@
+@page
+@model MealPrepService.Web.Pages.Admin.SystemConfigurationModel
+@{
+    ViewData["Title"] = "System Configuration";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-gear"></i> System Configuration
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-page="SystemConfiguration" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Note:</strong> These settings control customer limits across the system. Changes take effect immediately.
+                        </div>
+
+                        <h5 class="border-bottom pb-2 mb-3">Customer Limits</h5>
+
+                        <div class="mb-4">
+                            <label asp-for="MaxMealPlansPerCustomer" class="form-label fw-bold"></label>
+                            <input asp-for="MaxMealPlansPerCustomer" class="form-control form-control-lg" type="number" min="1" max="100" />
+                            <span asp-validation-for="MaxMealPlansPerCustomer" class="text-danger small"></span>
+                            <div class="form-text">
+                                <i class="bi bi-calendar-check"></i> Maximum number of meal plans each customer can create. 
+                                <strong>Current default: 5</strong>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="MaxFridgeItemsPerCustomer" class="form-label fw-bold"></label>
+                            <input asp-for="MaxFridgeItemsPerCustomer" class="form-control form-control-lg" type="number" min="1" max="1000" />
+                            <span asp-validation-for="MaxFridgeItemsPerCustomer" class="text-danger small"></span>
+                            <div class="form-text">
+                                <i class="bi bi-basket"></i> Maximum number of items each customer can store in their fridge. 
+                                <strong>Current default: 100</strong>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="MaxMealPlanDays" class="form-label fw-bold"></label>
+                            <input asp-for="MaxMealPlanDays" class="form-control form-control-lg" type="number" min="1" max="30" />
+                            <span asp-validation-for="MaxMealPlanDays" class="text-danger small"></span>
+                            <div class="form-text">
+                                <i class="bi bi-calendar-range"></i> Maximum number of days for a meal plan. 
+                                <strong>Current default: 7 days</strong>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Warning:</strong> Reducing these limits will not automatically remove existing data. 
+                            Customers will be prevented from adding new items beyond the new limits.
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit"
+                                    class="btn btn-lg"
+                                    style="background:#22B14C; border-color:#22B14C; color:#fff;">
+                                <i class="bi bi-save"></i> Save Configuration
+                            </button>
+                            <a asp-page="Dashboard"
+                               class="btn"
+                               style="background:#6c757d; color:#fff; border:none;"
+                               onmouseover="this.style.background='#adb5bd'; this.style.color='#000';"
+                               onmouseout="this.style.background='#6c757d'; this.style.color='#fff';">
+                                <i class="bi bi-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Configuration History Card -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Configuration Impact
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card border-primary mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title text-primary">
+                                        <i class="bi bi-calendar-check"></i> Meal Plans
+                                    </h6>
+                                    <p class="card-text">
+                                        Customers will see a notification when they try to create more than 
+                                        <strong>@Model.MaxMealPlansPerCustomer</strong> meal plans.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-info mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title text-info">
+                                        <i class="bi bi-basket"></i> Fridge Items
+                                    </h6>
+                                    <p class="card-text">
+                                        Customers will see a notification when they try to add more than 
+                                        <strong>@Model.MaxFridgeItemsPerCustomer</strong> items to their fridge.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

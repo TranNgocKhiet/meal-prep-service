@@ -1,0 +1,337 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="home-hero">
+    <!-- Hero Section -->
+    <div class="hero-section text-center py-5">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title display-3 fw-bold mb-4">
+                    <span class="gradient-text">Meal Prep Service</span>
+                </h1>
+                <p class="hero-subtitle lead mb-5">
+                    Delicious, Healthy Meals Delivered Fresh Daily
+                </p>
+                <div class="hero-buttons d-flex justify-content-center gap-4 flex-wrap">
+                    <a asp-page="/PublicMenu/Today" class="btn btn-hero btn-today">
+                        <i class="bi bi-calendar-day me-2"></i>
+                        <span>Today's Menu</span>
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                    <a asp-page="/PublicMenu/Weekly" class="btn btn-hero btn-weekly">
+                        <i class="bi bi-calendar-week me-2"></i>
+                        <span>Weekly Menu</span>
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="features-section py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <h3 class="feature-title h5 mb-3">Healthy & Nutritious</h3>
+                        <p class="feature-text text-muted">
+                            Carefully crafted meals with balanced nutrition to support your health goals
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <h3 class="feature-title h5 mb-3">Save Time</h3>
+                        <p class="feature-text text-muted">
+                            No more meal planning or grocery shopping. We handle everything for you
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <h3 class="feature-title h5 mb-3">Fresh Delivery</h3>
+                        <p class="feature-text text-muted">
+                            Fresh ingredients delivered right to your door, ready to enjoy
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta-section py-5 text-center">
+        <div class="container">
+            <h2 class="cta-title display-5 fw-bold mb-4">Ready to Start Your Journey?</h2>
+            <p class="cta-subtitle lead mb-4">
+                Explore our delicious menu options and order your meals today
+            </p>
+            <div class="cta-buttons d-flex justify-content-center gap-3 flex-wrap">
+                <a asp-page="/PublicMenu/Today" class="btn btn-cta btn-cta-primary">
+                    View Today's Menu
+                </a>
+                <a asp-page="/PublicMenu/Weekly" class="btn btn-cta btn-cta-secondary">
+                    Browse Weekly Menu
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #0F172A 0%, #1e293b 100%);
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(34, 197, 94, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 300;
+    }
+
+    /* Hero Buttons */
+    .btn-hero {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        border: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-today {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        color: white;
+    }
+
+    .btn-today:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
+        color: white;
+    }
+
+    .btn-weekly {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+
+    .btn-weekly:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+        color: white;
+    }
+
+    /* Features Section */
+    .features-section {
+        background-color: #000;
+        padding: 5rem 0;
+    }
+
+    .feature-card {
+        background: linear-gradient(135deg, #0F172A 0%, #1e293b 100%);
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(34, 197, 94, 0.5);
+        box-shadow: 0 20px 40px rgba(34, 197, 94, 0.2);
+    }
+
+    .feature-icon {
+        font-size: 3.5rem;
+        color: #22c55e;
+    }
+
+    .feature-title {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .feature-text {
+        color: rgba(255, 255, 255, 0.7) !important;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, #0F172A 0%, #1e293b 100%);
+        padding: 5rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 30% 50%, rgba(34, 197, 94, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 70% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .cta-title {
+        color: #fff;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+
+    .cta-subtitle {
+        color: rgba(255, 255, 255, 0.8);
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-cta {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn-cta-primary {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        color: white;
+    }
+
+    .btn-cta-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(34, 197, 94, 0.4);
+        color: white;
+    }
+
+    .btn-cta-secondary {
+        background: transparent;
+        border-color: #22c55e;
+        color: #22c55e;
+    }
+
+    .btn-cta-secondary:hover {
+        background: #22c55e;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(34, 197, 94, 0.3);
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .btn-hero {
+            padding: 0.875rem 2rem;
+            font-size: 1rem;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+        }
+    }
+
+    /* Animations */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .hero-content {
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .feature-card {
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .feature-card:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    .feature-card:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .feature-card:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+</style>
