@@ -8,11 +8,6 @@
     <div class="text-center mb-4">
         <h2>Today's Menu</h2>
         <p class="lead">@Model.MenuDate.ToString("dddd, MMMM dd, yyyy")</p>
-        
-        <!-- SignalR Connection Status Indicator -->
-        <div id="signalr-status" class="badge bg-secondary">
-            <i class="bi bi-circle-fill"></i> Connecting...
-        </div>
     </div>
 
     @if (Model.NoMenuMessage != null)
@@ -134,20 +129,7 @@
     <script>
         console.log('Initializing SignalR for Today menu...');
         
-        const statusIndicator = document.getElementById('signalr-status');
         let menuConnection = null;
-        
-        function updateStatus(status, message) {
-            const statusClasses = {
-                'connecting': 'bg-secondary',
-                'connected': 'bg-success',
-                'disconnected': 'bg-danger',
-                'reconnecting': 'bg-warning'
-            };
-            
-            statusIndicator.className = `badge ${statusClasses[status]}`;
-            statusIndicator.innerHTML = `<i class="bi bi-circle-fill"></i> ${message}`;
-        }
         
         function showMenuStatusAlert(title, message, type) {
             console.log('Showing alert:', title, message, type);
@@ -210,7 +192,6 @@
         // Create our own connection directly instead of relying on global manager
         function initializeConnection() {
             console.log('Creating SignalR connection to MenuHub...');
-            updateStatus('connecting', 'Connecting...');
             
             menuConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/hubs/menu")
@@ -224,28 +205,23 @@
             // Handle connection events
             menuConnection.onreconnecting(function(error) {
                 console.warn('Reconnecting to MenuHub...', error);
-                updateStatus('reconnecting', 'Reconnecting...');
             });
 
             menuConnection.onreconnected(function(connectionId) {
                 console.log('Reconnected to MenuHub. Connection ID:', connectionId);
-                updateStatus('connected', 'Live Updates Active');
             });
 
             menuConnection.onclose(function(error) {
                 console.error('Disconnected from MenuHub', error);
-                updateStatus('disconnected', 'Disconnected');
             });
             
             // Start the connection
             menuConnection.start()
                 .then(function() {
                     console.log('✓ Connected to MenuHub. Connection ID:', menuConnection.connectionId);
-                    updateStatus('connected', 'Live Updates Active');
                 })
                 .catch(function(err) {
                     console.error('✗ Failed to connect to MenuHub:', err);
-                    updateStatus('disconnected', 'Connection Failed');
                 });
         }
         
