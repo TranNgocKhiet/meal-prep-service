@@ -1,0 +1,240 @@
+.ingredients-page {
+  padding: var(--spacing-lg) 0;
+}
+
+.ingredients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.ingredient-card {
+  background-color: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.ingredient-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.ingredient-image {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  background-color: var(--color-surface);
+}
+
+.ingredient-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ingredient-content {
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  flex: 1;
+}
+
+.ingredient-content h3 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+}
+
+.ingredient-content h3 mark {
+  background-color: #ffeb3b;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.ingredient-meta {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.ingredient-price {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-primary);
+  padding: var(--spacing-sm);
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius-sm);
+  text-align: center;
+}
+
+.allergy-info {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  font-weight: 500;
+}
+
+.unavailable-badge {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  font-weight: 500;
+}
+
+.ingredient-content .btn {
+  margin-top: auto;
+  width: 100%;
+}
+
+/* Ingredient Detail Modal */
+.ingredient-detail-modal {
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.detail-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.info-item strong {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.info-item span {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+}
+
+.price-highlight {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: var(--font-size-lg);
+}
+
+.info-item .available {
+  color: #155724;
+  font-weight: 500;
+}
+
+.info-item .unavailable {
+  color: #721c24;
+  font-weight: 500;
+}
+
+.allergy-section {
+  margin-top: var(--spacing-lg);
+}
+
+.allergy-section h3 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.allergens-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-md) 0 0 0;
+}
+
+.allergens-list li {
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.allergens-list li:last-child {
+  border-bottom: none;
+}
+
+.allergens-list strong {
+  color: #856404;
+  display: block;
+  margin-bottom: var(--spacing-xs);
+}
+
+.allergens-list p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.no-allergens {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: var(--border-radius-md);
+  color: #155724;
+  font-weight: 500;
+  margin-top: var(--spacing-lg);
+}
+
+.check-icon {
+  font-size: 1.5rem;
+  color: #155724;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .ingredients-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-overlay {
+    padding: var(--spacing-sm);
+  }
+
+  .ingredient-detail-modal {
+    max-height: 95vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .ingredient-image {
+    height: 150px;
+  }
+
+  .detail-image {
+    height: 200px;
+  }
+
+  .ingredient-meta {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+}

@@ -1,0 +1,39 @@
+.app-container {
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-md);
+}
+
+.app-container--sm {
+  max-width: 640px;
+}
+
+.app-container--md {
+  max-width: 768px;
+}
+
+.app-container--lg {
+  max-width: 1024px;
+}
+
+.app-container--xl {
+  max-width: 1440px;
+}
+
+.app-container--full {
+  max-width: 100%;
+}
+
+/* Tablet Styles - 768px and above */
+@media (min-width: 768px) {
+  .app-container {
+    padding: var(--spacing-lg);
+  }
+}
+
+/* Desktop Styles - 1024px and above */
+@media (min-width: 1024px) {
+  .app-container {
+    padding: var(--spacing-xl);
+  }
+}

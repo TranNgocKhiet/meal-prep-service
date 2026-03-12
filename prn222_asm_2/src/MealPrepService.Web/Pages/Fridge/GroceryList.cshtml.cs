@@ -30,6 +30,19 @@ public class GroceryListModel : PageModel
     public List<GroceryItemDto> MissingIngredients => ResultGroceryList?.MissingIngredients ?? new List<GroceryItemDto>();
     public int TotalMissingItems => MissingIngredients.Count;
 
+    public class PurchasedItemRequest
+    {
+        public List<PurchasedItem> Items { get; set; } = new();
+    }
+
+    public class PurchasedItem
+    {
+        public Guid IngredientId { get; set; }
+        public string IngredientName { get; set; } = string.Empty;
+        public float Amount { get; set; }
+        public string Unit { get; set; } = string.Empty;
+    }
+
     public GroceryListModel(
         IFridgeService fridgeService, 
         IIngredientService ingredientService, 
@@ -156,5 +169,86 @@ public class GroceryListModel : PageModel
             throw new AuthenticationException("User account ID not found in claims.");
         }
         return accountId;
+    }
+
+    public async Task<IActionResult> OnPostMarkAsPurchasedAsync([FromBody] PurchasedItemRequest request)
+    {
+        try
+        {
+            if (request?.Items == null || !request.Items.Any())
+            {
+                return new JsonResult(new { success = false, message = "No items provided" });
+            }
+
+            var accountId = GetCurrentAccountId();
+            var addedCount = 0;
+            var errors = new List<string>();
+
+            // Default expiry date: 7 days from now
+            var defaultExpiryDate = DateTime.UtcNow.AddDays(7);
+
+            foreach (var item in request.Items)
+            {
+                try
+                {
+                    var fridgeItemDto = new FridgeItemDto
+                    {
+                        AccountId = accountId,
+                        IngredientId = item.IngredientId,
+                        CurrentAmount = item.Amount,
+                        ExpiryDate = defaultExpiryDate
+                    };
+
+                    await _fridgeService.AddItemAsync(fridgeItemDto);
+                    addedCount++;
+                    
+                    _logger.LogInformation("Added ingredient {IngredientName} ({Amount} {Unit}) to fridge for account {AccountId}",
+                        item.IngredientName, item.Amount, item.Unit, accountId);
+                }
+                catch (BusinessException ex)
+                {
+                    _logger.LogWarning("Failed to add ingredient {IngredientName}: {Message}", 
+                        item.IngredientName, ex.Message);
+                    errors.Add($"{item.IngredientName}: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error adding ingredient {IngredientName} to fridge", item.IngredientName);
+                    errors.Add($"{item.IngredientName}: Failed to add");
+                }
+            }
+
+            if (addedCount > 0)
+            {
+                var message = addedCount == request.Items.Count
+                    ? $"Successfully added all {addedCount} ingredient(s) to your fridge!"
+                    : $"Added {addedCount} of {request.Items.Count} ingredient(s). Some items failed: {string.Join(", ", errors)}";
+
+                return new JsonResult(new 
+                { 
+                    success = true, 
+                    addedCount = addedCount,
+                    message = message,
+                    errors = errors
+                });
+            }
+            else
+            {
+                return new JsonResult(new 
+                { 
+                    success = false, 
+                    message = $"Failed to add items: {string.Join(", ", errors)}"
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in OnPostMarkAsPurchasedAsync");
+            return new JsonResult(new 
+            { 
+                success = false, 
+                message = "An error occurred while adding items to fridge" 
+            });
+        }
     }
 }

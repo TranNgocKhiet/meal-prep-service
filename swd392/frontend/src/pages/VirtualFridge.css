@@ -1,0 +1,429 @@
+.virtual-fridge-page {
+  padding: var(--spacing-lg) 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+  gap: var(--spacing-md);
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.expiring-notification {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #856404;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-weight: 500;
+}
+
+.notification-icon {
+  font-size: var(--font-size-xl);
+}
+
+.form-card {
+  background-color: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-header h2 {
+  margin: 0;
+  color: #000;
+  font-size: var(--font-size-xxl);
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.btn-close:hover {
+  color: var(--color-text-primary);
+}
+
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-primary);
+  font-weight: 500;
+  font-size: var(--font-size-base);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  transition: border-color var(--transition-fast);
+  min-height: var(--touch-target-min);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.input-disabled {
+  background-color: var(--color-surface);
+  cursor: not-allowed;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.ingredient-search {
+  position: relative;
+}
+
+.ingredient-search input {
+  padding-right: 80px;
+}
+
+.btn-clear-search {
+  position: absolute;
+  right: var(--spacing-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  z-index: 10;
+}
+
+.btn-clear-search:hover {
+  background: #c82333;
+}
+
+.selected-ingredient {
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  color: #155724;
+  font-size: 14px;
+}
+
+.search-spinner {
+  position: absolute;
+  right: 90px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-dropdown);
+}
+
+.search-result-item {
+  padding: var(--spacing-md);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color var(--transition-fast);
+  min-height: var(--touch-target-min);
+}
+
+.search-result-item.no-results {
+  cursor: default;
+  color: #999;
+  justify-content: center;
+}
+
+.search-result-item.no-results:hover {
+  background-color: var(--color-secondary);
+}
+
+.search-result-item:hover {
+  background-color: var(--color-surface);
+}
+
+.ingredient-name {
+  font-weight: 500;
+  color: #000;
+}
+
+.ingredient-category {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+}
+
+.form-actions .btn {
+  flex: 1;
+}
+
+.search-bar {
+  margin-bottom: var(--spacing-lg);
+}
+
+.search-input {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  min-height: var(--touch-target-min);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.fridge-items-list {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.fridge-item {
+  background-color: var(--color-secondary);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-base);
+}
+
+.fridge-item:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.fridge-item.expired {
+  border-color: var(--color-error);
+  background-color: #fff5f5;
+}
+
+.fridge-item.expiring-soon {
+  border-color: var(--color-error);
+  background-color: #fff9f9;
+}
+
+.fridge-item.expiring-warning {
+  border-color: var(--color-warning);
+  background-color: #fffef5;
+}
+
+.fridge-item.fresh {
+  border-color: #28a745;
+  background-color: #f0fff4;
+}
+
+.item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-md);
+}
+
+.item-info h3 {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: #000;
+  font-size: var(--font-size-lg);
+}
+
+.item-category {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.item-quantity {
+  text-align: right;
+}
+
+.quantity-value {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+  gap: var(--spacing-md);
+}
+
+.expiry-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.expiry-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  display: inline-block;
+}
+
+.expiry-label.expired {
+  background-color: var(--color-error);
+  color: white;
+}
+
+.expiry-label.expiring-soon {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.expiry-label.expiring-warning {
+  background-color: var(--color-warning);
+  color: #856404;
+}
+
+.expiry-label.fresh {
+  background-color: #28a745;
+  color: white;
+}
+
+.expiry-date {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.item-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.btn-icon {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  font-size: var(--font-size-lg);
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.btn-icon:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .item-main {
+    flex-direction: column;
+  }
+
+  .item-quantity {
+    text-align: left;
+  }
+
+  .item-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-card {
+    padding: var(--spacing-lg);
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header .btn {
+    width: 100%;
+  }
+
+  .expiring-notification {
+    font-size: var(--font-size-sm);
+  }
+}

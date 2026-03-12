@@ -135,9 +135,23 @@
             console.log('Showing alert:', title, message, type);
             
             const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
-            alertDiv.style.zIndex = '9999';
-            alertDiv.style.minWidth = '400px';
+            alertDiv.className = `alert alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            
+            // Set background color based on type
+            let backgroundColor = 'white';
+            if (type === 'warning') {
+                backgroundColor = '#ffc107'; // Yellow for warnings
+            } else if (type === 'success') {
+                backgroundColor = '#28a745'; // Green for success
+            }
+            
+            alertDiv.style.cssText = `
+                z-index: 9999;
+                min-width: 400px;
+                background-color: ${backgroundColor};
+                color: black;
+                border: 2px solid black;
+            `;
             alertDiv.innerHTML = `
                 <strong><i class="bi bi-${type === 'warning' ? 'exclamation-triangle' : 'check-circle'}"></i> ${title}:</strong> ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

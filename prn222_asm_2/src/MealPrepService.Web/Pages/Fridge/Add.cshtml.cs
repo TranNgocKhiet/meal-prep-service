@@ -51,7 +51,7 @@ public class AddModel : PageModel
         {
             _logger.LogError(ex, "Error occurred while loading add fridge item form for account {AccountId}", GetCurrentAccountId());
             TempData["ErrorMessage"] = "An error occurred while loading the form.";
-            return RedirectToPage("/Fridge/Index");
+            return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
         }
     }
 
@@ -91,7 +91,7 @@ public class AddModel : PageModel
                 ingredient.IngredientName, accountId);
             
             TempData["SuccessMessage"] = $"{ingredient.IngredientName} added to your fridge successfully!";
-            return RedirectToPage("/Fridge/Index");
+            return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
         }
         catch (BusinessException ex)
         {

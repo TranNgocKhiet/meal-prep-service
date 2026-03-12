@@ -5,7 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Meal Prep Service</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        /* Navigation menu spacing and hover effects */
+        .navbar-nav .nav-item {
+            margin-right: 1rem;
+        }
+        
+        .navbar-nav .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background-color: #f8f9fa;
+            color: #0d6efd !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-nav .nav-link i {
+            transition: transform 0.3s ease;
+        }
+        
+        .navbar-nav .nav-link:hover i {
+            transform: scale(1.2);
+        }
+        
+        /* Dropdown hover effect */
+        .navbar-nav .dropdown-toggle:hover {
+            background-color: #f8f9fa;
+            color: #0d6efd !important;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #0d6efd;
+            color: white !important;
+        }
+        
+        .dropdown-item:hover i {
+            transform: scale(1.1);
+        }
+    </style>
 </head>
 <body class="bg-black text-white d-flex flex-column min-vh-100">
     <header>
@@ -21,41 +65,61 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/Index">Home</a>
+                            <a class="nav-link" asp-page="/Index">
+                                <i class="bi bi-house-door"></i> Home
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/PublicMenu/Today">Today's Menu</a>
+                            <a class="nav-link" asp-page="/PublicMenu/Today">
+                                <i class="bi bi-calendar-day"></i> Today's Menu
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-page="/PublicMenu/Weekly">Weekly Menu</a>
+                            <a class="nav-link" asp-page="/PublicMenu/Weekly">
+                                <i class="bi bi-calendar-week"></i> Weekly Menu
+                            </a>
                         </li>
                         
                         @if (User.IsInRole("Customer"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/HealthProfile/Index">Health Profile</a>
+                                <a class="nav-link" asp-page="/HealthProfile/Index">
+                                    <i class="bi bi-heart-pulse"></i> Health Profile
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/MealPlan/Index">My Meal Plans</a>
+                                <a class="nav-link" asp-page="/MealPlan/Index">
+                                    <i class="bi bi-clipboard-check"></i> My Meal Plans
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/Fridge/Index">My Fridge</a>
+                                <a class="nav-link" asp-page="/Fridge/Index">
+                                    <i class="bi bi-box-seam"></i> My Fridge
+                                </a>
                             </li>
                         }
                         
                         @if (User.IsInRole("Manager"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/Menu/Index">Menus</a>
+                                <a class="nav-link" asp-page="/Menu/Index">
+                                    <i class="bi bi-calendar3"></i> Menus
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/Recipe/Index">Recipes</a>
+                                <a class="nav-link" asp-page="/Recipe/Index">
+                                    <i class="bi bi-book"></i> Recipes
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/Ingredient/Index">Ingredients</a>
+                                <a class="nav-link" asp-page="/Ingredient/Index">
+                                    <i class="bi bi-egg"></i> Ingredients
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-page="/Allergy/Index">Allergies</a>
+                                <a class="nav-link" asp-page="/Allergy/Index">
+                                    <i class="bi bi-exclamation-triangle"></i> Allergies
+                                </a>
                             </li>
                         }
                         
@@ -115,7 +179,7 @@
     <div class="container">
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-dismissible fade show" role="alert" style="background-color: white; color: black; border: 2px solid black;">
                 @TempData["SuccessMessage"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -123,7 +187,7 @@
         
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-dismissible fade show" role="alert" style="background-color: white; color: black; border: 2px solid black;">
                 @TempData["ErrorMessage"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -131,7 +195,7 @@
         
         @if (TempData["InfoMessage"] != null)
         {
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <div class="alert alert-dismissible fade show" role="alert" style="background-color: white; color: black; border: 2px solid black;">
                 @TempData["InfoMessage"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>

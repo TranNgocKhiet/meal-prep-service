@@ -1,0 +1,406 @@
+---
+config:
+  layout: dagre
+---
+classDiagram
+direction TB
+    class Accounts {
+        +Id : UUID
+        RoleId : UUID
+        Email : string
+        PasswordHash : string
+        FullName : string
+        CurrentCredits : int
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class Roles {
+        +Id : int
+        RoleName : string
+    }
+
+
+    class HealthProfiles {
+        +Id : UUID
+        AccountId : UUID
+        Age : int
+        Weight : decimal
+        Height : decimal
+        Gender : string
+        HealthNotes : string
+        CalorieGoal : int
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class HealthProfileAllergies {
+        + Id : UUID
+        AllergiesId : UUID
+        HealthProfilesId : UUID
+    }
+   
+    class Allergies {
+        +Id : UUID
+        AllergyName : string
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class IngredientAllergies {
+        +Id : UUID
+        AllergyId : UUID
+        IngredientId : UUID
+    }
+
+
+    class Ingredients {
+        +Id : UUID
+        IngredientName : string
+        Unit : string
+    }
+
+
+    class Nutrients {
+        +Id : UUID
+        NutrientName : string
+    }
+
+
+    class Recipes {
+        +Id : UUID
+        RecipeName : string
+        Instructions : string
+        CreatedAt : datetime
+        UpdatedAt : datetime
+        IsCustom : boolean
+    }
+
+
+    class Meals {
+        +Id : UUID
+        PlanId : UUID
+        MealType : string
+        TotalCalories : decimal
+        ProteinG : decimal
+        FatG : decimal
+        CarbsG : decimal
+        ServerDate : datetime
+        CreatedAt : datetime
+        UpdatedAt : datetime
+        MealFinished : boolean
+    }
+
+
+    class MealPlans {
+        +Id : UUID
+        AccountId : UUID
+        PlanName : string
+        StartDate : datetime
+        EndDate : datetime
+        IsAiGenerated : boolean
+        CreatedAt : datetime
+        UpdatedAt : datetime
+        IsActive :boolean
+    }
+
+
+    class Orders {
+        +Id : UUID
+        CustomerId : UUID
+        PaymentGatewayId : UUID
+        OrderConfirmedBy : UUID
+        StatusId : UUID
+        Date : datetime
+        Amount : decimal
+        PaymentMethod : string
+        CreatedAt : datetime
+        UpdatedAt : datetime        
+    }
+
+
+    class OrderDetails {
+        +Id : UUID
+        OrderId : UUID
+        MenuMealId : UUID
+        MealId : UUID
+        Quantity : int
+        UnitPrice : decimal
+        CreatedAt : datetime
+        UpdatedAt : datetime    
+    }
+
+
+    class DeliverySchedules {
+        +Id : UUID
+        DriverId : UUID
+        DeliveryTime : datetime
+        Address : string
+        DriverContact : string
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class PaymentGateway {
+        +Id : UUID
+        StatusId : UUID
+        TransactionNo : string
+        BankCode : string
+        ResponseCode : string
+        PayDate : datetime
+    }
+
+
+    class Status {
+        +Id : int
+        StatusName : string
+    }
+
+
+    class SubscriptionPackages {
+        +Id : UUID
+        PackageName : string
+        Price : decimal
+        CreditAmount : int
+        DurationDays : int
+        Description : string
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class UserSubscriptions {
+        +Id : UUID
+        AccountId : UUID
+        PackageId : UUID
+        SubscriptionPackageId : UUID
+        PaymentGatewayId : UUID
+        StartDate : datetime
+        EndDate : datetime
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class AIcreditPackages {
+        +Id : UUID
+        PackageName : string
+        Price : decimal
+        CreditAmount : int      
+    }
+
+
+    class AIcreditTransactions {
+        +Id : UUID
+        AccountId : UUID
+        AIcreditPackageId : UUID
+        PaymentGatewayId : UUID
+        CreatedAt : datetime
+    }
+
+
+    class Fridges {
+        +Id : UUID
+        AccountId : UUID
+        UpdatedAt : datetime
+    }
+
+
+    class FridgeItems {
+        +Id : UUID
+        FridgeId : UUID
+        AccountId : UUID
+        IngredientId : UUID        
+        CurrentAmount : decimal
+        ExpiryDate : date
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class Carts {
+        +Id : UUID
+        AccountId : UUID
+        UpdatedAt : datetime
+    }
+
+
+    class CartItems {
+        +Id : UUID
+        CartId : UUID
+        MenuMealId : UUID
+        MealId : UUID
+        Quantity : int
+    }
+
+
+    class IngredientNutrients {
+        + Id : UUID
+        IngredientId : UUID
+        NutrientId : UUID
+        AmountPer100 : decimal
+    }
+
+
+    class MealRecipes {
+        + Id : UUID
+        MealId : UUID
+        RecipeId : UUID
+    }
+
+
+    class RecipeIngredients {
+        + Id : UUID
+        RecipeId : UUID
+        IngredientId : UUID
+        Amount : decimal
+    }
+
+
+    class MenuMeals {
+        + Id : UUID
+        MenuId : UUID
+        MealType : string
+        TotalCalories : decimal
+        ProteinG : decimal
+        FatG : decimal
+        CarbsG : decimal
+        Price : decimal
+        AvailibleQuantity : int
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class DailyMenus {
+        + Id : UUID
+        StatusId : UUID
+        MenuDate : datetime
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class MenuMealRecipes {
+        + Id : UUID
+        MenuMealId : UUID
+        RecipeId : UUID
+    }
+
+
+    class HealthProfileIngredients{
+        + Id : UUID
+        HealthProfileId : UUID
+        IngredientId : UUID
+        RelationshipType : string
+    }
+
+
+    class SystemConfigurations{
+        +Id :
+        ConfigKey :
+        ConfigValue :
+        Description :
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    class RevenueReports{
+        +Id : UUID
+        Month : int
+        Year : int
+        TotalSubscriptionRev : decimal  
+        TotalOrderRev : decimal
+        TotalAiCreditRev : decimal
+        TotalOrdersCount : int
+        CreatedAt : datetime
+        UpdatedAt : datetime
+    }
+
+
+    Accounts --> Fridges
+    Accounts --> Roles
+    Accounts --> MealPlans
+    Accounts --> Carts
+    Accounts --> DeliverySchedules
+    Accounts --> Orders
+    Accounts --> AIcreditTransactions
+    Accounts --> UserSubscriptions    
+   
+    Fridges --> FridgeItems
+    FridgeItems --> Ingredients
+   
+    Ingredients --> IngredientNutrients
+
+
+    IngredientNutrients --> Nutrients
+
+
+    MealPlans --> HealthProfiles
+    MealPlans --> Meals  
+
+
+    Meals --> MealRecipes
+
+
+    MealRecipes --> Recipes
+
+
+    HealthProfiles --> HealthProfileAllergies    
+    HealthProfiles --> HealthProfileIngredients
+   
+    HealthProfileAllergies --> Allergies
+
+
+    Allergies --> IngredientAllergies
+
+
+    IngredientAllergies --> Ingredients
+
+
+    HealthProfileIngredients --> Ingredients
+   
+    Recipes --> RecipeIngredients
+
+
+    RecipeIngredients --> Ingredients
+
+
+    Carts --> CartItems
+
+
+    CartItems --> Recipes
+
+
+    DeliverySchedules --> Orders
+
+
+    Orders --> OrderDetails    
+    Orders --> Status
+    Orders --> PaymentGateway
+   
+    OrderDetails --> Meals
+    OrderDetails --> MenuMeals
+
+
+    MenuMeals --> MenuMealRecipes
+    MenuMeals --> DailyMenus
+
+
+    MenuMealRecipes --> Recipes
+
+
+    DailyMenus --> Status
+
+
+    AIcreditTransactions --> AIcreditPackages
+   
+    UserSubscriptions --> PaymentGateway
+    UserSubscriptions --> SubscriptionPackages    
+   
+    PaymentGateway --> Status

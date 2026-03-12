@@ -1,0 +1,123 @@
+.unfinish-modal {
+  max-width: 1000px !important;
+  width: 95% !important;
+}
+
+.info-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background-color: #d1ecf1;
+  border: 1px solid #bee5eb;
+  border-radius: var(--border-radius-md);
+  color: #0c5460;
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.5;
+}
+
+.info-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ingredients-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--spacing-md);
+  width: 100%;
+  flex-wrap: nowrap !important;
+}
+
+.ingredients-list h3 {
+  margin: 0 0 var(--spacing-lg) 0;
+  color: #000 !important;
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+}
+
+.ingredient-item.return-item {
+  border: 2px solid #ffc107;
+  background-color: #fffbf0;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-fast);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ingredient-item.return-item:hover {
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+}
+
+.ingredient-header {
+  margin-bottom: var(--spacing-md);
+  display: block !important;
+  width: 100%;
+}
+
+.ingredient-name {
+  font-weight: 600;
+  color: #000;
+  font-size: var(--font-size-lg);
+  display: block;
+}
+
+.ingredient-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.input-group label {
+  font-size: var(--font-size-sm);
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.input-group input {
+  padding: var(--spacing-md);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+  background-color: white;
+  color: #000;
+  font-weight: 500;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #ffc107;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+}
+
+.input-group input:hover {
+  border-color: #ffb300;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .unfinish-modal {
+    max-width: 100%;
+  }
+
+  .ingredient-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .info-message {
+    font-size: var(--font-size-sm);
+  }
+}

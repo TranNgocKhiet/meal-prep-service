@@ -1,0 +1,119 @@
+.payment-callback-page {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xxl) 0;
+}
+
+.payment-status {
+  text-align: center;
+  max-width: 600px;
+  padding: var(--spacing-xxl);
+  background-color: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+}
+
+.payment-status h1 {
+  margin: var(--spacing-xl) 0 var(--spacing-md) 0;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xxxl);
+}
+
+.payment-status p {
+  margin: 0 0 var(--spacing-xxl) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+  line-height: 1.6;
+}
+
+.spinner-large {
+  width: 80px;
+  height: 80px;
+  border: 6px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  font-weight: 700;
+  margin: 0 auto;
+}
+
+.success-icon {
+  background-color: #28a745;
+  color: white;
+}
+
+.failed-icon {
+  background-color: #dc3545;
+  color: white;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.action-buttons .btn {
+  width: 100%;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .payment-status {
+    padding: var(--spacing-xl);
+  }
+
+  .payment-status h1 {
+    font-size: var(--font-size-xxl);
+  }
+
+  .status-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 3rem;
+  }
+
+  .spinner-large {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-callback-page {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .payment-status {
+    padding: var(--spacing-lg);
+  }
+
+  .payment-status h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .payment-status p {
+    font-size: var(--font-size-base);
+  }
+}

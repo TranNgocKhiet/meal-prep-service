@@ -1,0 +1,42 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-md) 0;
+}
+
+/* Orientation-specific styles */
+.layout--portrait {
+  /* Portrait-specific adjustments if needed */
+}
+
+.layout--landscape {
+  /* Landscape-specific adjustments if needed */
+}
+
+/* Mobile Styles */
+@media (max-width: 767px) {
+  .layout-main {
+    padding: var(--spacing-sm) 0;
+  }
+}
+
+/* Tablet Styles */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .layout-main {
+    padding: var(--spacing-lg) 0;
+  }
+}
+
+/* Desktop Styles */
+@media (min-width: 1024px) {
+  .layout-main {
+    padding: var(--spacing-xl) 0;
+  }
+}

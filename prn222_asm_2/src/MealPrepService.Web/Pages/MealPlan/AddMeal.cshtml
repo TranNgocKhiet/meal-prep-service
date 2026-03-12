@@ -161,20 +161,20 @@
                                                 <div class="nutrition-info mb-3">
                                                     <div class="row text-center">
                                                         <div class="col-6 mb-1">
-                                                            <small class="text-black">Calories</small>
-                                                            <div class="text-black fw-bold">@recipe.TotalCalories.ToString("F0")</div>
+                                                            <small style="color: #6c757d !important;">Calories</small>
+                                                            <div class="fw-bold" style="color: #000 !important;">@recipe.TotalCalories.ToString("F0")</div>
                                                         </div>
                                                         <div class="col-6 mb-1">
-                                                            <small class="text-black">Protein</small>
-                                                            <div class="text-black fw-bold">@recipe.ProteinG.ToString("F1")g</div>
+                                                            <small style="color: #6c757d !important;">Protein</small>
+                                                            <div class="fw-bold" style="color: #000 !important;">@recipe.ProteinG.ToString("F1")g</div>
                                                         </div>
                                                         <div class="col-6">
-                                                            <small class="text-black">Fat</small>
-                                                            <div class="text-black fw-bold">@recipe.FatG.ToString("F1")g</div>
+                                                            <small style="color: #6c757d !important;">Fat</small>
+                                                            <div class="fw-bold" style="color: #000 !important;">@recipe.FatG.ToString("F1")g</div>
                                                         </div>
                                                         <div class="col-6">
-                                                            <small class="text-black">Carbs</small>
-                                                            <div class="text-black fw-bold">@recipe.CarbsG.ToString("F1")g</div>
+                                                            <small style="color: #6c757d !important;">Carbs</small>
+                                                            <div class="fw-bold" style="color: #000 !important;">@recipe.CarbsG.ToString("F1")g</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -305,6 +305,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             const recipeCheckboxes = document.querySelectorAll('.recipe-checkbox');
             const addMealBtn = document.getElementById('addMealBtn');
+            const addMealForm = document.getElementById('addMealForm');
+            
+            console.log('AddMeal page initialized');
+            console.log('Recipe checkboxes found:', recipeCheckboxes.length);
+            console.log('Add button found:', addMealBtn ? 'Yes' : 'No');
+            console.log('Form found:', addMealForm ? 'Yes' : 'No');
             
             // Handle recipe selection
             recipeCheckboxes.forEach(function(checkbox) {
@@ -326,19 +332,24 @@
                     
                     updateAddButtonState();
                 });
-            });
-            
-            // Update add button state based on selection
-            function updateAddButtonState() {
-                const selectedRecipes = document.querySelectorAll('.recipe-checkbox:checked');
-                addMealBtn.disabled = selectedRecipes.length === 0;
+                const serveDate = document.querySelector('input[name="ServeDate"]')?.value;
+                
+                // Enable button only if recipes are selected AND meal type and date are filled
+                const canSubmit = selectedRecipes.length > 0 && mealType && serveDate;
+                addMealBtn.disabled = !canSubmit;
                 
                 if (selectedRecipes.length === 0) {
                     addMealBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle me-2" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>Select at least one recipe';
+                } else if (!mealType || !serveDate) {
+                    addMealBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle me-2" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/></svg>Fill meal type and date';
                 } else {
                     addMealBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle me-2" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>Add ' + selectedRecipes.length + ' Recipe' + (selectedRecipes.length > 1 ? 's' : '') + ' to Plan';
                 }
             }
+            
+            // Listen to meal type and serve date changes
+            document.querySelector('select[name="MealType"]')?.addEventListener('change', updateAddButtonState);
+            document.querySelector('input[name="ServeDate"]')?.addEventListener('change', updateAddButtonState);
             
             // Initialize button state
             updateAddButtonState();
@@ -365,6 +376,14 @@
             background-color: #f8f9fa;
             border-radius: 0.375rem;
             padding: 0.75rem;
+        }
+        
+        .nutrition-info small {
+            color: #6c757d !important;
+        }
+        
+        .nutrition-info div {
+            color: #000 !important;
         }
         
         .ingredient-item {

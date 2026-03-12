@@ -1,0 +1,26 @@
+Main flows:
+1.Users select the “Create Meal Plan ” button on the UI, and then the system will display a meal plan creation form. The users then enter the plan‘s name, duration, health information, goal, and choose if the meal plan will be AI-generated or custom. If the plan is custom-created, the system will create an empty meal plan for the users; else if the plan is AI-generated, then the system will create a meal plan,  and based on the user’s creation form, the data the system scanned from the user’s fridge, and the available meals in the database; the system will call api to the AI to create a meal list for the meal plan. After that, the users can view their meal plan and can click to add more meals manually to the meal plan.
+2.Users click the “My fridge”  button, and the system displays the item list in the fridge. When the users click the “Add item” button, the system will display the add item pages with the ingredient list. Users then choose an ingredient, enter the amount, the expiry date, and click the “Confirm” button. After that, the system will display a success notification. When the users click the “Create grocery list " button, they will check their fridge items and their meal plan to generate a grocery list for them. The system then displays the grocery list for the users to check, and when the user click and the “Purchased” button, the system will add the items in the grocery list to the user’s fridge. 
+3.When the users click the “Info” button on the meal plan, the system will display the meal list in the meal plan for the users. The users can then click “View recipe” in the meal, and the system will display recipes for the meal. When the users click the “Finish meal” button, the system will mark the meal’s status as finished and update the user’s fridge item after finishing a meal accordingly, and then send the user a success notification. If a meal’s status is not finished with its serve date being earlier than the current date, the system will flag the meal as “Expired “ status.
+4.When the users click the “Nutrients calculator” button, the system will then display the nutrients calculator page, where the users enter ingredients, portion, and health information. The system then takes the data and calls a request api to the AI, where it calculates the nutrients and returns them to the system, then the system displays meal nutrients and advice to the users. 
+5.When the customer clicks the “My cart” button, the system will display a window where the customer can choose an address and payment method, then click the "Order" button. If the payment is VNPay, the system will send a VNPay payment gateway to the customer for them to enter their card info and click on “Confirm”, then the system will send a success notification. Else if the payment is cash, the system will change the payment status to “Pending” and display a pending notification. After payment, the system will then create an order in the database, and the staff will then call the customer to confirm the order and change the order’s status to confirmed or cancelled. If the status is cancelled, the system will send an order cancelled notification back to the staff. Or if the order’s status is confirmed, send an order confirmed notification to the staff. After confirming the order, when the delivery man clicks the "View delivery schedule" button, the system will display the delivery shift schedule. The delivery man then changed the order status to “Delivering” and went to deliver. After delivery, the delivery man then changed the status of the order to “Failed”, “Customer Received”, or “Customer Reject”, and clicked the “Confirm button”. The system will then send a  “Failed”, “Customer Received”, or “Customer Reject” notification to the delivery man and the customer.
+
+System requirement:
+-Backend: ASP.NET Core Web API, N-Layer architecture, dependency injection with service, interface
+-Frontend: React 
+-Database: MSSQL Server 2019, name: MealPreparationService
+-Third-party services:
++AI: open AI
++Payment: VNPay sandbox
++Optional login: Google
++Google Map api
+-Two tables use enum: Roles and Status
+-System configuration includes:
++Max number of dates in a mealplan: base = 7
++Max number of recipes in a meal: base = 10
++Max number of meal plans per account: base = 5 (without subscription package)
++Max fridge items per account: base =100 (without subscription package)
++Max delivery distance: base = 10km.
+-Dataset given, import when run app if not import yet
+-Grocery list has a print list option
+-Main color is white and green

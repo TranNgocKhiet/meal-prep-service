@@ -5,6 +5,11 @@
 }
 
 <div class="container mt-4">
+    @* Anti-forgery token for AJAX requests *@
+    <form id="antiforgeryForm" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+    
     <div class="row">
         <div class="col-md-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -23,7 +28,7 @@
                         </svg>
                         Print List
                     </button>
-                    <a asp-page="Index" class="btn btn-primary">
+                    <a asp-page="Index" asp-route-t="@DateTime.UtcNow.Ticks" class="btn btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-2" viewBox="0 0 16 16">
                             <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
                         </svg>
@@ -57,13 +62,20 @@
                 {
                     <!-- Grocery Items Table -->
                     <div class="card shadow-sm">
-                        <div class="card-header bg-primary text-white">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-basket me-2" viewBox="0 0 16 16">
                                     <path d="M5.757 1.071a.5.5 0 0 1 .172.686L3.383 6h9.234L10.07 1.757a.5.5 0 1 1 .858-.514L13.783 6H15a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1v4.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 13.5V9a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h1.217L5.07 1.243a.5.5 0 0 1 .686-.172zM2 9v4.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V9H2zM1 7v1h14V7H1zm3 3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 4 10zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 6 10zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3A.5.5 0 0 1 8 10zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 1 .5-.5zm2 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 1 .5-.5z"/>
                                 </svg>
                                 Shopping List
                             </h5>
+                            <button type="button" id="markAsPurchasedBtn" class="btn btn-success btn-sm" disabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle me-1" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                    <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                </svg>
+                                Mark as Purchased
+                            </button>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -82,7 +94,10 @@
                                     <tbody>
                                         @foreach (var item in Model.MissingIngredients.OrderBy(i => i.IngredientName))
                                         {
-                                            <tr>
+                                            <tr data-ingredient-id="@item.IngredientId" 
+                                                data-ingredient-name="@item.IngredientName"
+                                                data-needed-amount="@item.NeededAmount"
+                                                data-unit="@item.Unit">
                                                 <td>
                                                     <input type="checkbox" class="form-check-input item-checkbox" />
                                                 </td>
@@ -175,14 +190,29 @@
 
 @section Scripts {
     <script>
+        const markAsPurchasedBtn = document.getElementById('markAsPurchasedBtn');
+        const checkAllCheckbox = document.getElementById('checkAll');
+        const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+
+        // Update button state based on checked items
+        function updateButtonState() {
+            const checkedCount = document.querySelectorAll('.item-checkbox:checked').length;
+            if (markAsPurchasedBtn) {
+                markAsPurchasedBtn.disabled = checkedCount === 0;
+                markAsPurchasedBtn.textContent = checkedCount > 0 
+                    ? `Mark as Purchased (${checkedCount})` 
+                    : 'Mark as Purchased';
+            }
+        }
+
         // Check all functionality
-        document.getElementById('checkAll')?.addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.item-checkbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
+        checkAllCheckbox?.addEventListener('change', function() {
+            itemCheckboxes.forEach(cb => cb.checked = this.checked);
+            updateButtonState();
         });
 
-        // Strike through checked items
-        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+        // Strike through checked items and update button
+        itemCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 const row = this.closest('tr');
                 if (this.checked) {
@@ -192,8 +222,105 @@
                     row.style.textDecoration = 'none';
                     row.style.opacity = '1';
                 }
+                updateButtonState();
             });
         });
+
+        // Mark as purchased functionality
+        markAsPurchasedBtn?.addEventListener('click', async function() {
+            const checkedItems = document.querySelectorAll('.item-checkbox:checked');
+            
+            if (checkedItems.length === 0) {
+                alert('Please select at least one ingredient to mark as purchased.');
+                return;
+            }
+
+            // Collect selected ingredients data
+            const purchasedItems = [];
+            checkedItems.forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                purchasedItems.push({
+                    ingredientId: row.dataset.ingredientId,
+                    ingredientName: row.dataset.ingredientName,
+                    amount: parseFloat(row.dataset.neededAmount),
+                    unit: row.dataset.unit
+                });
+            });
+
+            // Disable button and show loading state
+            markAsPurchasedBtn.disabled = true;
+            const originalText = markAsPurchasedBtn.innerHTML;
+            markAsPurchasedBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
+
+            try {
+                // Get anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                
+                // Send to server
+                const response = await fetch('/Fridge/GroceryList?handler=MarkAsPurchased', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ items: purchasedItems })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Show success message
+                    showAlert('success', `Successfully added ${result.addedCount} ingredient(s) to your fridge!`);
+                    
+                    // Remove checked rows after a short delay
+                    setTimeout(() => {
+                        checkedItems.forEach(checkbox => {
+                            checkbox.closest('tr').remove();
+                        });
+                        
+                        // Check if all items are gone
+                        const remainingItems = document.querySelectorAll('.item-checkbox').length;
+                        if (remainingItems === 0) {
+                            location.reload(); // Reload to show "all set" message
+                        } else {
+                            updateButtonState();
+                        }
+                    }, 1500);
+                } else {
+                    showAlert('danger', result.message || 'Failed to add items to fridge. Please try again.');
+                    markAsPurchasedBtn.disabled = false;
+                    markAsPurchasedBtn.innerHTML = originalText;
+                }
+            } catch (error) {
+                console.error('Error marking items as purchased:', error);
+                showAlert('danger', 'An error occurred. Please try again.');
+                markAsPurchasedBtn.disabled = false;
+                markAsPurchasedBtn.innerHTML = originalText;
+            }
+        });
+
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+            alertDiv.style.cssText = `
+                z-index: 9999;
+                min-width: 400px;
+                background-color: white;
+                color: black;
+                border: 2px solid #333;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            `;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        // Initialize button state
+        updateButtonState();
     </script>
 }
 

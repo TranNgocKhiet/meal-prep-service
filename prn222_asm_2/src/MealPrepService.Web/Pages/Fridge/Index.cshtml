@@ -2,6 +2,11 @@
 @model MealPrepService.Web.Pages.Fridge.IndexModel
 @{
     ViewData["Title"] = "My Virtual Fridge";
+    
+    // Prevent browser caching
+    Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+    Response.Headers["Pragma"] = "no-cache";
+    Response.Headers["Expires"] = "0";
 }
 
 <div class="container mt-4">
@@ -99,24 +104,47 @@
             {
                 <!-- Search Bar -->
                 <div class="mb-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" class="bi bi-search" viewBox="0 0 16 16">
-                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                            </svg>
-                        </span>
-                        <input type="text" 
-                               class="form-control" 
-                               id="fridgeSearch" 
-                               placeholder="Search ingredients by name..." 
-                               autocomplete="off">
-                        <button class="btn btn-outline-secondary" type="button" id="clearSearch">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <small class="text-muted" id="searchResults"></small>
+                    <form asp-page="Index" method="get" id="searchForm">
+                        <input type="hidden" name="pageNumber" value="1" />
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" class="bi bi-search" viewBox="0 0 16 16">
+                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                                </svg>
+                            </span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="fridgeSearch" 
+                                   name="searchTerm"
+                                   value="@Model.SearchTerm"
+                                   placeholder="Search ingredients by name..." 
+                                   autocomplete="off">
+                            @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                            {
+                                <a href="@Url.Page("/Fridge/Index")" class="btn btn-outline-secondary" type="button" id="clearSearch">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                                    </svg>
+                                </a>
+                            }
+                            <button class="btn btn-primary" type="submit">
+                                Search
+                            </button>
+                        </div>
+                    </form>
+                    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                    {
+                        <small class="text-muted mt-2 d-block">
+                            @if (Model.TotalItems == 0)
+                            {
+                                <span class="text-danger">No ingredients found matching "@Model.SearchTerm"</span>
+                            }
+                            else
+                            {
+                                <span>Found @Model.TotalItems ingredient@(Model.TotalItems != 1 ? "s" : "") matching "@Model.SearchTerm"</span>
+                            }
+                        </small>
+                    }
                 </div>
 
                 <div class="card shadow-sm" style="border-radius: 12px; overflow: hidden; border: 1px solid rgba(34, 197, 94, 0.25);">
@@ -400,7 +428,7 @@
                                     <!-- Previous Button -->
                                     <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
                                         <a class="page-link text-muted" 
-                                           href="@(Model.HasPreviousPage ? Url.Page("/Fridge/Index", new { pageNumber = Model.CurrentPage - 1 }) : "#")"
+                                           href="@(Model.HasPreviousPage ? Url.Page("/Fridge/Index", new { pageNumber = Model.CurrentPage - 1, searchTerm = Model.SearchTerm }) : "#")"
                                            aria-label="Previous">
                                             <span aria-hidden="true">&laquo;</span>
                                         </a>
@@ -428,7 +456,7 @@
                                     @if (startPage > 1)
                                     {
                                         <li class="page-item">
-                                            <a class="page-link text-muted" href="@Url.Page("/Fridge/Index", new { pageNumber = 1 })">1</a>
+                                            <a class="page-link text-muted" href="@Url.Page("/Fridge/Index", new { pageNumber = 1, searchTerm = Model.SearchTerm })">1</a>
                                         </li>
                                         @if (startPage > 2)
                                         {
@@ -444,13 +472,13 @@
                                         if (i == Model.CurrentPage)
                                         {
                                             <li class="page-item active">
-                                                <a class="page-link" href="@Url.Page("/Fridge/Index", new { pageNumber = i })">@i</a>
+                                                <a class="page-link" href="@Url.Page("/Fridge/Index", new { pageNumber = i, searchTerm = Model.SearchTerm })">@i</a>
                                             </li>
                                         }
                                         else
                                         {
                                             <li class="page-item">
-                                                <a class="page-link text-muted" href="@Url.Page("/Fridge/Index", new { pageNumber = i })">@i</a>
+                                                <a class="page-link text-muted" href="@Url.Page("/Fridge/Index", new { pageNumber = i, searchTerm = Model.SearchTerm })">@i</a>
                                             </li>
                                         }
                                     }
@@ -465,14 +493,14 @@
                                             </li>
                                         }
                                         <li class="page-item">
-                                            <a class="page-link text-muted" href="@Url.Page("/Fridge/Index", new { pageNumber = Model.TotalPages })">@Model.TotalPages</a>
+                                            <a class="page-link text-muted" href="@Url.Page("/Fridge/Index", new { pageNumber = Model.TotalPages, searchTerm = Model.SearchTerm })">@Model.TotalPages</a>
                                         </li>
                                     }
                                     
                                     <!-- Next Button -->
                                     <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
                                         <a class="page-link text-muted" 
-                                           href="@(Model.HasNextPage ? Url.Page("/Fridge/Index", new { pageNumber = Model.CurrentPage + 1 }) : "#")"
+                                           href="@(Model.HasNextPage ? Url.Page("/Fridge/Index", new { pageNumber = Model.CurrentPage + 1, searchTerm = Model.SearchTerm }) : "#")"
                                            aria-label="Next">
                                             <span aria-hidden="true">&raquo;</span>
                                         </a>
@@ -520,69 +548,12 @@
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('fridgeSearch');
-            const clearButton = document.getElementById('clearSearch');
-            const searchResults = document.getElementById('searchResults');
-            const fridgeTable = document.getElementById('fridgeTable');
-            
-            if (!searchInput || !fridgeTable) return;
-            
-            const tableRows = fridgeTable.querySelectorAll('tbody tr');
-            const totalRows = tableRows.length;
-            
-            function filterTable() {
-                const searchTerm = searchInput.value.toLowerCase().trim();
-                let visibleCount = 0;
-                
-                tableRows.forEach(function(row) {
-                    const ingredientCell = row.querySelector('td:first-child strong');
-                    if (!ingredientCell) return;
-                    
-                    const ingredientName = ingredientCell.textContent.toLowerCase();
-                    
-                    if (ingredientName.includes(searchTerm)) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-                
-                // Update search results text
-                if (searchTerm) {
-                    if (visibleCount === 0) {
-                        searchResults.textContent = 'No ingredients found matching "' + searchInput.value + '"';
-                        searchResults.classList.add('text-danger');
-                        searchResults.classList.remove('text-muted');
-                    } else if (visibleCount === totalRows) {
-                        searchResults.textContent = 'Showing all ' + totalRows + ' ingredients';
-                        searchResults.classList.remove('text-danger');
-                        searchResults.classList.add('text-muted');
-                    } else {
-                        searchResults.textContent = 'Showing ' + visibleCount + ' of ' + totalRows + ' ingredients';
-                        searchResults.classList.remove('text-danger');
-                        searchResults.classList.add('text-muted');
-                    }
-                    clearButton.style.display = 'block';
-                } else {
-                    searchResults.textContent = '';
-                    clearButton.style.display = 'none';
-                }
+        // Auto-submit search form on Enter key
+        document.getElementById('fridgeSearch')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('searchForm').submit();
             }
-            
-            // Search as user types
-            searchInput.addEventListener('input', filterTable);
-            
-            // Clear search
-            clearButton.addEventListener('click', function() {
-                searchInput.value = '';
-                filterTable();
-                searchInput.focus();
-            });
-            
-            // Hide clear button initially
-            clearButton.style.display = 'none';
         });
     </script>
 }

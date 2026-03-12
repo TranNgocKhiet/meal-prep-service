@@ -282,13 +282,14 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 .ToDictionary(g => g.Key, g => g.Sum(f => f.CurrentAmount));
 
             // Calculate required ingredients from meal plan and track when they're needed
+            // ONLY include meals that are NOT finished
             var requiredIngredients = new Dictionary<Guid, float>();
             var ingredientFirstNeededDate = new Dictionary<Guid, DateTime>();
             
             var today = DateTime.Today;
             var tomorrow = today.AddDays(1);
             
-            foreach (var meal in mealPlan.Meals)
+            foreach (var meal in mealPlan.Meals.Where(m => !m.MealFinished))
             {
                 foreach (var mealRecipe in meal.MealRecipes)
                 {
@@ -359,7 +360,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 MissingIngredients = groceryItems
             };
 
-            _logger.LogInformation("Grocery list generated for account {AccountId}, meal plan {PlanId} ({PlanName}) with {ItemCount} items", 
+            _logger.LogInformation("Grocery list generated for account {AccountId}, meal plan {PlanId} ({PlanName}) with {ItemCount} items (excluding finished meals)", 
                 accountId, mealPlan.Id, mealPlan.PlanName, groceryItems.Count);
 
             return groceryList;

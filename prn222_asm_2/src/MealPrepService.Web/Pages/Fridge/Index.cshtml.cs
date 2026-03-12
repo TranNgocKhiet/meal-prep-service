@@ -25,6 +25,7 @@ public class IndexModel : PageModel
     public int ExpiredItemsCount { get; set; }
     public int CurrentPage { get; set; }
     public int PageSize { get; set; }
+    public string SearchTerm { get; set; } = string.Empty;
 
     // Helper properties for pagination
     public int TotalPages => (int)Math.Ceiling(TotalItems / (double)PageSize);
@@ -41,10 +42,28 @@ public class IndexModel : PageModel
         _ingredientService = ingredientService ?? throw new ArgumentNullException(nameof(ingredientService));
         _mealPlanService = mealPlanService ?? throw new ArgumentNullException(nameof(mealPlanService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        
+        // Initialize properties to prevent null reference errors
+        FridgeItems = new List<FridgeItemDto>();
+        ExpiringItems = new List<FridgeItemDto>();
+        ExpiredItems = new List<FridgeItemDto>();
+        TotalItems = 0;
+        ExpiringItemsCount = 0;
+        ExpiredItemsCount = 0;
+        CurrentPage = 1;
+        PageSize = 20;
+        SearchTerm = string.Empty;
     }
 
-    public async Task<IActionResult> OnGetAsync(int pageNumber = 1)
+    public async Task<IActionResult> OnGetAsync(int pageNumber = 1, string searchTerm = "", long? t = null)
     {
+        // Prevent browser caching
+        Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+        Response.Headers["Pragma"] = "no-cache";
+        Response.Headers["Expires"] = "0";
+        
+        // The 't' parameter is just a cache buster, we don't use it
+        
         try
         {
             var accountId = GetCurrentAccountId();
@@ -55,10 +74,33 @@ public class IndexModel : PageModel
                 pageNumber = 1;
             }
             
-            var (pagedFridgeItems, totalCount) = await _fridgeService.GetFridgeItemsPagedAsync(accountId, pageNumber, pageSize);
+            SearchTerm = searchTerm?.Trim() ?? string.Empty;
+            
+            // Get all fridge items for the account
+            var allFridgeItems = await _fridgeService.GetFridgeItemsAsync(accountId);
+            var fridgeItemsList = allFridgeItems.ToList();
+            
+            // Apply search filter if search term is provided
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                fridgeItemsList = fridgeItemsList
+                    .Where(item => item.IngredientName.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            
+            // Get total count after filtering
+            var totalCount = fridgeItemsList.Count;
+            
+            // Apply pagination
+            var pagedFridgeItems = fridgeItemsList
+                .OrderBy(item => item.ExpiryDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            
             var expiringItems = await _fridgeService.GetExpiringItemsAsync(accountId);
             
-            FridgeItems = pagedFridgeItems.ToList();
+            FridgeItems = pagedFridgeItems;
             ExpiringItems = expiringItems.Where(item => item.IsExpiring && !item.IsExpired).ToList();
             ExpiredItems = expiringItems.Where(item => item.IsExpired).ToList();
             TotalItems = totalCount;
@@ -73,6 +115,18 @@ public class IndexModel : PageModel
         {
             _logger.LogError(ex, "Error occurred while retrieving fridge items for account {AccountId}", GetCurrentAccountId());
             TempData["ErrorMessage"] = "An error occurred while loading your fridge items.";
+            
+            // Initialize empty lists to prevent null reference errors
+            FridgeItems = new List<FridgeItemDto>();
+            ExpiringItems = new List<FridgeItemDto>();
+            ExpiredItems = new List<FridgeItemDto>();
+            TotalItems = 0;
+            ExpiringItemsCount = 0;
+            ExpiredItemsCount = 0;
+            CurrentPage = 1;
+            PageSize = 20;
+            SearchTerm = searchTerm?.Trim() ?? string.Empty;
+            
             return Page();
         }
     }

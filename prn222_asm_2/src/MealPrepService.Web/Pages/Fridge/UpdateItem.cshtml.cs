@@ -40,7 +40,7 @@ public class UpdateItemModel : PageModel
         if (!ModelState.IsValid)
         {
             TempData["ErrorMessage"] = "Invalid input values.";
-            return RedirectToPage("/Fridge/Index");
+            return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
         }
 
         try
@@ -52,7 +52,7 @@ public class UpdateItemModel : PageModel
             if (item == null)
             {
                 TempData["ErrorMessage"] = "Item not found.";
-                return RedirectToPage("/Fridge/Index");
+                return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
             }
 
             bool quantityChanged = Math.Abs(item.CurrentAmount - NewAmount) > 0.001f;
@@ -61,7 +61,7 @@ public class UpdateItemModel : PageModel
             if (!quantityChanged && !expiryChanged)
             {
                 TempData["InfoMessage"] = "No changes were made.";
-                return RedirectToPage("/Fridge/Index");
+                return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
             }
 
             // Update quantity if changed
@@ -89,19 +89,19 @@ public class UpdateItemModel : PageModel
             TempData["SuccessMessage"] = $"{IngredientName} {changeText} updated successfully!" + 
                 (expiryChanged ? " Items with matching expiry dates have been merged." : "");
             
-            return RedirectToPage("/Fridge/Index");
+            return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
         }
         catch (BusinessException ex)
         {
             TempData["ErrorMessage"] = ex.Message;
-            return RedirectToPage("/Fridge/Index");
+            return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while updating fridge item {FridgeItemId} for account {AccountId}", 
                 FridgeItemId, GetCurrentAccountId());
             TempData["ErrorMessage"] = "An error occurred while updating the item. Please try again.";
-            return RedirectToPage("/Fridge/Index");
+            return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
         }
     }
 

@@ -33,19 +33,19 @@ public class RemoveModel : PageModel
                 id, GetCurrentAccountId());
             
             TempData["SuccessMessage"] = "Item removed from your fridge successfully!";
-            return RedirectToPage("/Fridge/Index");
+            return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
         }
         catch (BusinessException ex)
         {
             TempData["ErrorMessage"] = ex.Message;
-            return RedirectToPage("/Fridge/Index");
+            return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while removing fridge item {FridgeItemId} for account {AccountId}", 
                 id, GetCurrentAccountId());
             TempData["ErrorMessage"] = "An error occurred while removing the item. Please try again.";
-            return RedirectToPage("/Fridge/Index");
+            return RedirectToPage("/Fridge/Index", new { t = DateTime.UtcNow.Ticks });
         }
     }
 
