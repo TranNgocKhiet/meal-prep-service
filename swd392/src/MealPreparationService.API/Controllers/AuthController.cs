@@ -1,6 +1,7 @@
 using MealPreparationService.API.Models;
 using MealPreparationService.API.Models.DTOs;
 using MealPreparationService.Business.Services;
+using MealPreparationService.DataAccess.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -51,7 +52,8 @@ public class AuthController : ControllerBase
                     Email = result.User.Email,
                     FullName = result.User.FullName,
                     PhoneNumber = result.User.PhoneNumber,
-                    RoleName = result.User.Role.Name
+                    RoleName = result.User.Role.Name,
+                    CurrentCredits = result.User.CurrentCredits
                 }
             };
 
@@ -88,7 +90,8 @@ public class AuthController : ControllerBase
                     Email = result.User.Email,
                     FullName = result.User.FullName,
                     PhoneNumber = result.User.PhoneNumber,
-                    RoleName = result.User.Role.Name
+                    RoleName = result.User.Role.Name,
+                    CurrentCredits = result.User.CurrentCredits
                 }
             };
 
@@ -125,7 +128,8 @@ public class AuthController : ControllerBase
                     Email = result.User.Email,
                     FullName = result.User.FullName,
                     PhoneNumber = result.User.PhoneNumber,
-                    RoleName = result.User.Role.Name
+                    RoleName = result.User.Role.Name,
+                    CurrentCredits = result.User.CurrentCredits
                 }
             };
 
@@ -191,7 +195,7 @@ public class AuthController : ControllerBase
 
     [Authorize]
     [HttpGet("me")]
-    public ActionResult<ApiResponse<UserDto>> GetCurrentUser()
+    public async Task<ActionResult<ApiResponse<UserDto>>> GetCurrentUser([FromServices] IUnitOfWork unitOfWork)
     {
         try
         {
@@ -205,12 +209,19 @@ public class AuthController : ControllerBase
                 return Unauthorized(ApiResponse<UserDto>.ErrorResponse("User not authenticated"));
             }
 
+            // Fetch user from database to get current credits
+            var user = await unitOfWork.Accounts.GetByIdAsync(userId);
+            var phoneNumber = user?.PhoneNumber ?? string.Empty;
+            var currentCredits = user?.CurrentCredits ?? 0;
+
             var userDto = new UserDto
             {
                 Id = userId,
                 Email = email ?? string.Empty,
                 FullName = fullName ?? string.Empty,
-                RoleName = roleName ?? string.Empty
+                PhoneNumber = phoneNumber,
+                RoleName = roleName ?? string.Empty,
+                CurrentCredits = currentCredits
             };
 
             return Ok(ApiResponse<UserDto>.SuccessResponse(userDto, "User retrieved successfully"));

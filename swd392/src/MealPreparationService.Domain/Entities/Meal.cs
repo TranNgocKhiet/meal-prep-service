@@ -11,10 +11,13 @@ public class Meal : BaseEntity
     public decimal FatG { get; set; }
     public decimal CarbsG { get; set; }
     public DateTime ServerDate { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     public bool MealFinished { get; set; }
     
     // Navigation properties
     public ICollection<MealRecipe> MealRecipes { get; set; } = new List<MealRecipe>();
 }
+
+
+

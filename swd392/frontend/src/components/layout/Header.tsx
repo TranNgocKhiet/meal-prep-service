@@ -140,6 +140,8 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
                           <li><Link to="/admin/allergies">Allergies</Link></li>
                           <li><Link to="/admin/recipes">Recipes</Link></li>
                           <li><Link to="/admin/nutrients">Nutrients</Link></li>
+                          <li><Link to="/admin/ai-credit-packages">AI Credit Packages</Link></li>
+                          <li><Link to="/admin/subscription-packages">Subscription Packages</Link></li>
                         </ul>
                       </li>
                       <li><Link to="/admin/system-config">System Configuration</Link></li>
@@ -163,11 +165,23 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
                       <div className="user-dropdown-header">
                         <div className="user-dropdown-name">{user?.fullName}</div>
                         <div className="user-dropdown-email">{user?.email}</div>
+                        {isCustomer && (
+                          <div className="user-dropdown-credits">
+                            <span className="credits-icon">⚡</span>
+                            <span className="credits-text">AI Credits: </span>
+                            <span className="credits-amount">{user?.currentCredits || 0}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="user-dropdown-divider"></div>
                       <Link to="/profile" className="user-dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
                         Profile Settings
                       </Link>
+                      {isCustomer && (
+                        <Link to="/ai-credits" className="user-dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
+                          AI Credits
+                        </Link>
+                      )}
                       <button onClick={handleLogout} className="user-dropdown-item user-dropdown-logout">
                         Logout
                       </button>

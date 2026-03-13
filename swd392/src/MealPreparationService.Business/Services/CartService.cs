@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.DataAccess.UnitOfWork;
 using MealPreparationService.Domain.Entities;
@@ -10,11 +11,13 @@ public class CartService : ICartService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CartService> _logger;
+    private readonly IDateTimeService _dateTimeService;
 
-    public CartService(IUnitOfWork unitOfWork, ILogger<CartService> logger)
+    public CartService(IUnitOfWork unitOfWork, ILogger<CartService> logger, IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<CartDto> GetCartAsync(string userId)
@@ -35,7 +38,7 @@ public class CartService : ICartService
             {
                 Id = Guid.NewGuid().ToString(),
                 AccountId = userId,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = _dateTimeService.Now
             };
             
             await _unitOfWork.Carts.AddAsync(cart);
@@ -60,18 +63,28 @@ public class CartService : ICartService
             {
                 Id = Guid.NewGuid().ToString(),
                 AccountId = userId,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = _dateTimeService.Now
             };
             await _unitOfWork.Carts.AddAsync(cart);
         }
 
         // Check if menu meal exists and has availability
         var menuMeal = await _unitOfWork.MenuMeals.GetAllQueryable()
+            .Include(mm => mm.Menu)
             .FirstOrDefaultAsync(mm => mm.Id == dto.MenuMealId);
 
         if (menuMeal == null)
         {
             throw new KeyNotFoundException($"Menu meal {dto.MenuMealId} not found");
+        }
+
+        // Check if menu date is in the past
+        var menuDate = menuMeal.Menu.MenuDate.Date;
+        var today = _dateTimeService.Now.Date;
+        
+        if (menuDate < today)
+        {
+            throw new InvalidOperationException("Cannot order meals from past menus");
         }
 
         if (menuMeal.AvailableQuantity < dto.Quantity)
@@ -105,7 +118,7 @@ public class CartService : ICartService
             cart.CartItems.Add(cartItem);
         }
 
-        cart.UpdatedAt = DateTime.UtcNow;
+        cart.UpdatedAt = _dateTimeService.Now;
         await _unitOfWork.SaveChangesAsync();
 
         return await GetCartAsync(userId);
@@ -138,7 +151,7 @@ public class CartService : ICartService
         }
 
         cartItem.Quantity = quantity;
-        cart.UpdatedAt = DateTime.UtcNow;
+        cart.UpdatedAt = _dateTimeService.Now;
         await _unitOfWork.SaveChangesAsync();
 
         return await GetCartAsync(userId);
@@ -165,7 +178,7 @@ public class CartService : ICartService
         }
 
         cart.CartItems.Remove(cartItem);
-        cart.UpdatedAt = DateTime.UtcNow;
+        cart.UpdatedAt = _dateTimeService.Now;
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -183,7 +196,7 @@ public class CartService : ICartService
         }
 
         cart.CartItems.Clear();
-        cart.UpdatedAt = DateTime.UtcNow;
+        cart.UpdatedAt = _dateTimeService.Now;
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -217,3 +230,5 @@ public class CartService : ICartService
         };
     }
 }
+
+

@@ -7,6 +7,7 @@ interface User {
   fullName: string;
   phoneNumber: string;
   roleName: string;
+  currentCredits?: number;
 }
 
 interface AuthContextType {

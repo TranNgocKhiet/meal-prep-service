@@ -388,6 +388,12 @@
   border-bottom: 2px solid #e2e8f0;
   overflow-x: auto;
   padding-bottom: 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.role-tabs::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .role-tab {
@@ -395,7 +401,7 @@
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
-  color: #4a5568;
+  color: #fff;
   font-weight: 500;
   font-size: var(--font-size-sm);
   cursor: pointer;

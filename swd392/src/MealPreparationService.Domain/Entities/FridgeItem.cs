@@ -10,6 +10,9 @@ public class FridgeItem : BaseEntity
     public Ingredient Ingredient { get; set; } = null!;
     public decimal CurrentAmount { get; set; }
     public DateTime ExpiryDate { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
+
+
+

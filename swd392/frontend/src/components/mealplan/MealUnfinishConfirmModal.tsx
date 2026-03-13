@@ -26,12 +26,6 @@ const MealUnfinishConfirmModal = ({ isOpen, onClose, onConfirm, ingredients, loa
     }
   }, [ingredients]);
 
-  const getDefaultExpiryDate = () => {
-    const date = new Date();
-    date.setDate(date.getDate() + 7); // Default 7 days from now
-    return date.toISOString().split('T')[0];
-  };
-
   const updateAmount = (ingredientId: string, amount: number) => {
     setEditableIngredients(prev =>
       prev.map(ing =>

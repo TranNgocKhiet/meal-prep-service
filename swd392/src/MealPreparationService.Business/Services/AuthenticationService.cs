@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.DataAccess.UnitOfWork;
 using MealPreparationService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -12,19 +13,22 @@ public class AuthenticationService : IAuthenticationService
     private readonly ITokenService _tokenService;
     private readonly IGoogleOAuthService _googleOAuthService;
     private readonly IConfiguration _configuration;
+    private readonly IDateTimeService _dateTimeService;
 
     public AuthenticationService(
         IUnitOfWork unitOfWork,
         IPasswordHasher passwordHasher,
         ITokenService tokenService,
         IGoogleOAuthService googleOAuthService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _passwordHasher = passwordHasher;
         _tokenService = tokenService;
         _googleOAuthService = googleOAuthService;
         _configuration = configuration;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<AuthenticationServiceResult> RegisterAsync(
@@ -67,8 +71,8 @@ public class AuthenticationService : IAuthenticationService
             PhoneNumber = phoneNumber,
             RoleId = role.Id,
             CurrentCredits = 0,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _dateTimeService.Now,
+            UpdatedAt = _dateTimeService.Now,
             IsActive = true
         };
 
@@ -89,7 +93,7 @@ public class AuthenticationService : IAuthenticationService
         // Generate tokens
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
-        var expiresAt = DateTime.UtcNow.AddHours(int.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "24"));
+        var expiresAt = _dateTimeService.Now.AddHours(int.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "24"));
 
         return new AuthenticationServiceResult
         {
@@ -123,14 +127,14 @@ public class AuthenticationService : IAuthenticationService
         }
 
         // Update last login
-        user.LastLoginAt = DateTime.UtcNow;
+        user.LastLoginAt = _dateTimeService.Now;
         await _unitOfWork.Accounts.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
         // Generate tokens
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
-        var expiresAt = DateTime.UtcNow.AddHours(int.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "24"));
+        var expiresAt = _dateTimeService.Now.AddHours(int.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "24"));
 
         return new AuthenticationServiceResult
         {
@@ -164,6 +168,24 @@ public class AuthenticationService : IAuthenticationService
             
             if (user != null)
             {
+                // Check if GoogleAuth record exists
+                var existingGoogleAuth = await _unitOfWork.GoogleAuths.GetByIdAsync(googleUserInfo.GoogleAuthId);
+                if (existingGoogleAuth == null)
+                {
+                    // Create GoogleAuth record
+                    var googleAuth = new GoogleAuth
+                    {
+                        Id = googleUserInfo.GoogleAuthId,
+                        ProviderKey = googleUserInfo.GoogleAuthId,
+                        AccessToken = string.Empty,
+                        RefreshToken = string.Empty,
+                        ExpiresAt = _dateTimeService.Now.AddDays(30),
+                        IsVerified = true
+                    };
+                    await _unitOfWork.GoogleAuths.AddAsync(googleAuth);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                
                 // Link Google account to existing user
                 user.GoogleAuthId = googleUserInfo.GoogleAuthId;
                 await _unitOfWork.Accounts.UpdateAsync(user);
@@ -184,6 +206,20 @@ public class AuthenticationService : IAuthenticationService
                     };
                 }
 
+                // Create GoogleAuth record first
+                var googleAuth = new GoogleAuth
+                {
+                    Id = googleUserInfo.GoogleAuthId,
+                    ProviderKey = googleUserInfo.GoogleAuthId,
+                    AccessToken = string.Empty,
+                    RefreshToken = string.Empty,
+                    ExpiresAt = _dateTimeService.Now.AddDays(30),
+                    IsVerified = true
+                };
+                await _unitOfWork.GoogleAuths.AddAsync(googleAuth);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Now create the user account
                 user = new Account
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -194,8 +230,8 @@ public class AuthenticationService : IAuthenticationService
                     RoleId = customerRole.Id,
                     GoogleAuthId = googleUserInfo.GoogleAuthId,
                     CurrentCredits = 0,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
+                    CreatedAt = _dateTimeService.Now,
+                    UpdatedAt = _dateTimeService.Now,
                     IsActive = true
                 };
 
@@ -217,14 +253,14 @@ public class AuthenticationService : IAuthenticationService
         }
 
         // Update last login
-        user.LastLoginAt = DateTime.UtcNow;
+        user.LastLoginAt = _dateTimeService.Now;
         await _unitOfWork.Accounts.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync();
 
         // Generate tokens
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken(user);
-        var expiresAt = DateTime.UtcNow.AddHours(int.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "24"));
+        var expiresAt = _dateTimeService.Now.AddHours(int.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "24"));
 
         return new AuthenticationServiceResult
         {
@@ -270,7 +306,7 @@ public class AuthenticationService : IAuthenticationService
         // Generate new tokens
         var accessToken = _tokenService.GenerateAccessToken(user);
         var newRefreshToken = _tokenService.GenerateRefreshToken(user);
-        var expiresAt = DateTime.UtcNow.AddHours(int.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "24"));
+        var expiresAt = _dateTimeService.Now.AddHours(int.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "24"));
 
         return new AuthenticationServiceResult
         {
@@ -290,3 +326,5 @@ public class AuthenticationService : IAuthenticationService
         await Task.CompletedTask;
     }
 }
+
+

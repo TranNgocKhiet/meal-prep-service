@@ -6,5 +6,8 @@ public class SystemConfiguration : BaseEntity
     public string Value { get; set; } = string.Empty;
     public string DataType { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
 }
+
+
+

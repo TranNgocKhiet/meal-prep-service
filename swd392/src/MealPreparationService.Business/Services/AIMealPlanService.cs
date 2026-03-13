@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.DataAccess.Data;
 using MealPreparationService.DataAccess.UnitOfWork;
@@ -22,24 +23,44 @@ public class AIMealPlanService : IAIMealPlanService
     private readonly ILogger<AIMealPlanService> _logger;
     private readonly IConfiguration _configuration;
     private readonly IMealPlanService _mealPlanService;
+    private readonly IDateTimeService _dateTimeService;
 
     public AIMealPlanService(
         IUnitOfWork unitOfWork,
         ApplicationDbContext context,
         ILogger<AIMealPlanService> logger,
         IConfiguration configuration,
-        IMealPlanService mealPlanService)
+        IMealPlanService mealPlanService,
+        IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _context = context;
         _logger = logger;
         _configuration = configuration;
         _mealPlanService = mealPlanService;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<MealPlanDto> GenerateAIMealPlanAsync(CreateMealPlanDto dto, string userId)
     {
         _logger.LogInformation("=== STARTING AI MEAL PLAN GENERATION ===");
+        
+        // Check if user has enough credits
+        var user = await _unitOfWork.Accounts.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new UnauthorizedAccessException("User not found");
+        }
+        
+        if (user.CurrentCredits < 1)
+        {
+            throw new InvalidOperationException("Insufficient AI credits. Please purchase more credits to generate AI meal plans.");
+        }
+        
+        // Deduct 1 credit from user's account
+        user.CurrentCredits -= 1;
+        _logger.LogInformation("Deducted 1 AI credit from user {UserId}. Remaining credits: {Credits}", 
+            userId, user.CurrentCredits);
         
         // Apply defaults for null values
         var durationDays = dto.DurationDays ?? 1;
@@ -73,6 +94,9 @@ public class AIMealPlanService : IAIMealPlanService
         // Create meal plan with AI-generated recipes
         _logger.LogInformation("Creating meal plan with recipes...");
         var mealPlan = await CreateMealPlanWithRecipesAsync(dto, userId, selectedRecipes);
+        
+        // Save the credit deduction
+        await _unitOfWork.SaveChangesAsync();
         
         _logger.LogInformation("=== AI MEAL PLAN GENERATION COMPLETED ===");
         return mealPlan;
@@ -336,8 +360,8 @@ Select recipes from the AvailableRecipes list. Ensure each recipe is safe for th
             EndDate = startDate.AddDays(durationDays - 1), // Fixed: Duration of 1 day means start and end are the same day
             IsAiGenerated = true,
             IsActive = false,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _dateTimeService.Now,
+            UpdatedAt = _dateTimeService.Now,
             Age = dto.Age,
             Weight = dto.Weight,
             Height = dto.Height,
@@ -476,8 +500,8 @@ Select recipes from the AvailableRecipes list. Ensure each recipe is safe for th
                         ProteinG = totalProtein,
                         FatG = totalFat,
                         CarbsG = totalCarbs,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
+                        CreatedAt = _dateTimeService.Now,
+                        UpdatedAt = _dateTimeService.Now
                     };
 
                     _context.Meals.Add(meal);
@@ -537,3 +561,5 @@ Select recipes from the AvailableRecipes list. Ensure each recipe is safe for th
         public string MealType { get; set; } = string.Empty;
     }
 }
+
+

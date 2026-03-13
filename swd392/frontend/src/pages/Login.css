@@ -124,6 +124,20 @@
   padding: 0 16px;
 }
 
+.google-login-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.google-login-container > div {
+  width: 100% !important;
+}
+
+.google-login-container > div > div {
+  width: 100% !important;
+}
+
 .btn-google {
   display: flex;
   align-items: center;

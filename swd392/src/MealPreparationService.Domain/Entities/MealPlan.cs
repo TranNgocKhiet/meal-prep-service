@@ -8,8 +8,8 @@ public class MealPlan : BaseEntity
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public bool IsAiGenerated { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     public bool IsActive { get; set; }
     
     // Personal Information
@@ -23,3 +23,6 @@ public class MealPlan : BaseEntity
     // Navigation properties
     public ICollection<Meal> Meals { get; set; } = new List<Meal>();
 }
+
+
+

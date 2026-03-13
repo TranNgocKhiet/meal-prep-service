@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.DataAccess.UnitOfWork;
 using MealPreparationService.Domain.Entities;
 using Microsoft.Extensions.Logging;
@@ -11,13 +12,16 @@ public class DatabaseSeeder
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<DatabaseSeeder> _logger;
+    private readonly IDateTimeService _dateTimeService;
 
     public DatabaseSeeder(
         IUnitOfWork unitOfWork, 
-        ILogger<DatabaseSeeder> logger)
+        ILogger<DatabaseSeeder> logger,
+        IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _dateTimeService = dateTimeService;
     }
 
     /// <summary>
@@ -84,8 +88,8 @@ public class DatabaseSeeder
             PhoneNumber = string.Empty,
             RoleId = 1, // Admin role
             CurrentCredits = 0,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = _dateTimeService.Now,
+            UpdatedAt = _dateTimeService.Now,
             IsActive = true
         };
 
@@ -95,3 +99,4 @@ public class DatabaseSeeder
         _logger.LogInformation("Default admin account created successfully. Email: {Email}", adminEmail);
     }
 }
+

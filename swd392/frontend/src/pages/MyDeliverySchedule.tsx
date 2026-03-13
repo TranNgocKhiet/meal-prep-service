@@ -73,8 +73,8 @@ const MyDeliverySchedule = () => {
     }
   };
 
-  const getStatusOptions = (currentStatus: string) => {
-    // Return available status transitions based on current status
+  const getStatusOptions = () => {
+    // Return available status transitions
     const options = [
       { value: 9, label: 'Delivering' },
       { value: 10, label: 'Delivery Failed' },
@@ -166,7 +166,7 @@ const MyDeliverySchedule = () => {
                         onChange={(e) => handleStatusChange(schedule.orderId, parseInt(e.target.value))}
                         disabled={updatingStatus === schedule.orderId}
                       >
-                        {getStatusOptions(schedule.orderStatus).map((option) => (
+                        {getStatusOptions().map((option) => (
                           <option key={option.value} value={option.value}>
                             {option.label}
                           </option>

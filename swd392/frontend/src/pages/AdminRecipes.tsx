@@ -126,7 +126,7 @@ const AdminRecipes = () => {
   return (
     <div className="container">
       <div className="crud-header">
-        <h1>Recipes Management</h1>
+        <h1 style={{ color: '#fff' }}>Recipes Management</h1>
         <div className="crud-actions">
           <input
             type="text"

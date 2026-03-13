@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import Layout from './components/layout/Layout';
@@ -38,10 +39,14 @@ import AdminIngredients from './pages/AdminIngredients';
 import AdminAllergies from './pages/AdminAllergies';
 import AdminRecipes from './pages/AdminRecipes';
 import AdminNutrients from './pages/AdminNutrients';
+import AdminAICreditPackages from './pages/AdminAICreditPackages';
+import AdminSubscriptionPackages from './pages/AdminSubscriptionPackages';
 import AdminMenu from './pages/AdminMenu';
 import AdminAccounts from './pages/AdminAccounts';
 import SystemConfiguration from './pages/SystemConfiguration';
 import RevenueReport from './pages/RevenueReport';
+import AICredits from './pages/AICredits';
+import AICreditCallback from './pages/AICreditCallback';
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -120,6 +125,16 @@ function AppRoutes() {
         <Route path="/admin/nutrients" element={
           <ProtectedRoute>
             <AdminNutrients />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/ai-credit-packages" element={
+          <ProtectedRoute>
+            <AdminAICreditPackages />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/subscription-packages" element={
+          <ProtectedRoute>
+            <AdminSubscriptionPackages />
           </ProtectedRoute>
         } />
         <Route path="/admin/system-config" element={
@@ -237,18 +252,30 @@ function AppRoutes() {
             <Profile />
           </ProtectedRoute>
         } />
+        <Route path="/ai-credits" element={
+          <ProtectedRoute>
+            <AICredits />
+          </ProtectedRoute>
+        } />
+        <Route path="/ai-credits/callback" element={
+          <AICreditCallback />
+        } />
       </Route>
     </Routes>
   );
 }
 
 function App() {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '171729143176-34pb94dona5efs8j7n5ibgilsghp4i2e.apps.googleusercontent.com';
+  
   return (
-    <Router>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </Router>
+    <GoogleOAuthProvider clientId={clientId}>
+      <Router>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </Router>
+    </GoogleOAuthProvider>
   );
 }
 

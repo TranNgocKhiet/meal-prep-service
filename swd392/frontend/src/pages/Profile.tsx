@@ -81,7 +81,7 @@ const Profile = () => {
   return (
     <div className="profile-container">
       <div className="profile-header">
-        <h1>My Profile</h1>
+        <h1 style={{ color: '#fff' }}>My Profile</h1>
       </div>
 
       {error && <div className="error-message">{error}</div>}

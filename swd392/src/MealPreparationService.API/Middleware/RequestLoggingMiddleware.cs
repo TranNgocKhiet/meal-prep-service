@@ -25,7 +25,7 @@ public class RequestLoggingMiddleware
         var requestPath = context.Request.Path;
         var requestMethod = context.Request.Method;
         var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Anonymous";
-        var timestamp = DateTime.UtcNow;
+        var timestamp = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
         // Sanitize path before logging (in case it contains sensitive data)
         var sanitizedPath = logSanitizer.SanitizeLogMessage(requestPath.ToString());
@@ -77,3 +77,4 @@ public class RequestLoggingMiddleware
         return sensitiveHeaders.Any(h => h.Equals(headerName, StringComparison.OrdinalIgnoreCase));
     }
 }
+

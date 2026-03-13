@@ -6,6 +6,7 @@ public interface IUnitOfWork : IDisposable
 {
     IAccountRepository Accounts { get; }
     IRoleRepository Roles { get; }
+    IGoogleAuthRepository GoogleAuths { get; }
     IMealPlanRepository MealPlans { get; }
     IRecipeRepository Recipes { get; }
     IIngredientRepository Ingredients { get; }

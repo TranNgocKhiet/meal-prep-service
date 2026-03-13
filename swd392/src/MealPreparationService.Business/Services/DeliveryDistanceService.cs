@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,7 @@ public class DeliveryDistanceService : IDeliveryDistanceService
 {
     private readonly IGoogleMapsService _googleMapsService;
     private readonly ILogger<DeliveryDistanceService> _logger;
+    private readonly IDateTimeService _dateTimeService;
     private readonly double _maxDeliveryDistanceKm;
     private readonly LocationDto _serviceCenterLocation;
     private readonly decimal _baseDeliveryFee;
@@ -19,10 +21,12 @@ public class DeliveryDistanceService : IDeliveryDistanceService
     public DeliveryDistanceService(
         IGoogleMapsService googleMapsService,
         IConfiguration configuration,
-        ILogger<DeliveryDistanceService> logger)
+        ILogger<DeliveryDistanceService> logger,
+        IDateTimeService dateTimeService)
     {
         _googleMapsService = googleMapsService;
         _logger = logger;
+        _dateTimeService = dateTimeService;
         
         // Load configuration
         _maxDeliveryDistanceKm = double.TryParse(
@@ -55,7 +59,7 @@ public class DeliveryDistanceService : IDeliveryDistanceService
             Latitude = serviceCenterLat,
             Longitude = serviceCenterLng,
             Address = "Service Center",
-            Timestamp = DateTime.UtcNow
+            Timestamp = _dateTimeService.Now
         };
         
         // Load delivery fee configuration
@@ -188,7 +192,9 @@ public class DeliveryDistanceService : IDeliveryDistanceService
             Latitude = _serviceCenterLocation.Latitude,
             Longitude = _serviceCenterLocation.Longitude,
             Address = _serviceCenterLocation.Address,
-            Timestamp = DateTime.UtcNow
+            Timestamp = _dateTimeService.Now
         };
     }
 }
+
+

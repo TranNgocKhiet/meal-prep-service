@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Container from '../components/layout/Container';
 import apiClient from '../config/api';
+import { useAuth } from '../hooks/useAuth';
 import './MealPlans.css';
 
 interface MealPlan {
@@ -17,10 +18,13 @@ interface MealPlan {
 }
 
 const MealPlans = () => {
+  const { user } = useAuth();
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const currentCredits = user?.currentCredits || 0;
 
   useEffect(() => {
     fetchMealPlans();
@@ -68,19 +72,6 @@ const MealPlans = () => {
     }
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return 'status-badge status-active';
-      case 'completed':
-        return 'status-badge status-completed';
-      case 'pending':
-        return 'status-badge status-pending';
-      default:
-        return 'status-badge';
-    }
-  };
-
   const canCreateMorePlans = () => {
     // Allow unlimited meal plans for all users
     return true;
@@ -101,7 +92,14 @@ const MealPlans = () => {
     <Container>
       <div className="meal-plans-page">
         <div className="page-header">
-          <h1>My Meal Plans</h1>
+          <div className="header-left">
+            <h1>My Meal Plans</h1>
+            <div className="ai-credits-display">
+              <span className="credits-icon">⚡</span>
+              <span className="credits-text">AI Credits: </span>
+              <span className="credits-amount">{currentCredits}</span>
+            </div>
+          </div>
           <div className="header-actions">
             <button
               className="btn btn-primary"

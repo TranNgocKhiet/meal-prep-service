@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import apiClient from '../config/api';
+import { useAuth } from '../hooks/useAuth';
 import { formatVND } from '../utils/currency';
 import './WeeklyMenu.css';
 
@@ -27,6 +28,8 @@ const WeeklyMenu = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
+  const { user } = useAuth();
+  const isCustomer = user?.roleName === 'Customer';
 
   function getWeekStart(date: Date): Date {
     const d = new Date(date);
@@ -158,13 +161,15 @@ const WeeklyMenu = () => {
                       <span className={`availability-badge ${meal.availableQuantity > 0 ? 'available' : 'unavailable'}`} style={{ color: meal.availableQuantity > 0 ? '#48bb78' : '#e53e3e' }}>
                         {meal.availableQuantity > 0 ? `${meal.availableQuantity} available` : 'Sold Out'}
                       </span>
-                      <button 
-                        className="btn-add-to-cart"
-                        onClick={() => handleAddToCart(meal.id)}
-                        disabled={meal.availableQuantity === 0 || addingToCart === meal.id}
-                      >
-                        {addingToCart === meal.id ? 'Adding...' : 'Add to Cart'}
-                      </button>
+                      {isCustomer && (
+                        <button 
+                          className="btn-add-to-cart"
+                          onClick={() => handleAddToCart(meal.id)}
+                          disabled={meal.availableQuantity === 0 || addingToCart === meal.id}
+                        >
+                          {addingToCart === meal.id ? 'Adding...' : 'Add to Cart'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.DataAccess.UnitOfWork;
 using MealPreparationService.Domain.Entities;
@@ -10,13 +11,16 @@ public class DeliveryScheduleService : IDeliveryScheduleService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<DeliveryScheduleService> _logger;
+    private readonly IDateTimeService _dateTimeService;
 
     public DeliveryScheduleService(
         IUnitOfWork unitOfWork,
-        ILogger<DeliveryScheduleService> logger)
+        ILogger<DeliveryScheduleService> logger,
+        IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<DeliveryScheduleDto> CreateDeliveryScheduleAsync(CreateDeliveryScheduleDto dto)
@@ -73,8 +77,8 @@ public class DeliveryScheduleService : IDeliveryScheduleService
             DeliveryTime = dto.DeliveryTime,
             Address = dto.Address,
             DriverContact = dto.DriverContact,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = _dateTimeService.Now,
+            UpdatedAt = _dateTimeService.Now
         };
 
         schedule = await _unitOfWork.DeliverySchedules.AddAsync(schedule);
@@ -131,7 +135,7 @@ public class DeliveryScheduleService : IDeliveryScheduleService
             schedule.DriverContact = dto.DriverContact;
         }
 
-        schedule.UpdatedAt = DateTime.UtcNow;
+        schedule.UpdatedAt = _dateTimeService.Now;
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Successfully updated delivery schedule {ScheduleId}", scheduleId);
@@ -243,3 +247,5 @@ public class DeliveryScheduleService : IDeliveryScheduleService
         };
     }
 }
+
+

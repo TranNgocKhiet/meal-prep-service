@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.Business.Models;
 using MealPreparationService.DataAccess.UnitOfWork;
@@ -12,15 +13,18 @@ public class OrderService : IOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<OrderService> _logger;
     private readonly IVnPayService _vnPayService;
+    private readonly IDateTimeService _dateTimeService;
 
     public OrderService(
         IUnitOfWork unitOfWork, 
         ILogger<OrderService> logger,
-        IVnPayService vnPayService)
+        IVnPayService vnPayService,
+        IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _vnPayService = vnPayService;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<OrderDto> CreateOrderAsync(CreateOrderDto dto, string userId)
@@ -31,11 +35,23 @@ public class OrderService : IOrderService
         var cart = await _unitOfWork.Carts.GetAllQueryable()
             .Include(c => c.CartItems)
                 .ThenInclude(ci => ci.MenuMeal)
+                    .ThenInclude(mm => mm.Menu)
             .FirstOrDefaultAsync(c => c.AccountId == userId);
 
         if (cart == null || !cart.CartItems.Any())
         {
             throw new InvalidOperationException("Cart is empty");
+        }
+
+        // Validate all menu items are not from past dates
+        var today = _dateTimeService.Now.Date;
+        var pastMenuItems = cart.CartItems
+            .Where(ci => ci.MenuMeal.Menu.MenuDate.Date < today)
+            .ToList();
+
+        if (pastMenuItems.Any())
+        {
+            throw new InvalidOperationException("Cannot order meals from past menus. Please remove past menu items from your cart.");
         }
 
         // Calculate total amount
@@ -58,13 +74,13 @@ public class OrderService : IOrderService
             Id = Guid.NewGuid().ToString(),
             CustomerId = userId,
             StatusId = initialStatusId,
-            Date = DateTime.UtcNow,
+            Date = _dateTimeService.Now,
             Amount = totalAmount,
             PaymentMethod = dto.PaymentMethod,
             Address = dto.Address,
             PhoneNumber = dto.PhoneNumber,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = _dateTimeService.Now,
+            UpdatedAt = _dateTimeService.Now
         };
 
         // Create order details from cart items
@@ -77,8 +93,8 @@ public class OrderService : IOrderService
                 MenuMealId = cartItem.MenuMealId,
                 Quantity = cartItem.Quantity,
                 UnitPrice = cartItem.MenuMeal.Price,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = _dateTimeService.Now,
+                UpdatedAt = _dateTimeService.Now
             };
             order.OrderDetails.Add(orderDetail);
         }
@@ -87,7 +103,7 @@ public class OrderService : IOrderService
 
         // Clear cart after order creation
         cart.CartItems.Clear();
-        cart.UpdatedAt = DateTime.UtcNow;
+        cart.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -236,6 +252,8 @@ public class OrderService : IOrderService
         _logger.LogInformation("Confirming order {OrderId} by staff {StaffId}", orderId, staffId);
 
         var order = await _unitOfWork.Orders.GetAllQueryable()
+            .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.MenuMeal)
             .FirstOrDefaultAsync(o => o.Id == orderId);
 
         if (order == null)
@@ -248,9 +266,27 @@ public class OrderService : IOrderService
             throw new InvalidOperationException("Only pending orders can be confirmed");
         }
 
+        // Subtract quantities from menu meals
+        foreach (var orderDetail in order.OrderDetails)
+        {
+            var menuMeal = orderDetail.MenuMeal;
+            
+            if (menuMeal.AvailableQuantity < orderDetail.Quantity)
+            {
+                throw new InvalidOperationException(
+                    $"Insufficient quantity for menu meal {menuMeal.Id}. Available: {menuMeal.AvailableQuantity}, Requested: {orderDetail.Quantity}");
+            }
+
+            menuMeal.AvailableQuantity -= orderDetail.Quantity;
+            menuMeal.UpdatedAt = _dateTimeService.Now;
+            
+            _logger.LogInformation("Subtracted {Quantity} from MenuMeal {MenuMealId}. New available quantity: {NewQuantity}", 
+                orderDetail.Quantity, menuMeal.Id, menuMeal.AvailableQuantity);
+        }
+
         order.StatusId = 3; // OrderConfirmed
         order.OrderConfirmedBy = staffId;
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -270,7 +306,7 @@ public class OrderService : IOrderService
         }
 
         order.StatusId = 2; // OrderCanceled
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -298,7 +334,7 @@ public class OrderService : IOrderService
         }
 
         order.StatusId = statusId;
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -373,3 +409,5 @@ public class OrderService : IOrderService
         };
     }
 }
+
+

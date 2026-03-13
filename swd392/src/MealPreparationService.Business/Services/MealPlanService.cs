@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.DataAccess.UnitOfWork;
 using MealPreparationService.Domain.Entities;
@@ -10,11 +11,13 @@ public class MealPlanService : IMealPlanService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<MealPlanService> _logger;
+    private readonly IDateTimeService _dateTimeService;
 
-    public MealPlanService(IUnitOfWork unitOfWork, ILogger<MealPlanService> logger)
+    public MealPlanService(IUnitOfWork unitOfWork, ILogger<MealPlanService> logger, IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<MealPlanDto> CreateCustomMealPlanAsync(CreateMealPlanDto dto, string userId)
@@ -39,8 +42,8 @@ public class MealPlanService : IMealPlanService
                     Gender = "",
                     HealthNotes = "",
                     CalorieGoal = 0,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = _dateTimeService.Now,
+                    UpdatedAt = _dateTimeService.Now
                 };
                 healthProfile = await _unitOfWork.HealthProfiles.AddAsync(healthProfile);
             }
@@ -146,8 +149,8 @@ public class MealPlanService : IMealPlanService
                 EndDate = startDate.AddDays(durationDays - 1),
                 IsAiGenerated = false,
                 IsActive = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = _dateTimeService.Now,
+                UpdatedAt = _dateTimeService.Now,
                 // Personal Information
                 Age = dto.Age,
                 Weight = dto.Weight,
@@ -179,8 +182,8 @@ public class MealPlanService : IMealPlanService
                         FatG = 0,
                         CarbsG = 0,
                         MealFinished = false,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
+                        CreatedAt = _dateTimeService.Now,
+                        UpdatedAt = _dateTimeService.Now
                     };
                     meals.Add(meal);
                 }
@@ -225,7 +228,7 @@ public class MealPlanService : IMealPlanService
             IsAiGenerated = true,
             Status = "Active",
             Days = new List<MealPlanDayDto>(),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _dateTimeService.Now
         };
     }
 
@@ -300,7 +303,7 @@ public class MealPlanService : IMealPlanService
             }
         }
 
-        mealPlan.UpdatedAt = DateTime.UtcNow;
+        mealPlan.UpdatedAt = _dateTimeService.Now;
         await _unitOfWork.SaveChangesAsync();
 
         // Return updated meal plan
@@ -473,7 +476,7 @@ public class MealPlanService : IMealPlanService
 
     private string GetMealPlanStatus(MealPlan mealPlan)
     {
-        var now = DateTime.UtcNow.Date;
+        var now = _dateTimeService.Now.Date;
         
         if (now < mealPlan.StartDate.Date)
             return "Pending";
@@ -566,7 +569,7 @@ public class MealPlanService : IMealPlanService
 
         // Toggle the active status
         mealPlan.IsActive = !mealPlan.IsActive;
-        mealPlan.UpdatedAt = DateTime.UtcNow;
+        mealPlan.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -578,3 +581,5 @@ public class MealPlanService : IMealPlanService
             ?? throw new KeyNotFoundException($"Meal plan {mealPlanId} not found after update");
     }
 }
+
+
