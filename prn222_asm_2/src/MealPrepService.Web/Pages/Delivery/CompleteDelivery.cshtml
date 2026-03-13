@@ -1,9 +1,38 @@
 @page
 @model MealPrepService.Web.Pages.Delivery.CompleteDeliveryModel
 @{
-    ViewData["Title"] = "CompleteDelivery";
+    ViewData["Title"] = "Finalize Delivery";
 }
 
-<h1>CompleteDelivery</h1>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Finalize Delivery</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="DeliveryId" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-<!-- TODO: Add page content -->
+                        <div class="mb-3">
+                            <label asp-for="DeliveryResult" class="form-label">Delivery Result</label>
+                            <select asp-for="DeliveryResult" class="form-select">
+                                <option value="customer_received">Customer Received</option>
+                                <option value="customer_reject">Customer Reject</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-page="/Delivery/AssignedDeliveries" class="btn btn-outline-secondary">Back</a>
+                            <button type="submit" class="btn btn-primary">Confirm Result</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

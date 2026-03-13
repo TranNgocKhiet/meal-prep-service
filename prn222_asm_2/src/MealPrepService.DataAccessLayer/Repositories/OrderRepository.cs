@@ -16,9 +16,11 @@ namespace MealPrepService.DataAccessLayer.Repositories
         public async Task<IEnumerable<Order>> GetByAccountIdAsync(Guid accountId)
         {
             return await _dbSet
+                .Include(o => o.Account)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.MenuMeal)
                         .ThenInclude(mm => mm.Recipe)
+                .Include(o => o.DeliverySchedule)
                 .Where(o => o.AccountId == accountId)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
@@ -35,6 +37,7 @@ namespace MealPrepService.DataAccessLayer.Repositories
         public async Task<Order?> GetWithDetailsAsync(Guid orderId)
         {
             return await _dbSet
+                .Include(o => o.Account)
                 .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.MenuMeal)
                         .ThenInclude(mm => mm.Recipe)

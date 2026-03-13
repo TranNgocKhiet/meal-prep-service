@@ -54,6 +54,7 @@
                         <div class="card bg-light mb-4">
                             <div class="card-body">
                                 <p class="mb-1"><strong>Address:</strong> @Model.DeliveryAddress</p>
+                                <p class="mb-1"><strong>Phone:</strong> @Model.DeliveryPhone</p>
                                 @if (Model.PreferredDeliveryTime.HasValue)
                                 {
                                     <p class="mb-0"><strong>Preferred Time:</strong> @Model.PreferredDeliveryTime.Value.ToString("MMM dd, yyyy hh:mm tt")</p>

@@ -18,10 +18,55 @@
             icon = "bi-hourglass-split";
             displayText = "Pending Payment";
             break;
+        case "awaiting_online_payment":
+            badgeClass = "bg-info";
+            icon = "bi-credit-card";
+            displayText = "Awaiting VNPay";
+            break;
+        case "pending_confirmation":
+            badgeClass = "bg-warning text-dark";
+            icon = "bi-telephone";
+            displayText = "Pending Confirmation";
+            break;
         case "confirmed":
             badgeClass = "bg-success";
             icon = "bi-check-circle";
             displayText = "Confirmed";
+            break;
+        case "preparing":
+            badgeClass = "bg-info text-dark";
+            icon = "bi-fire";
+            displayText = "Preparing";
+            break;
+        case "preparing_failed":
+            badgeClass = "bg-warning text-dark";
+            icon = "bi-exclamation-triangle";
+            displayText = "Preparing Failed";
+            break;
+        case "prepared":
+            badgeClass = "bg-success";
+            icon = "bi-check2-all";
+            displayText = "Prepared";
+            break;
+        case "delivering":
+            badgeClass = "bg-primary";
+            icon = "bi-truck";
+            displayText = "On Scheduled";
+            break;
+        case "customer_received":
+            badgeClass = "bg-success";
+            icon = "bi-check2-circle";
+            displayText = "Customer Received";
+            break;
+        case "customer_reject":
+            badgeClass = "bg-danger";
+            icon = "bi-x-octagon";
+            displayText = "Customer Reject";
+            break;
+        case "failed":
+            badgeClass = "bg-dark";
+            icon = "bi-exclamation-octagon";
+            displayText = "Failed";
             break;
         case "delivered":
             badgeClass = "bg-primary";

@@ -23,14 +23,27 @@ public class AssignedDeliveriesModel : PageModel
 
     public List<DeliveryScheduleDto> Deliveries { get; set; } = new();
 
+    [BindProperty(SupportsGet = true)]
+    public string Tab { get; set; } = "delivering";
+
+    public int DeliveringCount { get; set; }
+    public int CompletedCount { get; set; }
+
     public async Task<IActionResult> OnGetAsync()
     {
         try
         {
             var deliveryManId = GetCurrentAccountId();
             var deliveries = await _deliveryService.GetByDeliveryManAsync(deliveryManId);
-            
-            Deliveries = deliveries.OrderBy(d => d.DeliveryTime).ToList();
+
+            Tab = NormalizeTab(Tab);
+            var allDeliveries = deliveries.OrderBy(d => d.DeliveryTime).ToList();
+            DeliveringCount = allDeliveries.Count(IsDelivering);
+            CompletedCount = allDeliveries.Count(IsCompleted);
+
+            Deliveries = Tab == "completed"
+                ? allDeliveries.Where(IsCompleted).OrderByDescending(d => d.DeliveryTime).ToList()
+                : allDeliveries.Where(IsDelivering).OrderBy(d => d.DeliveryTime).ToList();
             
             return Page();
         }
@@ -40,6 +53,41 @@ public class AssignedDeliveriesModel : PageModel
             TempData["ErrorMessage"] = "An error occurred while loading your assigned deliveries.";
             return Page();
         }
+    }
+
+    public async Task<IActionResult> OnPostCompleteAsync(Guid deliveryId, string resultStatus)
+    {
+        try
+        {
+            var deliveryManId = GetCurrentAccountId();
+            await _deliveryService.CompleteDeliveryAsync(deliveryId, deliveryManId, resultStatus);
+            TempData["SuccessMessage"] = "Delivery result saved successfully.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error completing delivery {DeliveryId}", deliveryId);
+            TempData["ErrorMessage"] = ex.Message;
+        }
+
+        return RedirectToPage(new { tab = Tab });
+    }
+
+    private static string NormalizeTab(string? tab)
+    {
+        var normalized = (tab ?? string.Empty).Trim().ToLowerInvariant();
+        return normalized == "completed" ? "completed" : "delivering";
+    }
+
+    private static bool IsDelivering(DeliveryScheduleDto delivery)
+    {
+        return delivery.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsCompleted(DeliveryScheduleDto delivery)
+    {
+        return delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
+               || delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
+               || delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase);
     }
 
     private Guid GetCurrentAccountId()

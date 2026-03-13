@@ -28,35 +28,17 @@
         </div>
     }
 
+    <div class="d-flex gap-2 mb-3">
+        <a asp-page="./AssignedDeliveries" asp-route-tab="delivering" class="btn @(Model.Tab == "delivering" ? "btn-warning" : "btn-outline-warning")">
+            Delivering (@Model.DeliveringCount)
+        </a>
+        <a asp-page="./AssignedDeliveries" asp-route-tab="completed" class="btn @(Model.Tab == "completed" ? "btn-primary" : "btn-outline-primary")">
+            Completed (@Model.CompletedCount)
+        </a>
+    </div>
+
     @if (Model.Deliveries.Any())
     {
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <div class="card bg-info text-white">
-                    <div class="card-body text-center">
-                        <h3>@Model.Deliveries.Count(d => d.OrderStatus.Equals("pending_payment", StringComparison.OrdinalIgnoreCase))</h3>
-                        <p class="mb-0">Pending Payment</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-success text-white">
-                    <div class="card-body text-center">
-                        <h3>@Model.Deliveries.Count(d => d.OrderStatus.Equals("confirmed", StringComparison.OrdinalIgnoreCase))</h3>
-                        <p class="mb-0">Ready to Deliver</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-primary text-white">
-                    <div class="card-body text-center">
-                        <h3>@Model.Deliveries.Count(d => d.OrderStatus.Equals("delivered", StringComparison.OrdinalIgnoreCase))</h3>
-                        <p class="mb-0">Delivered</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         @foreach (var delivery in Model.Deliveries.OrderBy(d => d.DeliveryTime))
         {
             <div class="card mb-3 @(delivery.OrderStatus.Equals("delivered", StringComparison.OrdinalIgnoreCase) ? "border-primary" : "")">
@@ -68,17 +50,21 @@
                             <small class="text-muted">Delivery Time: @delivery.DeliveryTime.ToString("MMM dd, yyyy hh:mm tt")</small>
                         </div>
                         <div>
-                            @if (delivery.OrderStatus.Equals("pending_payment", StringComparison.OrdinalIgnoreCase))
+                            @if (delivery.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase))
                             {
-                                <span class="badge bg-info">Pending Payment (COD)</span>
+                                <span class="badge bg-warning text-dark">Delivering</span>
                             }
-                            else if (delivery.OrderStatus.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
-                            {
-                                <span class="badge bg-success">Ready to Deliver</span>
-                            }
-                            else if (delivery.OrderStatus.Equals("delivered", StringComparison.OrdinalIgnoreCase))
+                            else if (delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase))
                             {
                                 <span class="badge bg-primary">Delivered</span>
+                            }
+                            else if (delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-danger">Customer Reject</span>
+                            }
+                            else if (delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase))
+                            {
+                                <span class="badge bg-dark">Failed</span>
                             }
                             else
                             {
@@ -92,14 +78,14 @@
                         <div class="col-md-6">
                             <h6>Customer Information</h6>
                             <p class="mb-1"><strong>Name:</strong> @delivery.CustomerName</p>
-                            <p class="mb-1"><strong>Contact:</strong> @delivery.CustomerContact</p>
+                            <p class="mb-1"><strong>Phone:</strong> @delivery.CustomerContact</p>
                             <p class="mb-0"><strong>Address:</strong> @delivery.Address</p>
                         </div>
                         <div class="col-md-6">
                             <h6>Order Details</h6>
                             <p class="mb-1"><strong>Total Amount:</strong> <span class="text-primary h5">$@delivery.OrderTotal.ToString("F2")</span></p>
                             <p class="mb-1"><strong>Payment Method:</strong> @delivery.PaymentMethod</p>
-                            <p class="mb-0"><strong>Items:</strong> @delivery.ItemsCount</p>
+                            <p class="mb-0"><strong>Total Items:</strong> @delivery.ItemsCount</p>
                         </div>
                     </div>
 
@@ -112,33 +98,110 @@
                 </div>
                 <div class="card-footer bg-transparent">
                     <div class="d-flex justify-content-end gap-2">
-                        @if (delivery.OrderStatus.Equals("pending_payment", StringComparison.OrdinalIgnoreCase) && 
-                             delivery.PaymentMethod.Equals("COD", StringComparison.OrdinalIgnoreCase))
+                        <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#orderDetailsModal-@delivery.Id.ToString("N")">
+                            <i class="bi bi-eye"></i> View Order Detail
+                        </button>
+
+                        @if (delivery.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase) && delivery.DeliveryManId.HasValue)
                         {
-                            <form asp-page="ConfirmCashPayment" asp-route-orderId="@delivery.OrderId" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-warning" onclick="return confirm('Confirm that you have received $@delivery.OrderTotal.ToString("F2") in cash from the customer?')">
-                                    <i class="bi bi-cash-coin"></i> Confirm Cash Payment ($@delivery.OrderTotal.ToString("F2"))
-                                </button>
-                            </form>
-                        }
-                        
-                        @if (delivery.OrderStatus.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
-                        {
-                            <form asp-page="CompleteDelivery" asp-route-deliveryId="@delivery.Id" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-success" onclick="return confirm('Mark this delivery as completed?')">
-                                    <i class="bi bi-check-circle"></i> Complete Delivery
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#completeDeliveryModal-@delivery.Id.ToString("N")">
+                                <i class="bi bi-check2-square"></i> Confirm Delivery Result
+                            </button>
                         }
 
-                        @if (delivery.OrderStatus.Equals("delivered", StringComparison.OrdinalIgnoreCase))
+                        @if (delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase) || delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase) || delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase))
                         {
                             <span class="text-success">
                                 <i class="bi bi-check-circle-fill"></i> Delivery Completed
                             </span>
                         }
+                    </div>
+                </div>
+            </div>
+        }
+
+        @foreach (var delivery in Model.Deliveries)
+        {
+            var detailModalSuffix = delivery.Id.ToString("N");
+            <div class="modal fade" id="orderDetailsModal-@detailModalSuffix" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Order Details - #@delivery.OrderId.ToString().Substring(0, 8)</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            @if (delivery.Order?.OrderDetails?.Any() == true)
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Item</th>
+                                                <th class="text-center">Quantity</th>
+                                                <th class="text-end">Unit Price</th>
+                                                <th class="text-end">Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in delivery.Order.OrderDetails)
+                                            {
+                                                var itemName = !string.IsNullOrWhiteSpace(item.MenuMeal?.RecipeName)
+                                                    ? item.MenuMeal.RecipeName
+                                                    : $"MenuMeal {item.MenuMealId.ToString().Substring(0, 8)}";
+                                                <tr>
+                                                    <td>@itemName</td>
+                                                    <td class="text-center">@item.Quantity</td>
+                                                    <td class="text-end">$@item.UnitPrice.ToString("N2")</td>
+                                                    <td class="text-end fw-semibold">$@item.TotalPrice.ToString("N2")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="mb-0 text-muted">No order line items found.</p>
+                            }
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @foreach (var delivery in Model.Deliveries.Where(d => d.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase) && d.DeliveryManId.HasValue))
+        {
+            var modalSuffix = delivery.Id.ToString("N");
+            <div class="modal fade" id="completeDeliveryModal-@modalSuffix" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirm Delivery Result</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="post" asp-page-handler="Complete">
+                            @Html.AntiForgeryToken()
+                            <div class="modal-body">
+                                <input type="hidden" name="deliveryId" value="@delivery.Id" />
+                                <p class="mb-2"><strong>Order:</strong> #@delivery.OrderId.ToString().Substring(0, 8)</p>
+                                <div class="mb-0">
+                                    <label class="form-label" for="result-@modalSuffix">Delivery result</label>
+                                    <select id="result-@modalSuffix" name="resultStatus" class="form-select" required>
+                                        <option value="customer_received">Customer Received</option>
+                                        <option value="customer_reject">Customer Reject</option>
+                                        <option value="failed">Failed</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save Result</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -149,8 +212,8 @@
         <div class="card">
             <div class="card-body text-center py-5">
                 <i class="bi bi-truck" style="font-size: 4rem; color: #ccc;"></i>
-                <h4 class="mt-3">No Deliveries Assigned</h4>
-                <p class="text-muted">You don't have any deliveries assigned at the moment. Check back later!</p>
+                <h4 class="mt-3">No @((Model.Tab == "completed") ? "Completed" : "Delivering") Orders</h4>
+                <p class="text-muted">No orders found in this tab right now.</p>
             </div>
         </div>
     }

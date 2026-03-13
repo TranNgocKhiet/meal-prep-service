@@ -16,9 +16,14 @@
         case "pending":
             steps[0] = (steps[0].name, steps[0].icon, true, false);
             break;
-        case "pending_payment":
+        case "awaiting_online_payment":
             steps[0] = (steps[0].name, steps[0].icon, false, true);
             steps[1] = (steps[1].name, steps[1].icon, true, false);
+            break;
+        case "pending_confirmation":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, false, true);
+            steps[2] = ("Pending Confirmation", "bi-telephone", true, false);
             break;
         case "payment_failed":
             steps[0] = (steps[0].name, steps[0].icon, false, true);
@@ -29,11 +34,44 @@
             steps[1] = (steps[1].name, steps[1].icon, false, true);
             steps[2] = (steps[2].name, steps[2].icon, true, false);
             break;
-        case "delivered":
+        case "preparing":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, false, true);
+            steps[2] = ("Preparing", "bi-fire", true, false);
+            break;
+        case "preparing_failed":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, false, true);
+            steps[2] = ("Preparing Failed", "bi-exclamation-triangle", true, false);
+            break;
+        case "prepared":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, false, true);
+            steps[2] = ("Prepared", "bi-check2-all", true, false);
+            break;
+        case "delivering":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, false, true);
+            steps[2] = (steps[2].name, steps[2].icon, false, true);
+            steps[3] = ("On Scheduled", "bi-truck", true, false);
+            break;
+        case "customer_received":
             steps[0] = (steps[0].name, steps[0].icon, false, true);
             steps[1] = (steps[1].name, steps[1].icon, false, true);
             steps[2] = (steps[2].name, steps[2].icon, false, true);
             steps[3] = (steps[3].name, steps[3].icon, true, true);
+            break;
+        case "customer_reject":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, false, true);
+            steps[2] = (steps[2].name, steps[2].icon, false, true);
+            steps[3] = ("Customer Reject", "bi-x-octagon", true, true);
+            break;
+        case "failed":
+            steps[0] = (steps[0].name, steps[0].icon, false, true);
+            steps[1] = (steps[1].name, steps[1].icon, false, true);
+            steps[2] = (steps[2].name, steps[2].icon, false, true);
+            steps[3] = ("Failed", "bi-exclamation-octagon", true, true);
             break;
     }
 }

@@ -97,9 +97,17 @@
                                 {
                                     <span class="badge bg-info">Awaiting Payment</span>
                                 }
+                                else if (delivery.OrderStatus.Equals("pending_confirmation", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-warning text-dark">Pending Staff Confirmation</span>
+                                }
                                 else if (delivery.OrderStatus.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
                                 {
                                     <span class="badge bg-success">Confirmed</span>
+                                }
+                                else if (delivery.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-primary">Delivering</span>
                                 }
                                 else
                                 {
@@ -126,7 +134,7 @@
                                 <p class="mb-1"><strong>Total Amount:</strong> <span class="text-primary h5">$@delivery.TotalAmount.ToString("F2")</span></p>
                                 <p class="mb-1"><strong>Payment Method:</strong> @delivery.PaymentMethod</p>
                                 @if (delivery.PaymentMethod.Equals("COD", StringComparison.OrdinalIgnoreCase) && 
-                                     delivery.OrderStatus.Equals("pending_payment", StringComparison.OrdinalIgnoreCase))
+                                     delivery.OrderStatus.Equals("pending_confirmation", StringComparison.OrdinalIgnoreCase))
                                 {
                                     <div class="alert alert-info mt-2 mb-0">
                                         <i class="bi bi-info-circle"></i> Please have <strong>$@delivery.TotalAmount.ToString("F2")</strong> cash ready for the delivery person.
@@ -175,7 +183,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <strong>Order #@delivery.OrderId.ToString().Substring(0, 8)</strong>
-                                <span class="badge bg-light text-success ms-2">DELIVERED</span>
+                                <span class="badge bg-light text-success ms-2">@delivery.OrderStatus.ToUpperInvariant()</span>
                             </div>
                             <div>
                                 <small>@delivery.DeliveryTime.ToString("MMM dd, yyyy")</small>

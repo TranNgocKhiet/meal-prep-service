@@ -25,7 +25,7 @@ public class VnpayCallbackModel : PageModel
         {
             var order = await _orderService.ProcessVnpayCallbackAsync(callbackDto);
             
-            if (order.Status == "confirmed")
+            if (order.Status == "confirmed" || order.Status == "pending_confirmation")
             {
                 _logger.LogInformation("VNPAY payment successful for order {OrderId}", order.Id);
                 return RedirectToPage("/Order/Confirmation", new { id = order.Id });

@@ -13,35 +13,47 @@ public class CompleteDeliveryModel : PageModel
     private readonly IDeliveryService _deliveryService;
     private readonly ILogger<CompleteDeliveryModel> _logger;
 
+    [BindProperty]
+    public Guid DeliveryId { get; set; }
+
+    [BindProperty]
+    public string DeliveryResult { get; set; } = "customer_received";
+
     public CompleteDeliveryModel(IDeliveryService deliveryService, ILogger<CompleteDeliveryModel> logger)
     {
         _deliveryService = deliveryService;
         _logger = logger;
     }
 
-    public async Task<IActionResult> OnPostAsync(Guid deliveryId)
+    public IActionResult OnGet(Guid deliveryId)
+    {
+        DeliveryId = deliveryId;
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
     {
         try
         {
-            await _deliveryService.CompleteDeliveryAsync(deliveryId);
+            await _deliveryService.CompleteDeliveryAsync(DeliveryId, GetCurrentAccountId(), DeliveryResult);
             
-            TempData["SuccessMessage"] = "Delivery completed successfully.";
+            TempData["SuccessMessage"] = "Delivery result saved successfully.";
             _logger.LogInformation("Delivery {DeliveryId} completed by delivery man {DeliveryManId}", 
-                deliveryId, GetCurrentAccountId());
+                DeliveryId, GetCurrentAccountId());
             
             return RedirectToPage("/Delivery/AssignedDeliveries");
         }
         catch (BusinessException ex)
         {
             TempData["ErrorMessage"] = ex.Message;
-            _logger.LogWarning(ex, "Business error completing delivery {DeliveryId}", deliveryId);
-            return RedirectToPage("/Delivery/AssignedDeliveries");
+            _logger.LogWarning(ex, "Business error completing delivery {DeliveryId}", DeliveryId);
+            return Page();
         }
         catch (Exception ex)
         {
             TempData["ErrorMessage"] = "An error occurred while completing the delivery. Please try again.";
-            _logger.LogError(ex, "Unexpected error completing delivery {DeliveryId}", deliveryId);
-            return RedirectToPage("/Delivery/AssignedDeliveries");
+            _logger.LogError(ex, "Unexpected error completing delivery {DeliveryId}", DeliveryId);
+            return Page();
         }
     }
 

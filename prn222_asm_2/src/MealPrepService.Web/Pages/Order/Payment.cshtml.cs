@@ -31,6 +31,9 @@ public class PaymentModel : PageModel
     
     [BindProperty]
     public string DeliveryAddress { get; set; }
+
+    [BindProperty]
+    public string DeliveryPhone { get; set; }
     
     [BindProperty]
     public DateTime? PreferredDeliveryTime { get; set; }
@@ -66,9 +69,10 @@ public class PaymentModel : PageModel
 
             OrderId = id;
             OrderTotal = orderDto.TotalAmount;
-            PaymentMethod = "Credit Card";
+            PaymentMethod = "COD";
             OrderDetails = orderDto.OrderDetails.ToList();
             DeliveryAddress = TempData["DeliveryAddress"]?.ToString() ?? "Not specified";
+            DeliveryPhone = TempData["DeliveryPhone"]?.ToString() ?? string.Empty;
             PreferredDeliveryTime = TempData["PreferredDeliveryTime"]?.ToString() is string timeStr && DateTime.TryParse(timeStr, out var parsedTime)
                 ? parsedTime
                 : null;
@@ -101,7 +105,7 @@ public class PaymentModel : PageModel
             if (PaymentMethod == "VNPAY")
             {
                 // For VNPAY, redirect to payment gateway
-                var order = await _orderService.ProcessPaymentAsync(OrderId, PaymentMethod);
+                var order = await _orderService.ProcessPaymentAsync(OrderId, PaymentMethod, DeliveryAddress, PreferredDeliveryTime, DeliveryPhone);
                 var paymentUrl = await _vnpayService.CreatePaymentUrlAsync(
                     OrderId, 
                     OrderTotal, 
@@ -113,7 +117,7 @@ public class PaymentModel : PageModel
             else if (PaymentMethod == "COD")
             {
                 // For COD, process immediately and show confirmation
-                var order = await _orderService.ProcessPaymentAsync(OrderId, PaymentMethod);
+                var order = await _orderService.ProcessPaymentAsync(OrderId, PaymentMethod, DeliveryAddress, PreferredDeliveryTime, DeliveryPhone);
                 
                 _logger.LogInformation("COD order {OrderId} processed successfully", OrderId);
                 return RedirectToPage("/Order/Confirmation", new { id = order.Id });

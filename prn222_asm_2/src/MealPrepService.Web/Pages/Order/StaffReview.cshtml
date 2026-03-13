@@ -1,0 +1,507 @@
+@page
+@model MealPrepService.Web.Pages.Order.StaffReviewModel
+@{
+    ViewData["Title"] = "Order List";
+}
+
+<div class="order-list-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white mb-0">Order List</h2>
+    </div>
+
+    <div class="status-tabs">
+        <a asp-page="./StaffReview" asp-route-status="pending" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "pending" ? "active" : string.Empty)">
+            Pending <span class="tab-count">@Model.GetStatusCount("pending")</span>
+        </a>
+        <a asp-page="./StaffReview" asp-route-status="confirmed" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "confirmed" ? "active" : string.Empty)">
+            Confirmed <span class="tab-count">@Model.GetStatusCount("confirmed")</span>
+        </a>
+        <a asp-page="./StaffReview" asp-route-status="preparing" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "preparing" ? "active" : string.Empty)">
+            Preparing <span class="tab-count">@Model.GetStatusCount("preparing")</span>
+        </a>
+        <a asp-page="./StaffReview" asp-route-status="preparing_failed" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "preparing_failed" ? "active" : string.Empty)">
+            Preparing Failed <span class="tab-count">@Model.GetStatusCount("preparing_failed")</span>
+        </a>
+        <a asp-page="./StaffReview" asp-route-status="prepared" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "prepared" ? "active" : string.Empty)">
+            Prepared <span class="tab-count">@Model.GetStatusCount("prepared")</span>
+        </a>
+        <a asp-page="./StaffReview" asp-route-status="on_scheduled" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "on_scheduled" ? "active" : string.Empty)">
+            On Scheduled <span class="tab-count">@Model.GetStatusCount("on_scheduled")</span>
+        </a>
+        <a asp-page="./StaffReview" asp-route-status="cancelled" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "cancelled" ? "active" : string.Empty)">
+            Canceled <span class="tab-count">@Model.GetStatusCount("cancelled")</span>
+        </a>
+    </div>
+
+    <div class="period-filter mb-3">
+        <a asp-page="./StaffReview" asp-route-status="@Model.Status" asp-route-period="all" class="period-btn @(Model.Period == "all" ? "active" : string.Empty)">All</a>
+        <a asp-page="./StaffReview" asp-route-status="@Model.Status" asp-route-period="today" class="period-btn @(Model.Period == "today" ? "active" : string.Empty)">Today</a>
+        <a asp-page="./StaffReview" asp-route-status="@Model.Status" asp-route-period="this_week" class="period-btn @(Model.Period == "this_week" ? "active" : string.Empty)">This Week</a>
+        <a asp-page="./StaffReview" asp-route-status="@Model.Status" asp-route-period="this_month" class="period-btn @(Model.Period == "this_month" ? "active" : string.Empty)">This Month</a>
+    </div>
+
+    @if (Model.Orders.Any())
+    {
+        <div class="table-responsive order-table-wrapper">
+            <table class="table table-borderless align-middle order-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Created</th>
+                        <th>Updated</th>
+                        <th>Items</th>
+                        <th>Payment</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model.Orders)
+                    {
+                        var tabStatus = Model.NormalizeTabStatus(order.Status);
+                        var modalSuffix = order.Id.ToString("N");
+                        <tr>
+                            <td>
+                                <a asp-page="/Order/Details" asp-route-orderId="@order.Id" class="order-code">@order.Id.ToString().Substring(0, 8).ToUpperInvariant()</a>
+                            </td>
+                            <td>@order.OrderDate.ToLocalTime().ToString("MMM dd, yyyy, hh:mm tt")</td>
+                            <td>@((order.UpdatedAt ?? order.OrderDate).ToLocalTime().ToString("MMM dd, yyyy, hh:mm tt"))</td>
+                            <td>
+                                @order.ItemsCount item@(order.ItemsCount > 1 ? "s" : string.Empty)
+                            </td>
+                            <td>@order.PaymentMethod</td>
+                            <td class="order-total">$@order.TotalAmount.ToString("N2")</td>
+                            <td>
+                                <span class="@Model.GetBadgeClass(order.Status)">@Model.GetDisplayStatus(order.Status)</span>
+                            </td>
+                            <td>
+                                <div class="action-stack">
+                                    @if (tabStatus == "pending")
+                                    {
+                                        <form method="post" asp-page-handler="Confirm">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.Id" />
+                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                            <button type="submit" class="btn btn-action btn-confirm">Confirm</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="Cancel">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.Id" />
+                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                            <button type="submit" class="btn btn-action btn-cancel" onclick="return confirm('Cancel this order?');">Cancel</button>
+                                        </form>
+                                    }
+                                    else if (tabStatus == "confirmed")
+                                    {
+                                        <form method="post" asp-page-handler="Prepare">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.Id" />
+                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                            <button type="submit" class="btn btn-action btn-confirm">Prepare</button>
+                                        </form>
+                                    }
+                                    else if (tabStatus == "preparing")
+                                    {
+                                        <form method="post" asp-page-handler="PrepareSuccess">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.Id" />
+                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                            <button type="submit" class="btn btn-action btn-confirm">Success</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="PrepareFailed">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.Id" />
+                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                            <button type="submit" class="btn btn-action btn-cancel">Failed</button>
+                                        </form>
+                                    }
+                                    else if (tabStatus == "prepared")
+                                    {
+                                        if (order.DeliverySchedule != null)
+                                        {
+                                            <button type="button" class="btn btn-action btn-confirm" data-bs-toggle="modal" data-bs-target="#scheduleModal-@modalSuffix">Schedule</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-action btn-view" disabled>No Schedule</button>
+                                        }
+                                    }
+
+                                    <button type="button" class="btn btn-action btn-view" data-bs-toggle="modal" data-bs-target="#orderItemsModal-@modalSuffix">View</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @foreach (var order in Model.Orders)
+        {
+            var modalSuffix = order.Id.ToString("N");
+            var scheduleLocal = (order.DeliverySchedule?.DeliveryTime ?? DateTime.Now.AddHours(2)).ToLocalTime();
+            var lunchLocal = DateTime.Now.Date.AddDays(1).AddHours(11).AddMinutes(30);
+            var dinnerLocal = DateTime.Now.Date.AddDays(1).AddHours(18);
+
+            <div class="modal fade" id="orderItemsModal-@modalSuffix" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Order Detail - @order.Id.ToString().Substring(0, 8).ToUpperInvariant()</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            @if (order.OrderDetails.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Recipe</th>
+                                                <th class="text-center">Qty</th>
+                                                <th class="text-end">Unit Price</th>
+                                                <th class="text-end">Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in order.OrderDetails)
+                                            {
+                                                var recipeName = item.MenuMeal?.RecipeName ?? "Unknown Recipe";
+                                                var subtotal = item.UnitPrice * item.Quantity;
+                                                <tr>
+                                                    <td>@recipeName</td>
+                                                    <td class="text-center">@item.Quantity</td>
+                                                    <td class="text-end">$@item.UnitPrice.ToString("N2")</td>
+                                                    <td class="text-end fw-semibold">$@subtotal.ToString("N2")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <strong class="text-dark">Total Items: @order.ItemsCount</strong>
+                                    <strong class="text-dark">Order Total: $@order.TotalAmount.ToString("N2")</strong>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="mb-0 text-muted">No items found for this order.</p>
+                            }
+                        </div>
+                        <div class="modal-footer">
+                            <a asp-page="/Order/Details" asp-route-orderId="@order.Id" class="btn btn-primary">Open Full Order Page</a>
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.NormalizeTabStatus(order.Status) == "prepared" && order.DeliverySchedule != null)
+            {
+                <div class="modal fade" id="scheduleModal-@modalSuffix" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Schedule Delivery - @order.Id.ToString().Substring(0, 8).ToUpperInvariant()</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="post" asp-page-handler="Schedule">
+                                @Html.AntiForgeryToken()
+                                <div class="modal-body">
+                                    <input type="hidden" name="orderId" value="@order.Id" />
+                                    <input type="hidden" name="deliveryScheduleId" value="@order.DeliverySchedule.Id" />
+                                    <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                    <input type="hidden" name="periodFilter" value="@Model.Period" />
+
+                                    <label class="form-label fw-semibold" for="deliveryMan-@modalSuffix">Assign delivery man</label>
+                                    <select id="deliveryMan-@modalSuffix" name="deliveryManId" class="form-select mb-3" required>
+                                        <option value="">Select delivery man</option>
+                                        @foreach (var deliveryMan in Model.DeliveryManOptions)
+                                        {
+                                            <option value="@deliveryMan.Value">@deliveryMan.Text</option>
+                                        }
+                                    </select>
+
+                                    <div class="schedule-card">
+                                        <label class="form-label fw-semibold">Choose delivery time preset</label>
+                                        <select class="form-select schedule-option-select mb-3" data-target="#selectedTime-@modalSuffix">
+                                            <option value="current" selected>Current planned time</option>
+                                            <option value="lunch">Tomorrow Lunch (11:30 AM)</option>
+                                            <option value="dinner">Tomorrow Dinner (06:00 PM)</option>
+                                            <option value="custom">Custom date & time</option>
+                                        </select>
+
+                                        <label class="form-label fw-semibold" for="selectedTime-@modalSuffix">Selected delivery datetime</label>
+                                        <input id="selectedTime-@modalSuffix"
+                                               name="selectedDeliveryTime"
+                                               type="datetime-local"
+                                               class="form-control schedule-time-input"
+                                               value="@scheduleLocal.ToString("yyyy-MM-ddTHH:mm")"
+                                               data-current="@scheduleLocal.ToString("yyyy-MM-ddTHH:mm")"
+                                               data-lunch="@lunchLocal.ToString("yyyy-MM-ddTHH:mm")"
+                                               data-dinner="@dinnerLocal.ToString("yyyy-MM-ddTHH:mm")"
+                                               required />
+                                        <small class="text-muted d-block mt-2">You can pick a preset and still adjust the exact datetime manually.</small>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-success">Confirm Schedule</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-check2-circle" style="font-size: 3rem; color: #9ca3af;"></i>
+                <h4 class="mt-3">No orders found</h4>
+                <p class="text-muted mb-0">There are no orders for this status and period.</p>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .order-list-page {
+        padding: 1.5rem 0;
+    }
+
+    .status-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        border-bottom: 1px solid #d1d5db;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .order-list-page .status-tab {
+        color: #d1d5db !important;
+        text-decoration: none;
+        padding: 0.7rem 1.4rem;
+        border-radius: 0.5rem;
+        background: transparent;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .order-list-page .status-tab.active,
+    .order-list-page .status-tab:hover {
+        color: #ffffff !important;
+        background: #2cad46;
+    }
+
+    .order-list-page .tab-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.4rem;
+        height: 1.4rem;
+        margin-left: 0.35rem;
+        border-radius: 999px;
+        background: #f9fafb;
+        color: #111827 !important;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .period-filter {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .order-list-page .period-btn {
+        text-decoration: none;
+        border: 1px solid #d1d5db;
+        color: #111827 !important;
+        background: #ffffff;
+        border-radius: 0.35rem;
+        padding: 0.6rem 1.15rem;
+        font-weight: 600;
+    }
+
+    .order-list-page .period-btn.active {
+        border-color: #9ca3af;
+        background: #111827;
+        color: #ffffff !important;
+    }
+
+    .order-table-wrapper {
+        background: #f3f4f6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    .order-list-page .order-table {
+        margin-bottom: 0;
+        background: #ffffff !important;
+    }
+
+    .order-list-page .order-table thead th {
+        background: #e5e7eb;
+        color: #111827 !important;
+        font-weight: 700;
+        padding: 1rem;
+        border-bottom: 1px solid #d1d5db;
+    }
+
+    .order-list-page .order-table tbody tr {
+        background: #ffffff !important;
+    }
+
+    .order-list-page .order-table tbody tr:nth-child(even) {
+        background: #f9fafb !important;
+    }
+
+    .order-list-page .order-table tbody td {
+        padding: 1.1rem 1rem;
+        border-bottom: 1px solid #d1d5db;
+        color: #111827 !important;
+        background: transparent !important;
+    }
+
+    .order-list-page .order-code {
+        color: #1f2937 !important;
+        font-weight: 700;
+    }
+
+    .order-total {
+        font-weight: 700;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        font-weight: 700;
+        border-radius: 999px;
+        border: 1px solid transparent;
+    }
+
+    .status-pending {
+        background: #ffd86a;
+        color: #5b3f00;
+        border-color: #e0b429;
+    }
+
+    .status-active {
+        background: #6ee7ff;
+        color: #004e64;
+        border-color: #31c5e8;
+    }
+
+    .status-neutral {
+        background: #86efac;
+        color: #0c5f2d;
+        border-color: #3dc66b;
+    }
+
+    .status-cancelled {
+        background: #ff9aa7;
+        color: #6e1017;
+        border-color: #f16a7b;
+    }
+
+    .status-default {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .action-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.55rem;
+        min-width: 9.75rem;
+    }
+
+    .btn-action {
+        width: 100%;
+        border: 0;
+        border-radius: 0.5rem;
+        font-weight: 700;
+        padding: 0.55rem 0.9rem;
+        text-align: center;
+    }
+
+    .order-list-page .btn-confirm {
+        background: #4bb879;
+        color: #ffffff !important;
+    }
+
+    .order-list-page .btn-cancel {
+        background: #fb4436;
+        color: #ffffff !important;
+    }
+
+    .order-list-page .btn-view {
+        background: #c9d0db;
+        color: #1f2937 !important;
+    }
+
+    .empty-state {
+        background: #f3f4f6;
+        border-radius: 0.5rem;
+    }
+
+    .schedule-card {
+        border: 1px solid #d1d5db;
+        border-radius: 0.75rem;
+        background: #f8fafc;
+        padding: 1rem;
+    }
+
+    @@media (max-width: 991px) {
+        .status-tabs {
+            gap: 0.5rem;
+        }
+
+        .status-tab {
+            padding: 0.55rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .period-filter {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectors = document.querySelectorAll('.schedule-option-select');
+        selectors.forEach(function (select) {
+            select.addEventListener('change', function () {
+                const targetSelector = select.getAttribute('data-target');
+                if (!targetSelector) {
+                    return;
+                }
+
+                const dateInput = document.querySelector(targetSelector);
+                if (!dateInput) {
+                    return;
+                }
+
+                const selected = select.value;
+                if (selected === 'current') {
+                    dateInput.value = dateInput.getAttribute('data-current') || dateInput.value;
+                } else if (selected === 'lunch') {
+                    dateInput.value = dateInput.getAttribute('data-lunch') || dateInput.value;
+                } else if (selected === 'dinner') {
+                    dateInput.value = dateInput.getAttribute('data-dinner') || dateInput.value;
+                }
+            });
+        });
+    });
+</script>

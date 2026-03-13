@@ -41,14 +41,15 @@ public class MyDeliveriesModel : PageModel
         {
             var customerId = GetCurrentAccountId();
             var deliveries = await _deliveryService.GetByAccountIdAsync(customerId);
+            var finalStatuses = new[] { "customer_received", "customer_reject", "failed", "cancelled" };
             
             UpcomingDeliveries = deliveries
-                .Where(d => d.Order?.Status != "delivered")
+                .Where(d => d.Order != null && !finalStatuses.Contains(d.Order.Status))
                 .OrderBy(d => d.DeliveryTime)
                 .ToList();
             
             CompletedDeliveries = deliveries
-                .Where(d => d.Order?.Status == "delivered")
+                .Where(d => d.Order != null && finalStatuses.Contains(d.Order.Status))
                 .OrderByDescending(d => d.DeliveryTime)
                 .ToList();
             

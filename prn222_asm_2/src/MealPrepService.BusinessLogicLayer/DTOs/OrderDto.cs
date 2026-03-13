@@ -5,6 +5,7 @@ public class OrderDto
     public Guid Id { get; set; }
     public Guid AccountId { get; set; }
     public DateTime OrderDate { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public decimal TotalAmount { get; set; }
     public string? PaymentMethod { get; set; }
     public string Status { get; set; } = string.Empty;

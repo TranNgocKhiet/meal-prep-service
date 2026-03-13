@@ -9,6 +9,23 @@ namespace MealPrepService.BusinessLogicLayer.Services
 {
     public class OrderService : IOrderService
     {
+        private static class OrderStatuses
+        {
+            public const string Pending = "pending";
+            public const string AwaitingOnlinePayment = "awaiting_online_payment";
+            public const string PaymentFailed = "payment_failed";
+            public const string PendingConfirmation = "pending_confirmation";
+            public const string Confirmed = "confirmed";
+            public const string Preparing = "preparing";
+            public const string PreparingFailed = "preparing_failed";
+            public const string Prepared = "prepared";
+            public const string Cancelled = "cancelled";
+            public const string Delivering = "delivering";
+            public const string CustomerReceived = "customer_received";
+            public const string CustomerReject = "customer_reject";
+            public const string Failed = "failed";
+        }
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IVnpayService _vnpayService;
         private readonly IDeliveryService _deliveryService;
@@ -50,7 +67,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     Id = Guid.NewGuid(),
                     AccountId = accountId,
                     OrderDate = DateTime.UtcNow,
-                    Status = "pending",
+                    Status = OrderStatuses.Pending,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -76,11 +93,6 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     {
                         throw new BusinessException($"Insufficient quantity available for menu meal {item.MenuMealId}. Available: {menuMeal.AvailableQuantity}, Requested: {item.Quantity}");
                     }
-
-                    // Reduce available quantity (inventory reduction)
-                    menuMeal.AvailableQuantity -= item.Quantity;
-                    menuMeal.UpdatedAt = DateTime.UtcNow;
-                    await _unitOfWork.MenuMeals.UpdateAsync(menuMeal);
 
                     // Create order detail
                     var orderDetail = new OrderDetail
@@ -116,15 +128,16 @@ namespace MealPrepService.BusinessLogicLayer.Services
             }
         }
 
-        public async Task<OrderDto> ProcessPaymentAsync(Guid orderId, string paymentMethod)
+        public async Task<OrderDto> ProcessPaymentAsync(Guid orderId, string paymentMethod, string? deliveryAddress = null, DateTime? preferredDeliveryTime = null, string? customerPhone = null)
         {
             if (string.IsNullOrWhiteSpace(paymentMethod))
             {
                 throw new BusinessException("Payment method is required");
             }
 
+            var normalizedPaymentMethod = paymentMethod.Trim().ToUpperInvariant();
             var validPaymentMethods = new[] { "COD", "VNPAY" };
-            if (!validPaymentMethods.Contains(paymentMethod))
+            if (!validPaymentMethods.Contains(normalizedPaymentMethod))
             {
                 throw new BusinessException($"Invalid payment method: {paymentMethod}. Valid methods are: {string.Join(", ", validPaymentMethods)}");
             }
@@ -135,43 +148,53 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException($"Order with ID {orderId} not found");
             }
 
-            if (order.Status != "pending" && order.Status != "payment_failed")
+            if (order.Status != OrderStatuses.Pending && order.Status != OrderStatuses.PaymentFailed)
             {
                 throw new BusinessException($"Order {orderId} cannot be paid. Current status: {order.Status}");
+            }
+
+            if (string.IsNullOrWhiteSpace(deliveryAddress))
+            {
+                throw new BusinessException("Delivery address is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(customerPhone))
+            {
+                throw new BusinessException("Customer phone number is required for delivery");
+            }
+
+            var normalizedPhone = customerPhone.Trim();
+            if (normalizedPhone.Length < 8 || normalizedPhone.Length > 20)
+            {
+                throw new BusinessException("Customer phone number must be between 8 and 20 characters");
+            }
+
+            var deliveryTime = preferredDeliveryTime ?? DateTime.Now.AddDays(1).Date.AddHours(18);
+            if (deliveryTime <= DateTime.Now)
+            {
+                throw new BusinessException("Preferred delivery time must be in the future");
             }
 
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-                order.PaymentMethod = paymentMethod;
+                order.PaymentMethod = normalizedPaymentMethod;
                 order.UpdatedAt = DateTime.UtcNow;
+                order.PaymentConfirmedAt = null;
+                order.PaymentConfirmedBy = null;
 
-                if (paymentMethod == "COD")
+                await UpsertDeliveryScheduleAsync(orderId, deliveryAddress.Trim(), deliveryTime, normalizedPhone);
+
+                if (normalizedPaymentMethod == "COD")
                 {
-                    // For Cash on Delivery, set status to pending_payment and create delivery schedule
-                    order.Status = "pending_payment";
-                    
-                    // Create delivery schedule immediately for COD orders
-                    var deliveryDto = new DeliveryScheduleDto
-                    {
-                        OrderId = orderId,
-                        DeliveryTime = DateTime.UtcNow.AddDays(1),
-                        Address = "Customer address", // Should come from customer profile or order data
-                        DriverContact = "TBD"
-                    };
-                    
-                    await _deliveryService.CreateDeliveryScheduleAsync(orderId, deliveryDto);
-                    
-                    _logger.LogInformation("COD order {OrderId} set to pending_payment with delivery schedule created", orderId);
+                    order.Status = OrderStatuses.PendingConfirmation;
+                    _logger.LogInformation("COD order {OrderId} moved to pending confirmation", orderId);
                 }
-                else if (paymentMethod == "VNPAY")
+                else
                 {
-                    // For VNPAY, the payment URL will be generated separately
-                    // Status remains "pending" until payment callback is received
-                    order.Status = "pending";
-                    
-                    _logger.LogInformation("VNPAY order {OrderId} set to pending, awaiting payment callback", orderId);
+                    order.Status = OrderStatuses.AwaitingOnlinePayment;
+                    _logger.LogInformation("VNPAY order {OrderId} awaiting payment callback", orderId);
                 }
 
                 await _unitOfWork.Orders.UpdateAsync(order);
@@ -233,44 +256,23 @@ namespace MealPrepService.BusinessLogicLayer.Services
             {
                 if (callbackResult.ResponseCode == "00") // Success
                 {
-                    order.Status = "confirmed";
+                    order.Status = OrderStatuses.Confirmed;
                     order.VnpayTransactionId = callbackResult.TransactionId;
                     order.PaymentConfirmedAt = DateTime.UtcNow;
                     order.UpdatedAt = DateTime.UtcNow;
-                    
-                    // Create delivery schedule for successful payment
-                    var deliveryDto = new DeliveryScheduleDto
-                    {
-                        OrderId = order.Id,
-                        DeliveryTime = DateTime.UtcNow.AddDays(1),
-                        Address = "Customer address", // Should come from customer profile
-                        DriverContact = "TBD"
-                    };
-                    
-                    await _deliveryService.CreateDeliveryScheduleAsync(order.Id, deliveryDto);
-                    
-                    _logger.LogInformation("VNPAY payment successful for order {OrderId}, transaction {TransactionId}", 
-                        order.Id, callbackResult.TransactionId);
+
+                    _logger.LogInformation("VNPAY payment successful for order {OrderId}, transaction {TransactionId}. Status set to {Status}", 
+                        order.Id, callbackResult.TransactionId, order.Status);
                 }
                 else
                 {
-                    order.Status = "payment_failed";
+                    order.Status = OrderStatuses.PaymentFailed;
                     order.UpdatedAt = DateTime.UtcNow;
-                    
-                    // Restore menu meal quantities
-                    var orderWithDetails = await _unitOfWork.Orders.GetWithDetailsAsync(order.Id);
-                    if (orderWithDetails?.OrderDetails != null)
+
+                    var existingSchedule = await _unitOfWork.DeliverySchedules.FindAsync(d => d.OrderId == order.Id);
+                    foreach (var schedule in existingSchedule)
                     {
-                        foreach (var detail in orderWithDetails.OrderDetails)
-                        {
-                            var menuMeal = await _unitOfWork.MenuMeals.GetByIdAsync(detail.MenuMealId);
-                            if (menuMeal != null)
-                            {
-                                menuMeal.AvailableQuantity += detail.Quantity;
-                                menuMeal.UpdatedAt = DateTime.UtcNow;
-                                await _unitOfWork.MenuMeals.UpdateAsync(menuMeal);
-                            }
-                        }
+                        await _unitOfWork.DeliverySchedules.DeleteAsync(schedule.Id);
                     }
                     
                     _logger.LogWarning("VNPAY payment failed for order {OrderId}, response code {ResponseCode}: {Message}", 
@@ -304,16 +306,15 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException("Order is not a Cash on Delivery order");
             }
             
-            if (order.Status != "pending_payment")
+            if (order.PaymentConfirmedAt.HasValue)
             {
-                throw new BusinessException($"Cannot confirm payment for order with status: {order.Status}");
+                throw new BusinessException("Cash payment is already confirmed for this order");
             }
             
             await _unitOfWork.BeginTransactionAsync();
             
             try
             {
-                order.Status = "confirmed";
                 order.PaymentConfirmedAt = DateTime.UtcNow;
                 order.PaymentConfirmedBy = deliveryManId;
                 order.UpdatedAt = DateTime.UtcNow;
@@ -341,8 +342,25 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException("Status is required");
             }
 
-            var validStatuses = new[] { "pending", "paid", "payment_failed", "confirmed", "delivered" };
-            if (!validStatuses.Contains(status))
+            var normalizedStatus = status.Trim().ToLowerInvariant();
+            var validStatuses = new[]
+            {
+                OrderStatuses.Pending,
+                OrderStatuses.AwaitingOnlinePayment,
+                OrderStatuses.PaymentFailed,
+                OrderStatuses.PendingConfirmation,
+                OrderStatuses.Confirmed,
+                OrderStatuses.Preparing,
+                OrderStatuses.PreparingFailed,
+                OrderStatuses.Prepared,
+                OrderStatuses.Cancelled,
+                OrderStatuses.Delivering,
+                OrderStatuses.CustomerReceived,
+                OrderStatuses.CustomerReject,
+                OrderStatuses.Failed
+            };
+
+            if (!validStatuses.Contains(normalizedStatus))
             {
                 throw new BusinessException($"Invalid status: {status}. Valid statuses are: {string.Join(", ", validStatuses)}");
             }
@@ -353,13 +371,159 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException($"Order with ID {orderId} not found");
             }
 
-            order.Status = status;
+            order.Status = normalizedStatus;
             order.UpdatedAt = DateTime.UtcNow;
 
             await _unitOfWork.Orders.UpdateAsync(order);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Order {OrderId} status updated to {Status}", orderId, status);
+            _logger.LogInformation("Order {OrderId} status updated to {Status}", orderId, normalizedStatus);
+        }
+
+        public async Task<IEnumerable<OrderDto>> GetOperationsOrdersAsync()
+        {
+            var operationStatuses = new[]
+            {
+                OrderStatuses.Pending,
+                OrderStatuses.PendingConfirmation,
+                OrderStatuses.Confirmed,
+                OrderStatuses.Preparing,
+                OrderStatuses.PreparingFailed,
+                OrderStatuses.Prepared,
+                OrderStatuses.Delivering,
+                OrderStatuses.Cancelled
+            };
+
+            var orders = await _unitOfWork.Orders.GetAllAsync();
+            var operationOrders = orders
+                .Where(o => operationStatuses.Contains(o.Status, StringComparer.OrdinalIgnoreCase))
+                .OrderByDescending(o => o.UpdatedAt ?? o.OrderDate)
+                .ToList();
+
+            var result = new List<OrderDto>();
+            foreach (var order in operationOrders)
+            {
+                result.Add(await GetByIdAsync(order.Id));
+            }
+
+            return result;
+        }
+
+        public async Task<OrderDto> TransitionOrderForOperationsAsync(Guid orderId, string targetStatus, Guid staffId)
+        {
+            if (string.IsNullOrWhiteSpace(targetStatus))
+            {
+                throw new BusinessException("Target status is required");
+            }
+
+            var normalizedTarget = targetStatus.Trim().ToLowerInvariant();
+            var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
+            if (order == null)
+            {
+                throw new BusinessException($"Order with ID {orderId} not found");
+            }
+
+            var currentStatus = order.Status.Trim().ToLowerInvariant();
+            var allowedTransitions = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+            {
+                [OrderStatuses.Pending] = new[] { OrderStatuses.Confirmed, OrderStatuses.Cancelled },
+                [OrderStatuses.PendingConfirmation] = new[] { OrderStatuses.Confirmed, OrderStatuses.Cancelled },
+                [OrderStatuses.Confirmed] = new[] { OrderStatuses.Preparing },
+                [OrderStatuses.Preparing] = new[] { OrderStatuses.Prepared, OrderStatuses.PreparingFailed },
+                [OrderStatuses.Prepared] = new[] { OrderStatuses.Delivering }
+            };
+
+            if (!allowedTransitions.TryGetValue(currentStatus, out var allowedTargets) ||
+                !allowedTargets.Contains(normalizedTarget, StringComparer.OrdinalIgnoreCase))
+            {
+                throw new BusinessException($"Invalid order transition: {currentStatus} -> {normalizedTarget}");
+            }
+
+            if (currentStatus == OrderStatuses.Confirmed && normalizedTarget == OrderStatuses.Preparing)
+            {
+                await DeductMenuMealQuantitiesForOrderAsync(orderId);
+            }
+
+            order.Status = normalizedTarget;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.Orders.UpdateAsync(order);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Staff {StaffId} transitioned order {OrderId} from {FromStatus} to {ToStatus}",
+                staffId, orderId, currentStatus, normalizedTarget);
+
+            return await GetByIdAsync(orderId);
+        }
+
+        private async Task DeductMenuMealQuantitiesForOrderAsync(Guid orderId)
+        {
+            var orderDetails = await _unitOfWork.OrderDetails.FindAsync(od => od.OrderId == orderId);
+            var details = orderDetails.ToList();
+
+            if (!details.Any())
+            {
+                throw new BusinessException($"Order {orderId} has no order details to prepare");
+            }
+
+            foreach (var detail in details)
+            {
+                var menuMeal = await _unitOfWork.MenuMeals.GetByIdAsync(detail.MenuMealId);
+                if (menuMeal == null)
+                {
+                    throw new BusinessException($"Menu meal with ID {detail.MenuMealId} not found");
+                }
+
+                if (menuMeal.AvailableQuantity < detail.Quantity)
+                {
+                    throw new BusinessException($"Insufficient quantity available for menu meal {detail.MenuMealId}. Available: {menuMeal.AvailableQuantity}, Required: {detail.Quantity}");
+                }
+
+                menuMeal.AvailableQuantity -= detail.Quantity;
+                menuMeal.UpdatedAt = DateTime.UtcNow;
+                await _unitOfWork.MenuMeals.UpdateAsync(menuMeal);
+            }
+        }
+
+        public async Task<OrderDto> ConfirmOrderByStaffAsync(Guid orderId, bool isConfirmed, Guid staffId)
+        {
+            var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
+            if (order == null)
+            {
+                throw new BusinessException($"Order with ID {orderId} not found");
+            }
+
+            if (order.Status != OrderStatuses.PendingConfirmation)
+            {
+                throw new BusinessException($"Only pending confirmation orders can be reviewed. Current status: {order.Status}");
+            }
+
+            order.Status = isConfirmed ? OrderStatuses.Confirmed : OrderStatuses.Cancelled;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.Orders.UpdateAsync(order);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Staff {StaffId} updated order {OrderId} to {Status}", staffId, orderId, order.Status);
+
+            return await GetByIdAsync(orderId);
+        }
+
+        public async Task<IEnumerable<OrderDto>> GetPendingConfirmationOrdersAsync()
+        {
+            var orders = await _unitOfWork.Orders.GetAllAsync();
+            var pending = orders
+                .Where(x => x.Status == OrderStatuses.PendingConfirmation)
+                .OrderBy(x => x.OrderDate)
+                .ToList();
+
+            var result = new List<OrderDto>();
+            foreach (var order in pending)
+            {
+                result.Add(await GetByIdAsync(order.Id));
+            }
+
+            return result;
         }
 
         private async Task<bool> ProcessPaymentWithGateway(decimal amount, string paymentMethod)
@@ -419,15 +583,19 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     OrderId = order.DeliverySchedule.OrderId,
                     DeliveryTime = order.DeliverySchedule.DeliveryTime,
                     Address = order.DeliverySchedule.Address,
+                    CustomerPhone = order.DeliverySchedule.CustomerPhone,
                     DriverContact = order.DeliverySchedule.DriverContact
                 };
             }
+
+            var account = order.Account ?? await _unitOfWork.Accounts.GetByIdAsync(order.AccountId);
 
             return new OrderDto
             {
                 Id = order.Id,
                 AccountId = order.AccountId,
                 OrderDate = order.OrderDate,
+                UpdatedAt = order.UpdatedAt,
                 TotalAmount = order.TotalAmount,
                 PaymentMethod = order.PaymentMethod,
                 Status = order.Status,
@@ -435,8 +603,42 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 PaymentConfirmedAt = order.PaymentConfirmedAt,
                 PaymentConfirmedBy = order.PaymentConfirmedBy,
                 OrderDetails = orderDetails,
-                DeliverySchedule = deliveryScheduleDto
+                DeliverySchedule = deliveryScheduleDto,
+                CustomerName = account?.FullName ?? string.Empty,
+                CustomerContact = deliveryScheduleDto?.CustomerPhone ?? string.Empty,
+                DeliveryAddress = deliveryScheduleDto?.Address ?? string.Empty
             };
+        }
+
+        private async Task UpsertDeliveryScheduleAsync(Guid orderId, string deliveryAddress, DateTime deliveryTime, string customerPhone)
+        {
+            var existing = await _unitOfWork.DeliverySchedules.FindAsync(d => d.OrderId == orderId);
+            var schedule = existing.FirstOrDefault();
+
+            if (schedule == null)
+            {
+                schedule = new DeliverySchedule
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = orderId,
+                    Address = deliveryAddress,
+                    CustomerPhone = customerPhone,
+                    DeliveryTime = deliveryTime,
+                    DriverContact = "Unassigned",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.DeliverySchedules.AddAsync(schedule);
+            }
+            else
+            {
+                schedule.Address = deliveryAddress;
+                schedule.CustomerPhone = customerPhone;
+                schedule.DeliveryTime = deliveryTime;
+                schedule.UpdatedAt = DateTime.UtcNow;
+                await _unitOfWork.DeliverySchedules.UpdateAsync(schedule);
+            }
         }
     }
 }

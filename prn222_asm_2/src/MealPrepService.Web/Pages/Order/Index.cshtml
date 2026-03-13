@@ -4,6 +4,37 @@
     ViewData["Title"] = "My Orders";
 }
 
+<style>
+    .order-delivery-black,
+    .order-delivery-black h5,
+    .order-delivery-black h6,
+    .order-delivery-black p,
+    .order-delivery-black small,
+    .order-delivery-black span,
+    .order-delivery-black strong,
+    .order-delivery-black th,
+    .order-delivery-black td,
+    .order-delivery-black a:not(.btn) {
+        color: #000 !important;
+    }
+
+    .order-delivery-black .table thead th,
+    .order-delivery-black .table tbody td {
+        color: #000 !important;
+        background-color: #fff !important;
+        border-color: #dee2e6 !important;
+    }
+
+    .order-delivery-black .badge:not(.bg-warning):not(.text-dark) {
+        color: #fff !important;
+    }
+
+    .order-delivery-black .badge.bg-warning,
+    .order-delivery-black .badge.text-dark {
+        color: #212529 !important;
+    }
+</style>
+
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>My Orders</h2>
@@ -30,6 +61,17 @@
 
     @if (Model.Orders.Any())
     {
+        var deliveryHistoryOrders = Model.Orders
+            .Where(o => o.DeliverySchedule != null)
+            .ToList();
+
+        var deliveryReportOrders = Model.Orders
+            .Where(o => o.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
+                     || o.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
+                     || o.Status.Equals("failed", StringComparison.OrdinalIgnoreCase)
+                     || o.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
         <div class="row">
             @foreach (var order in Model.Orders)
             {
@@ -42,17 +84,33 @@
                                 {
                                     <span class="badge bg-warning">Pending</span>
                                 }
-                                else if (order.Status.Equals("pending_payment", StringComparison.OrdinalIgnoreCase))
+                                else if (order.Status.Equals("awaiting_online_payment", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <span class="badge bg-info">Pending Payment</span>
+                                    <span class="badge bg-info">Awaiting VNPay</span>
+                                }
+                                else if (order.Status.Equals("pending_confirmation", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-warning text-dark">Pending Confirmation</span>
                                 }
                                 else if (order.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
                                 {
                                     <span class="badge bg-success">Confirmed</span>
                                 }
-                                else if (order.Status.Equals("delivered", StringComparison.OrdinalIgnoreCase))
+                                else if (order.Status.Equals("delivering", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <span class="badge bg-primary">Delivered</span>
+                                    <span class="badge bg-primary">Delivering</span>
+                                }
+                                else if (order.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-success">Customer Received</span>
+                                }
+                                else if (order.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-danger">Customer Reject</span>
+                                }
+                                else if (order.Status.Equals("failed", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-dark">Failed</span>
                                 }
                                 else if (order.Status.Equals("payment_failed", StringComparison.OrdinalIgnoreCase))
                                 {
@@ -74,13 +132,65 @@
                                     <strong>Delivery:</strong> @order.DeliveryTime.Value.ToString("MMM dd, yyyy hh:mm tt")<br />
                                 }
                             </p>
+
+                            @if (order.DeliverySchedule != null)
+                            {
+                                var deliveryReportLabel = order.Status?.ToLowerInvariant() switch
+                                {
+                                    "pending_confirmation" => "Waiting for staff confirmation",
+                                    "confirmed" => "Scheduled for dispatch",
+                                    "delivering" => "In transit to customer",
+                                    "customer_received" => "Delivered successfully",
+                                    "customer_reject" => "Delivery rejected by customer",
+                                    "failed" => "Delivery failed",
+                                    "cancelled" => "Delivery/order cancelled",
+                                    _ => "Delivery status is being updated"
+                                };
+
+                                var reportBadgeClass = order.Status?.ToLowerInvariant() switch
+                                {
+                                    "customer_received" => "bg-success",
+                                    "customer_reject" => "bg-danger",
+                                    "failed" => "bg-dark",
+                                    "delivering" => "bg-primary",
+                                    "confirmed" => "bg-info",
+                                    "pending_confirmation" => "bg-warning text-dark",
+                                    _ => "bg-secondary"
+                                };
+
+                                var trackingStep = order.Status?.ToLowerInvariant() switch
+                                {
+                                    "pending_confirmation" => "Waiting Confirmation",
+                                    "confirmed" => "Ready for Delivery",
+                                    "delivering" => "On The Way",
+                                    "customer_received" => "Delivered",
+                                    "customer_reject" => "Delivery Rejected",
+                                    "failed" => "Delivery Failed",
+                                    "cancelled" => "Cancelled",
+                                    _ => "Preparing"
+                                };
+
+                                <div class="border rounded p-2 mb-3 bg-light text-dark order-delivery-black">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small class="fw-semibold mb-0">Delivery Tracking</small>
+                                        <span class="badge @reportBadgeClass">@deliveryReportLabel</span>
+                                    </div>
+                                    <small class="d-block mb-1"><strong>Current Step:</strong> @trackingStep</small>
+                                    @if (!string.IsNullOrWhiteSpace(order.DeliverySchedule.DriverContact))
+                                    {
+                                        <small class="text-dark d-block">Driver: @order.DeliverySchedule.DriverContact</small>
+                                    }
+                                    <small class="text-dark d-block">Address: @order.DeliverySchedule.Address</small>
+                                </div>
+                            }
+
                             <h4 class="text-primary">$@order.TotalAmount.ToString("F2")</h4>
                         </div>
                         <div class="card-footer bg-transparent">
                             <a asp-page="Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-primary w-100">
                                 <i class="bi bi-eye"></i> View Details
                             </a>
-                            @if (order.Status.Equals("payment_failed", StringComparison.OrdinalIgnoreCase))
+                            @if (string.Equals(order.Status, "payment_failed", StringComparison.OrdinalIgnoreCase))
                             {
                                 <form asp-page="Retry" asp-route-id="@order.Id" method="post" class="mt-2">
                                     @Html.AntiForgeryToken()
@@ -93,6 +203,99 @@
                     </div>
                 </div>
             }
+        </div>
+
+        <div id="delivery-history" class="card mt-4 text-dark order-delivery-black">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Delivery History</h5>
+                <span class="badge bg-secondary">@deliveryHistoryOrders.Count</span>
+            </div>
+            <div class="card-body">
+                @if (deliveryHistoryOrders.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var order in deliveryHistoryOrders.Take(10))
+                        {
+                            <a asp-page="Details" asp-route-id="@order.Id" class="list-group-item list-group-item-action text-dark">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Order #@order.Id.ToString().Substring(0, 8)</h6>
+                                    <small>@order.OrderDate.ToString("MMM dd, yyyy")</small>
+                                </div>
+                                <small class="text-dark d-block">Delivery Time: @(order.DeliveryTime?.ToString("MMM dd, yyyy hh:mm tt") ?? "Not scheduled")</small>
+                                <small class="text-dark d-block">Address: @order.DeliverySchedule?.Address</small>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-dark mb-0">No delivery history yet.</p>
+                }
+            </div>
+        </div>
+
+        <div id="delivery-report" class="card mt-4 text-dark order-delivery-black">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Delivery Report</h5>
+                <span class="badge bg-secondary">@deliveryReportOrders.Count</span>
+            </div>
+            <div class="card-body">
+                @if (deliveryReportOrders.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0 text-dark">
+                            <thead>
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Delivery Date</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var order in deliveryReportOrders.Take(10))
+                                {
+                                    <tr>
+                                        <td>#@order.Id.ToString().Substring(0, 8)</td>
+                                        <td>@(order.DeliveryTime?.ToString("MMM dd, yyyy hh:mm tt") ?? "-")</td>
+                                        <td>
+                                            @if (order.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <span class="badge bg-success">Delivered</span>
+                                            }
+                                            else if (order.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <span class="badge bg-danger">Rejected</span>
+                                            }
+                                            else if (order.Status.Equals("failed", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <span class="badge bg-dark">Failed</span>
+                                            }
+                                            else if (order.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <span class="badge bg-secondary">Cancelled</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@order.Status</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <a asp-page="Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-primary">
+                                                View Report
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-dark mb-0">No completed delivery report yet.</p>
+                }
+            </div>
         </div>
     }
     else

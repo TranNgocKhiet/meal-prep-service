@@ -32,6 +32,13 @@ try
     // Add services to the container.
     // Add Razor Pages
     builder.Services.AddRazorPages();
+    builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddSession(options =>
+    {
+        options.IdleTimeout = TimeSpan.FromHours(8);
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+    });
 
     // Add SignalR
     builder.Services.AddSignalR();
@@ -49,14 +56,7 @@ try
     {
         builder.Services.AddDbContext<MealPrepDbContext>(options =>
             options.UseSqlServer(
-                connectionString ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."),
-                sqlServerOptionsAction: sqlOptions =>
-                {
-                    sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(30),
-                        errorNumbersToAdd: null);
-                }));
+                connectionString ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
     }
 
     // Add FluentValidation
@@ -198,6 +198,7 @@ try
 
     app.UseHttpsRedirection();
     app.UseRouting();
+    app.UseSession();
 
     // Add authentication and authorization middleware
     app.UseAuthentication();

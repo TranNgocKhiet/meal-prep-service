@@ -23,7 +23,7 @@ namespace MealPrepService.BusinessLogicLayer.Validators
                 .NotEmpty()
                 .WithMessage("Status is required")
                 .Must(BeValidStatus)
-                .WithMessage("Status must be one of: pending, paid, payment_failed, confirmed, delivered");
+                .WithMessage("Status is not valid for the order workflow");
 
             RuleFor(x => x.OrderDetails)
                 .NotEmpty()
@@ -35,7 +35,22 @@ namespace MealPrepService.BusinessLogicLayer.Validators
 
         private bool BeValidStatus(string status)
         {
-            var validStatuses = new[] { "pending", "paid", "payment_failed", "confirmed", "delivered" };
+            var validStatuses = new[]
+            {
+                "pending",
+                "awaiting_online_payment",
+                "payment_failed",
+                "pending_confirmation",
+                "confirmed",
+                "preparing",
+                "preparing_failed",
+                "prepared",
+                "delivering",
+                "customer_received",
+                "customer_reject",
+                "failed",
+                "cancelled"
+            };
             return validStatuses.Contains(status, StringComparer.OrdinalIgnoreCase);
         }
     }

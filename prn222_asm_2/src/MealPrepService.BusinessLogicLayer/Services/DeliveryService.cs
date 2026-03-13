@@ -9,6 +9,18 @@ namespace MealPrepService.BusinessLogicLayer.Services
 {
     public class DeliveryService : IDeliveryService
     {
+        private static class OrderStatuses
+        {
+            public const string PendingConfirmation = "pending_confirmation";
+            public const string Confirmed = "confirmed";
+            public const string Prepared = "prepared";
+            public const string Delivering = "delivering";
+            public const string CustomerReceived = "customer_received";
+            public const string CustomerReject = "customer_reject";
+            public const string Failed = "failed";
+            public const string Cancelled = "cancelled";
+        }
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<DeliveryService> _logger;
 
@@ -25,16 +37,11 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new ArgumentNullException(nameof(dto));
             }
 
-            // Validate order exists and is in confirmed status
+            // Validate order exists
             var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
             if (order == null)
             {
                 throw new BusinessException($"Order with ID {orderId} not found");
-            }
-
-            if (order.Status != "confirmed")
-            {
-                throw new BusinessException($"Cannot create delivery schedule for order {orderId}. Order status must be 'confirmed', current status: {order.Status}");
             }
 
             // Check if delivery schedule already exists for this order
@@ -56,13 +63,24 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException("Delivery address is required");
             }
 
+            if (dto.DeliveryManId.HasValue)
+            {
+                var assigned = await _unitOfWork.Accounts.GetByIdAsync(dto.DeliveryManId.Value);
+                if (assigned == null || !string.Equals(assigned.Role, "DeliveryMan", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new BusinessException("Assigned delivery account is invalid");
+                }
+            }
+
             // Create delivery schedule entity
             var deliverySchedule = new DeliverySchedule
             {
                 Id = Guid.NewGuid(),
                 OrderId = orderId,
+                DeliveryManId = dto.DeliveryManId,
                 DeliveryTime = dto.DeliveryTime,
                 Address = dto.Address.Trim(),
+                CustomerPhone = dto.CustomerPhone?.Trim() ?? string.Empty,
                 DriverContact = dto.DriverContact?.Trim() ?? string.Empty,
                 CreatedAt = DateTime.UtcNow
             };
@@ -95,6 +113,11 @@ namespace MealPrepService.BusinessLogicLayer.Services
             {
                 var order = orders.FirstOrDefault(o => o.Id == delivery.OrderId);
                 var dto = MapToDto(delivery);
+                if (delivery.DeliveryManId.HasValue)
+                {
+                    var assigned = await _unitOfWork.Accounts.GetByIdAsync(delivery.DeliveryManId.Value);
+                    dto.DeliveryManName = assigned?.FullName ?? string.Empty;
+                }
                 
                 if (order != null)
                 {
@@ -105,7 +128,8 @@ namespace MealPrepService.BusinessLogicLayer.Services
                         OrderDate = order.OrderDate,
                         TotalAmount = order.TotalAmount,
                         PaymentMethod = order.PaymentMethod,
-                        Status = order.Status
+                        Status = order.Status,
+                        OrderDetails = await BuildOrderDetailsAsync(order.Id)
                     };
                 }
                 
@@ -129,8 +153,6 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException($"Account {deliveryManId} is not a delivery man. Current role: {deliveryMan.Role}");
             }
 
-            // For now, we'll return all delivery schedules since we don't have a direct assignment mechanism
-            // In a real implementation, there would be a DeliveryManId field in DeliverySchedule
             var allDeliveries = await _unitOfWork.DeliverySchedules.GetAllAsync();
             
             var deliveryDtos = new List<DeliveryScheduleDto>();
@@ -138,6 +160,11 @@ namespace MealPrepService.BusinessLogicLayer.Services
             {
                 var order = await _unitOfWork.Orders.GetByIdAsync(delivery.OrderId);
                 var dto = MapToDto(delivery);
+                if (delivery.DeliveryManId.HasValue)
+                {
+                    var assigned = await _unitOfWork.Accounts.GetByIdAsync(delivery.DeliveryManId.Value);
+                    dto.DeliveryManName = assigned?.FullName ?? string.Empty;
+                }
                 
                 if (order != null)
                 {
@@ -148,18 +175,79 @@ namespace MealPrepService.BusinessLogicLayer.Services
                         OrderDate = order.OrderDate,
                         TotalAmount = order.TotalAmount,
                         PaymentMethod = order.PaymentMethod,
-                        Status = order.Status
+                        Status = order.Status,
+                        OrderDetails = await BuildOrderDetailsAsync(order.Id)
                     };
                 }
-                
-                deliveryDtos.Add(dto);
+
+                if (dto.Order == null)
+                {
+                    continue;
+                }
+
+                var isAssignedToCurrentDeliveryMan = delivery.DeliveryManId == deliveryManId;
+                var isOwnerInProgress = dto.Order.Status == OrderStatuses.Delivering && isAssignedToCurrentDeliveryMan;
+                var isOwnerFinal = (dto.Order.Status == OrderStatuses.CustomerReceived || dto.Order.Status == OrderStatuses.CustomerReject || dto.Order.Status == OrderStatuses.Failed) && isAssignedToCurrentDeliveryMan;
+
+                if (isOwnerInProgress || isOwnerFinal)
+                {
+                    deliveryDtos.Add(dto);
+                }
             }
 
             return deliveryDtos.OrderBy(d => d.DeliveryTime);
         }
 
-        public async Task CompleteDeliveryAsync(Guid deliveryId)
+        public async Task<IEnumerable<DeliveryScheduleDto>> GetAllForOperationsAsync()
         {
+            var allDeliveries = await _unitOfWork.DeliverySchedules.GetAllAsync();
+            var result = new List<DeliveryScheduleDto>();
+
+            foreach (var delivery in allDeliveries)
+            {
+                var order = await _unitOfWork.Orders.GetByIdAsync(delivery.OrderId);
+                if (order == null)
+                {
+                    continue;
+                }
+
+                var dto = MapToDto(delivery);
+
+                if (delivery.DeliveryManId.HasValue)
+                {
+                    var assigned = await _unitOfWork.Accounts.GetByIdAsync(delivery.DeliveryManId.Value);
+                    dto.DeliveryManName = assigned?.FullName ?? string.Empty;
+                }
+
+                var customer = await _unitOfWork.Accounts.GetByIdAsync(order.AccountId);
+                dto.Order = new OrderDto
+                {
+                    Id = order.Id,
+                    AccountId = order.AccountId,
+                    OrderDate = order.OrderDate,
+                    TotalAmount = order.TotalAmount,
+                    PaymentMethod = order.PaymentMethod,
+                    Status = order.Status,
+                    CustomerName = customer?.FullName ?? string.Empty,
+                    CustomerContact = dto.CustomerContact,
+                    DeliveryAddress = dto.Address,
+                    OrderDetails = await BuildOrderDetailsAsync(order.Id)
+                };
+
+                result.Add(dto);
+            }
+
+            return result.OrderByDescending(x => x.DeliveryTime);
+        }
+
+        public async Task AcceptDeliveryAsync(Guid deliveryId, Guid deliveryManId)
+        {
+            var deliveryMan = await _unitOfWork.Accounts.GetByIdAsync(deliveryManId);
+            if (deliveryMan == null || deliveryMan.Role != "DeliveryMan")
+            {
+                throw new BusinessException("Only delivery man accounts can accept deliveries");
+            }
+
             var deliverySchedule = await _unitOfWork.DeliverySchedules.GetByIdAsync(deliveryId);
             if (deliverySchedule == null)
             {
@@ -173,25 +261,117 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException($"Order with ID {deliverySchedule.OrderId} not found");
             }
 
-            if (order.Status == "delivered")
+            if (order.Status != OrderStatuses.Confirmed && order.Status != OrderStatuses.Delivering)
             {
-                throw new BusinessException($"Order {deliverySchedule.OrderId} is already marked as delivered");
+                throw new BusinessException($"Only confirmed or scheduled orders can be accepted for delivery. Current status: {order.Status}");
+            }
+
+            if (deliverySchedule.DeliveryManId.HasValue && deliverySchedule.DeliveryManId != deliveryManId)
+            {
+                throw new BusinessException("This delivery is already assigned to another delivery man");
+            }
+
+            // Keep scheduled deliveries in delivering state and move confirmed ones into delivering.
+            if (order.Status == OrderStatuses.Confirmed)
+            {
+                order.Status = OrderStatuses.Delivering;
+            }
+            order.UpdatedAt = DateTime.UtcNow;
+            deliverySchedule.DeliveryManId = deliveryManId;
+            deliverySchedule.DriverContact = deliveryMan.FullName;
+            deliverySchedule.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.Orders.UpdateAsync(order);
+            await _unitOfWork.DeliverySchedules.UpdateAsync(deliverySchedule);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Delivery {DeliveryId} accepted by delivery man {DeliveryManId}", deliveryId, deliveryManId);
+        }
+
+        public async Task AssignDeliveryManAsync(Guid deliveryId, Guid deliveryManId)
+        {
+            var deliveryMan = await _unitOfWork.Accounts.GetByIdAsync(deliveryManId);
+            if (deliveryMan == null || !string.Equals(deliveryMan.Role, "DeliveryMan", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new BusinessException("Assigned account must be a valid delivery man");
+            }
+
+            var deliverySchedule = await _unitOfWork.DeliverySchedules.GetByIdAsync(deliveryId);
+            if (deliverySchedule == null)
+            {
+                throw new BusinessException($"Delivery schedule with ID {deliveryId} not found");
+            }
+
+            var order = await _unitOfWork.Orders.GetByIdAsync(deliverySchedule.OrderId);
+            if (order == null)
+            {
+                throw new BusinessException($"Order with ID {deliverySchedule.OrderId} not found");
+            }
+
+            if (order.Status != OrderStatuses.Prepared && order.Status != OrderStatuses.Delivering)
+            {
+                throw new BusinessException($"Cannot assign delivery man while order is in status: {order.Status}");
+            }
+
+            deliverySchedule.DeliveryManId = deliveryManId;
+            deliverySchedule.DriverContact = deliveryMan.FullName;
+            deliverySchedule.UpdatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.DeliverySchedules.UpdateAsync(deliverySchedule);
+            await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation("Delivery schedule {DeliveryId} assigned to delivery man {DeliveryManId}", deliveryId, deliveryManId);
+        }
+
+        public async Task CompleteDeliveryAsync(Guid deliveryId, Guid deliveryManId, string resultStatus)
+        {
+            if (string.IsNullOrWhiteSpace(resultStatus))
+            {
+                throw new BusinessException("Delivery result status is required");
+            }
+
+            var normalized = resultStatus.Trim().ToLowerInvariant();
+            var allowed = new[] { OrderStatuses.CustomerReceived, OrderStatuses.CustomerReject, OrderStatuses.Failed };
+            if (!allowed.Contains(normalized))
+            {
+                throw new BusinessException($"Invalid delivery result. Allowed values: {string.Join(", ", allowed)}");
+            }
+
+            var deliverySchedule = await _unitOfWork.DeliverySchedules.GetByIdAsync(deliveryId);
+            if (deliverySchedule == null)
+            {
+                throw new BusinessException($"Delivery schedule with ID {deliveryId} not found");
+            }
+
+            var order = await _unitOfWork.Orders.GetByIdAsync(deliverySchedule.OrderId);
+            if (order == null)
+            {
+                throw new BusinessException($"Order with ID {deliverySchedule.OrderId} not found");
+            }
+
+            if (!deliverySchedule.DeliveryManId.HasValue || deliverySchedule.DeliveryManId != deliveryManId)
+            {
+                throw new BusinessException("You can only complete deliveries assigned to you");
+            }
+
+            if (order.Status != OrderStatuses.Delivering)
+            {
+                throw new BusinessException($"Order must be in delivering state before completion. Current status: {order.Status}");
             }
 
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-                // Update order status to delivered
-                order.Status = "delivered";
+                order.Status = normalized;
                 order.UpdatedAt = DateTime.UtcNow;
 
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
-                _logger.LogInformation("Delivery {DeliveryId} completed for order {OrderId}", 
-                    deliveryId, deliverySchedule.OrderId);
+                _logger.LogInformation("Delivery {DeliveryId} completed with status {Status} for order {OrderId}", 
+                    deliveryId, normalized, deliverySchedule.OrderId);
             }
             catch
             {
@@ -221,7 +401,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException($"Order with ID {deliverySchedule.OrderId} not found");
             }
 
-            if (order.Status == "delivered")
+            if (order.Status == OrderStatuses.CustomerReceived || order.Status == OrderStatuses.CustomerReject || order.Status == OrderStatuses.Failed || order.Status == OrderStatuses.Cancelled)
             {
                 throw new BusinessException($"Cannot update delivery time for order {deliverySchedule.OrderId} - order is already delivered");
             }
@@ -236,14 +416,61 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 deliveryId, newTime);
         }
 
+        private async Task<List<OrderDetailDto>> BuildOrderDetailsAsync(Guid orderId)
+        {
+            var orderDetails = await _unitOfWork.OrderDetails.FindAsync(od => od.OrderId == orderId);
+            var result = new List<OrderDetailDto>();
+
+            foreach (var detail in orderDetails)
+            {
+                MenuMealDto? menuMealDto = null;
+                var menuMeal = await _unitOfWork.MenuMeals.GetByIdAsync(detail.MenuMealId);
+                if (menuMeal != null)
+                {
+                    var recipeName = string.Empty;
+                    var recipe = await _unitOfWork.Recipes.GetByIdAsync(menuMeal.RecipeId);
+                    if (recipe != null)
+                    {
+                        recipeName = recipe.RecipeName;
+                    }
+
+                    menuMealDto = new MenuMealDto
+                    {
+                        Id = menuMeal.Id,
+                        MenuId = menuMeal.MenuId,
+                        RecipeId = menuMeal.RecipeId,
+                        RecipeName = recipeName,
+                        Price = menuMeal.Price,
+                        AvailableQuantity = menuMeal.AvailableQuantity,
+                        IsSoldOut = menuMeal.AvailableQuantity == 0
+                    };
+                }
+
+                result.Add(new OrderDetailDto
+                {
+                    Id = detail.Id,
+                    OrderId = detail.OrderId,
+                    MenuMealId = detail.MenuMealId,
+                    Quantity = detail.Quantity,
+                    UnitPrice = detail.UnitPrice,
+                    MenuMeal = menuMealDto
+                });
+            }
+
+            return result;
+        }
+
         private DeliveryScheduleDto MapToDto(DeliverySchedule deliverySchedule)
         {
             return new DeliveryScheduleDto
             {
                 Id = deliverySchedule.Id,
                 OrderId = deliverySchedule.OrderId,
+                DeliveryManId = deliverySchedule.DeliveryManId,
+                DeliveryManName = deliverySchedule.DeliveryMan?.FullName ?? string.Empty,
                 DeliveryTime = deliverySchedule.DeliveryTime,
                 Address = deliverySchedule.Address,
+                CustomerPhone = deliverySchedule.CustomerPhone,
                 DriverContact = deliverySchedule.DriverContact
             };
         }

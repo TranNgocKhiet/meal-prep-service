@@ -17,17 +17,33 @@
                     {
                         <span class="badge bg-warning">Pending</span>
                     }
-                    else if (Model.Status.Equals("pending_payment", StringComparison.OrdinalIgnoreCase))
+                    else if (Model.Status.Equals("awaiting_online_payment", StringComparison.OrdinalIgnoreCase))
                     {
-                        <span class="badge bg-info">Pending Payment</span>
+                        <span class="badge bg-info">Awaiting VNPay</span>
+                    }
+                    else if (Model.Status.Equals("pending_confirmation", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="badge bg-warning text-dark">Pending Confirmation</span>
                     }
                     else if (Model.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
                     {
                         <span class="badge bg-success">Confirmed</span>
                     }
-                    else if (Model.Status.Equals("delivered", StringComparison.OrdinalIgnoreCase))
+                    else if (Model.Status.Equals("delivering", StringComparison.OrdinalIgnoreCase))
                     {
-                        <span class="badge bg-primary">Delivered</span>
+                        <span class="badge bg-primary">Delivering</span>
+                    }
+                    else if (Model.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="badge bg-success">Customer Received</span>
+                    }
+                    else if (Model.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="badge bg-danger">Customer Reject</span>
+                    }
+                    else if (Model.Status.Equals("failed", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <span class="badge bg-dark">Failed</span>
                     }
                     else if (Model.Status.Equals("payment_failed", StringComparison.OrdinalIgnoreCase))
                     {
@@ -79,7 +95,7 @@
                 </div>
             </div>
 
-            @if (Model.Status.Equals("pending_payment", StringComparison.OrdinalIgnoreCase) && 
+            @if (Model.Status.Equals("pending_confirmation", StringComparison.OrdinalIgnoreCase) && 
                  Model.PaymentMethod.Equals("COD", StringComparison.OrdinalIgnoreCase))
             {
                 <div class="alert alert-info">
@@ -166,19 +182,80 @@
                         }
                     </div>
                 </div>
+
+                var deliveryReportText = Model.Status.ToLowerInvariant() switch
+                {
+                    "pending_confirmation" => "Your order is waiting for staff confirmation before dispatch.",
+                    "confirmed" => "Your delivery is confirmed and waiting for a driver assignment.",
+                    "delivering" => "Your order is currently on the way.",
+                    "customer_received" => "Customer delivery report: received successfully.",
+                    "customer_reject" => "Customer delivery report: rejected at handoff.",
+                    "failed" => "Customer delivery report: delivery attempt failed.",
+                    "cancelled" => "Order was cancelled before delivery completion.",
+                    _ => "Delivery report is being updated."
+                };
+
+                var deliveryReportClass = Model.Status.ToLowerInvariant() switch
+                {
+                    "customer_received" => "alert alert-success",
+                    "customer_reject" => "alert alert-danger",
+                    "failed" => "alert alert-dark",
+                    "delivering" => "alert alert-primary",
+                    "confirmed" => "alert alert-info",
+                    "pending_confirmation" => "alert alert-warning",
+                    _ => "alert alert-secondary"
+                };
+
+                <h5 class="mb-3">Customer Delivery Report</h5>
+                <div class="@deliveryReportClass mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Status:</strong> @Model.Status
+                        </div>
+                        @if (Model.DeliveryInfo.DeliveryTime != default)
+                        {
+                            <small>Scheduled: @Model.DeliveryInfo.DeliveryTime.ToString("MMM dd, yyyy hh:mm tt")</small>
+                        }
+                    </div>
+                    <div class="mt-2">@deliveryReportText</div>
+                </div>
+
+                var isConfirmedOrLater = Model.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("delivering", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("failed", StringComparison.OrdinalIgnoreCase);
+
+                var isDeliveringOrLater = Model.Status.Equals("delivering", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("failed", StringComparison.OrdinalIgnoreCase);
+
+                var isFinal = Model.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("failed", StringComparison.OrdinalIgnoreCase)
+                    || Model.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase);
+
+                <h5 class="mb-3">Delivery Tracking</h5>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <span class="badge @(Model.Status.Equals("pending_confirmation", StringComparison.OrdinalIgnoreCase) ? "bg-primary" : "bg-secondary")">1. Pending Confirmation</span>
+                            <i class="bi bi-arrow-right text-muted"></i>
+                            <span class="badge @(isConfirmedOrLater ? "bg-primary" : "bg-secondary")">2. Confirmed</span>
+                            <i class="bi bi-arrow-right text-muted"></i>
+                            <span class="badge @(isDeliveringOrLater ? "bg-primary" : "bg-secondary")">3. Delivering</span>
+                            <i class="bi bi-arrow-right text-muted"></i>
+                            <span class="badge @(isFinal ? "bg-primary" : "bg-secondary")">4. Completed</span>
+                        </div>
+                    </div>
+                </div>
             }
 
             <div class="d-flex justify-content-between">
                 <a asp-page="Index" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Orders
                 </a>
-                @if (Model.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase) || 
-                     Model.Status.Equals("pending_payment", StringComparison.OrdinalIgnoreCase))
-                {
-                    <a asp-page="/Delivery/MyDeliveries" class="btn btn-info">
-                        <i class="bi bi-truck"></i> Track Delivery
-                    </a>
-                }
             </div>
         </div>
     </div>

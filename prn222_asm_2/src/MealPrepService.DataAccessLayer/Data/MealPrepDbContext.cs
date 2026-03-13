@@ -270,6 +270,12 @@ public class MealPrepDbContext : DbContext
             .WithOne(d => d.Order)
             .HasForeignKey<DeliverySchedule>(d => d.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DeliverySchedule>()
+            .HasOne(d => d.DeliveryMan)
+            .WithMany(a => a.AssignedDeliveries)
+            .HasForeignKey(d => d.DeliveryManId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
     
     private void ConfigureIndexes(ModelBuilder modelBuilder)
@@ -294,6 +300,9 @@ public class MealPrepDbContext : DbContext
         // Index on FridgeItem for account queries
         modelBuilder.Entity<FridgeItem>()
             .HasIndex(fi => new { fi.AccountId, fi.ExpiryDate });
+
+        modelBuilder.Entity<DeliverySchedule>()
+            .HasIndex(ds => ds.DeliveryManId);
     }
     
     private void ConfigureConstraints(ModelBuilder modelBuilder)
@@ -404,6 +413,11 @@ public class MealPrepDbContext : DbContext
             .Property(ds => ds.Address)
             .IsRequired()
             .HasMaxLength(500);
+
+        modelBuilder.Entity<DeliverySchedule>()
+            .Property(ds => ds.CustomerPhone)
+            .IsRequired()
+            .HasMaxLength(20);
         
         modelBuilder.Entity<DeliverySchedule>()
             .Property(ds => ds.DriverContact)

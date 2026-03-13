@@ -27,6 +27,178 @@ body {
   /* Removed margin-bottom to allow footer to stick to bottom */
 }
 
+:root {
+  --app-green-700: #136f35;
+  --app-green-600: #1f9349;
+  --app-green-500: #22b14c;
+  --app-green-100: #d8f4e2;
+  --app-nav-text: #f4fff7;
+  --app-nav-muted: #cff2d9;
+}
+
+.app-navbar {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.app-brand:hover {
+  color: #0f172a;
+}
+
+.app-brand span:last-child {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.app-brand small {
+  font-size: 0.74rem;
+  opacity: 0.85;
+  letter-spacing: 0.02em;
+}
+
+.app-brand-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  background: rgba(34, 177, 76, 0.15);
+  border: 1px solid rgba(34, 177, 76, 0.3);
+}
+
+.app-navbar-collapse {
+  gap: 0.75rem;
+}
+
+.app-navbar .navbar-nav {
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.app-nav-link {
+  color: #1f2937 !important;
+  border-radius: 999px;
+  padding: 0.4rem 0.72rem !important;
+  font-size: 0.92rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.app-nav-link:hover,
+.app-nav-link:focus {
+  background: rgba(34, 177, 76, 0.18);
+  color: #0f172a !important;
+  transform: translateY(-1px);
+}
+
+.app-navbar .navbar-nav .nav-item {
+  margin-right: 0.35rem;
+}
+
+.app-navbar .navbar-toggler {
+  border-color: rgba(15, 23, 42, 0.24);
+}
+
+.app-navbar .navbar-toggler:focus {
+  box-shadow: 0 0 0 0.18rem rgba(34, 177, 76, 0.24);
+}
+
+.app-navbar .dropdown-menu {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+  padding: 0.45rem;
+  min-width: 14.5rem;
+}
+
+.app-navbar .dropdown-item {
+  border-radius: 8px;
+  padding: 0.46rem 0.66rem;
+}
+
+.app-navbar .dropdown-item:hover {
+  background-color: var(--app-green-100);
+  color: #0f5124 !important;
+}
+
+.app-navbar-actions .nav-link {
+  color: #1f2937 !important;
+}
+
+.app-navbar-actions .navbar-nav {
+  margin-left: auto;
+}
+
+.app-navbar-actions .dropdown-toggle {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-name-text {
+  display: inline-block;
+  max-width: 125px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+
+@media (max-width: 1199.98px) {
+  .app-brand small {
+    display: none;
+  }
+
+  .app-nav-link {
+    padding: 0.36rem 0.6rem !important;
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .app-navbar .navbar-nav {
+    align-items: stretch;
+  }
+
+  .app-navbar .navbar-nav .nav-item {
+    margin-right: 0;
+    margin-bottom: 0.25rem;
+  }
+
+  .app-navbar-actions {
+    border-top: 1px solid rgba(15, 23, 42, 0.12);
+    padding-top: 0.6rem;
+    margin-top: 0.3rem;
+  }
+
+  .app-brand small {
+    display: none;
+  }
+
+  .app-navbar-actions .dropdown-toggle {
+    max-width: none;
+  }
+
+  .user-name-text {
+    max-width: none;
+  }
+}
+
 .form-floating > .form-control-plaintext::placeholder,
 .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);

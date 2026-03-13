@@ -1,0 +1,202 @@
+@page
+@model MealPrepService.Web.Pages.Delivery.ManagementModel
+@{
+    ViewData["Title"] = "Delivery Schedule";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Delivery Schedule</h2>
+        <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+
+    <div class="d-flex gap-2 mb-3">
+        <a asp-page="./Management" asp-route-tab="all" class="btn @(Model.Tab == "all" ? "btn-success" : "btn-outline-success")">All (@Model.AllCount)</a>
+        <a asp-page="./Management" asp-route-tab="delivering" class="btn @(Model.Tab == "delivering" ? "btn-warning" : "btn-outline-warning")">Delivering (@Model.DeliveringCount)</a>
+        <a asp-page="./Management" asp-route-tab="completed" class="btn @(Model.Tab == "completed" ? "btn-primary" : "btn-outline-primary")">Completed (@Model.CompletedCount)</a>
+    </div>
+
+    @if (Model.Deliveries.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>Order #</th>
+                        <th>Status</th>
+                        <th>Customer</th>
+                        <th>Driver</th>
+                        <th>Delivery Time</th>
+                        <th>Address</th>
+                        <th>Contact</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var delivery in Model.Deliveries)
+                    {
+                        var modalSuffix = delivery.Id.ToString("N");
+                        <tr>
+                            <td><strong>@delivery.OrderId.ToString().Substring(0, 8).ToUpperInvariant()</strong></td>
+                            <td>
+                                @if (delivery.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-warning text-dark">Delivering</span>
+                                }
+                                else if (delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-success">Customer Received</span>
+                                }
+                                else if (delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-danger">Customer Rejected</span>
+                                }
+                                else if (delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <span class="badge bg-dark">Failed</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@delivery.OrderStatus</span>
+                                }
+                            </td>
+                            <td>
+                                <div>@delivery.CustomerName</div>
+                                <small class="text-muted">@delivery.CustomerContact</small>
+                            </td>
+                            <td>
+                                <div>@(string.IsNullOrWhiteSpace(delivery.DeliveryManName) ? "Unassigned" : delivery.DeliveryManName)</div>
+                            </td>
+                            <td>@delivery.DeliveryTime.ToLocalTime().ToString("MMM dd, yyyy, hh:mm tt")</td>
+                            <td>@delivery.Address</td>
+                            <td>@delivery.CustomerContact</td>
+                            <td>$@delivery.OrderTotal.ToString("N2")</td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#detailModal-@modalSuffix">
+                                        <i class="bi bi-eye"></i> Detail
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @foreach (var delivery in Model.Deliveries)
+        {
+            var modalSuffix = delivery.Id.ToString("N");
+            var scheduleLocal = delivery.DeliveryTime.ToLocalTime();
+            <div class="modal fade" id="detailModal-@modalSuffix" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Order Detail - @delivery.OrderId.ToString().Substring(0, 8).ToUpperInvariant()</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            @if (delivery.Order?.OrderDetails?.Any() == true)
+                            {
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th class="text-center">Qty</th>
+                                            <th class="text-end">Unit Price</th>
+                                            <th class="text-end">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in delivery.Order.OrderDetails)
+                                        {
+                                            var itemName = !string.IsNullOrWhiteSpace(item.MenuMeal?.RecipeName)
+                                                ? item.MenuMeal.RecipeName
+                                                : $"MenuMeal {item.MenuMealId.ToString().Substring(0, 8)}";
+                                            <tr>
+                                                <td>@itemName</td>
+                                                <td class="text-center">@item.Quantity</td>
+                                                <td class="text-end">@item.UnitPrice.ToString("N2")</td>
+                                                <td class="text-end">@item.TotalPrice.ToString("N2")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <p class="text-muted mb-0">No order items available.</p>
+                            }
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
+                && !delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
+                && !delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase)
+                && !delivery.OrderStatus.Equals("cancelled", StringComparison.OrdinalIgnoreCase))
+            {
+                <div class="modal fade" id="editModal-@modalSuffix" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Update Delivery - @delivery.OrderId.ToString().Substring(0, 8).ToUpperInvariant()</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="post" asp-page-handler="Update">
+                                @Html.AntiForgeryToken()
+                                <div class="modal-body">
+                                    <input type="hidden" name="deliveryId" value="@delivery.Id" />
+                                    <input type="hidden" name="tab" value="@Model.Tab" />
+
+                                    <div class="mb-3">
+                                        <label class="form-label" for="driver-@modalSuffix">Assign Driver</label>
+                                        <select id="driver-@modalSuffix" name="deliveryManId" class="form-select" required>
+                                            <option value="">Select delivery man</option>
+                                            @foreach (var option in Model.DeliveryManOptions)
+                                            {
+                                                var selected = delivery.DeliveryManId.HasValue && option.Value == delivery.DeliveryManId.Value.ToString();
+                                                <option value="@option.Value" selected="@selected">@option.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-0">
+                                        <label class="form-label" for="time-@modalSuffix">Delivery Time</label>
+                                        <input id="time-@modalSuffix"
+                                               name="selectedDeliveryTime"
+                                               type="datetime-local"
+                                               class="form-control"
+                                               value="@scheduleLocal.ToString("yyyy-MM-ddTHH:mm")"
+                                               required />
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-truck" style="font-size: 4rem; color: #ccc;"></i>
+                <h4 class="mt-3">No Delivery Records</h4>
+                <p class="text-muted">There are no deliveries for this filter.</p>
+            </div>
+        </div>
+    }
+</div>

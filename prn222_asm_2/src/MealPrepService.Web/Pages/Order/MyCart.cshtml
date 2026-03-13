@@ -1,0 +1,134 @@
+@page
+@model MealPrepService.Web.Pages.Order.MyCartModel
+@{
+    ViewData["Title"] = "My Cart";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Cart</h2>
+        <a asp-page="/PublicMenu/Today" class="btn btn-outline-primary">
+            <i class="bi bi-plus-circle"></i> Add More Meals
+        </a>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    @if (Model.CartItems.Any())
+    {
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <strong>Cart Items</strong>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Meal</th>
+                                    <th class="text-center">Unit Price</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.CartItems)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold">@item.RecipeName</div>
+                                            <small class="text-muted">Stock: @item.AvailableQuantity</small>
+                                        </td>
+                                        <td class="text-center">$@item.UnitPrice.ToString("F2")</td>
+                                        <td class="text-center" style="width: 180px;">
+                                            <form method="post" asp-page-handler="Update" class="d-flex gap-2 justify-content-center">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="menuMealId" value="@item.MenuMealId" />
+                                                <input type="number" name="quantity" min="1" max="@item.AvailableQuantity" value="@item.Quantity" class="form-control form-control-sm" style="width:90px;" />
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>
+                                            </form>
+                                        </td>
+                                        <td class="text-end">$@item.Subtotal.ToString("F2")</td>
+                                        <td class="text-end">
+                                            <form method="post" asp-page-handler="Remove">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="menuMealId" value="@item.MenuMealId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <form method="post" asp-page-handler="Clear">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Clear all items from cart?')">
+                        <i class="bi bi-trash"></i> Clear Cart
+                    </button>
+                </form>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 16px;">
+                    <div class="card-header"><strong>Checkout</strong></div>
+                    <div class="card-body">
+                        <form method="post" asp-page-handler="Checkout">
+                            @Html.AntiForgeryToken()
+
+                            <div class="mb-3">
+                                <label asp-for="DeliveryAddress" class="form-label">Delivery Address</label>
+                                <textarea asp-for="DeliveryAddress" class="form-control" rows="3" placeholder="Enter your delivery address"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="DeliveryPhone" class="form-label">Delivery Phone Number</label>
+                                <input asp-for="DeliveryPhone" class="form-control" maxlength="20" placeholder="e.g. 0901234567" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="PreferredDeliveryTime" class="form-label">Preferred Delivery Time</label>
+                                <input asp-for="PreferredDeliveryTime" type="datetime-local" class="form-control" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="PaymentMethod" class="form-label">Payment Method</label>
+                                <select asp-for="PaymentMethod" class="form-select">
+                                    <option value="COD">Cash</option>
+                                    <option value="VNPAY">VNPay</option>
+                                </select>
+                            </div>
+
+                            <hr />
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">Total</span>
+                                <span class="h4 mb-0 text-primary">$@Model.TotalAmount.ToString("F2")</span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">
+                                <i class="bi bi-bag-check"></i> Place Order
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-cart-x" style="font-size: 3rem; color: #bbb;"></i>
+                <h4 class="mt-3">Your cart is empty</h4>
+                <p class="text-muted">Browse today's menu and add meals to begin checkout.</p>
+                <a asp-page="/PublicMenu/Today" class="btn btn-primary">
+                    <i class="bi bi-calendar-day"></i> Go to Today's Menu
+                </a>
+            </div>
+        </div>
+    }
+</div>
