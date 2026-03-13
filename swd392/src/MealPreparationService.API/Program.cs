@@ -152,6 +152,9 @@ builder.Services.AddScoped<IMealTrackingService, MealTrackingService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IVirtualFridgeService, VirtualFridgeService>();
+builder.Services.AddScoped<IAICreditPackageService, AICreditPackageService>();
+builder.Services.AddScoped<ISubscriptionPackageService, SubscriptionPackageService>();
+builder.Services.AddScoped<IAICreditTransactionService, AICreditTransactionService>();
 // TODO: Implement these services
 // builder.Services.AddScoped<IGroceryListService, GroceryListService>();
 // builder.Services.AddScoped<IAllergyCheckService, AllergyCheckService>();

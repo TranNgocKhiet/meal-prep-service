@@ -164,6 +164,24 @@ public class AuthenticationService : IAuthenticationService
             
             if (user != null)
             {
+                // Check if GoogleAuth record exists
+                var existingGoogleAuth = await _unitOfWork.GoogleAuths.GetByIdAsync(googleUserInfo.GoogleAuthId);
+                if (existingGoogleAuth == null)
+                {
+                    // Create GoogleAuth record
+                    var googleAuth = new GoogleAuth
+                    {
+                        Id = googleUserInfo.GoogleAuthId,
+                        ProviderKey = googleUserInfo.GoogleAuthId,
+                        AccessToken = string.Empty,
+                        RefreshToken = string.Empty,
+                        ExpiresAt = DateTime.UtcNow.AddDays(30),
+                        IsVerified = true
+                    };
+                    await _unitOfWork.GoogleAuths.AddAsync(googleAuth);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                
                 // Link Google account to existing user
                 user.GoogleAuthId = googleUserInfo.GoogleAuthId;
                 await _unitOfWork.Accounts.UpdateAsync(user);
@@ -184,6 +202,20 @@ public class AuthenticationService : IAuthenticationService
                     };
                 }
 
+                // Create GoogleAuth record first
+                var googleAuth = new GoogleAuth
+                {
+                    Id = googleUserInfo.GoogleAuthId,
+                    ProviderKey = googleUserInfo.GoogleAuthId,
+                    AccessToken = string.Empty,
+                    RefreshToken = string.Empty,
+                    ExpiresAt = DateTime.UtcNow.AddDays(30),
+                    IsVerified = true
+                };
+                await _unitOfWork.GoogleAuths.AddAsync(googleAuth);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Now create the user account
                 user = new Account
                 {
                     Id = Guid.NewGuid().ToString(),

@@ -11,10 +11,41 @@
   gap: var(--spacing-md);
 }
 
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
 .page-header h1 {
   margin: 0;
   color: var(--color-text-primary);
   font-size: var(--font-size-xxxl);
+}
+
+.ai-credits-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--border-radius-md);
+  color: white;
+  font-size: var(--font-size-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.ai-credits-display .credits-icon {
+  font-size: var(--font-size-md);
+}
+
+.ai-credits-display .credits-text {
+  font-weight: 500;
+}
+
+.ai-credits-display .credits-amount {
+  font-weight: 700;
+  font-size: var(--font-size-md);
 }
 
 .header-actions {

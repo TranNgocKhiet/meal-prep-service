@@ -41,6 +41,23 @@ public class AIMealPlanService : IAIMealPlanService
     {
         _logger.LogInformation("=== STARTING AI MEAL PLAN GENERATION ===");
         
+        // Check if user has enough credits
+        var user = await _unitOfWork.Accounts.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new UnauthorizedAccessException("User not found");
+        }
+        
+        if (user.CurrentCredits < 1)
+        {
+            throw new InvalidOperationException("Insufficient AI credits. Please purchase more credits to generate AI meal plans.");
+        }
+        
+        // Deduct 1 credit from user's account
+        user.CurrentCredits -= 1;
+        _logger.LogInformation("Deducted 1 AI credit from user {UserId}. Remaining credits: {Credits}", 
+            userId, user.CurrentCredits);
+        
         // Apply defaults for null values
         var durationDays = dto.DurationDays ?? 1;
         var startDate = dto.StartDate ?? DateTime.Today;
@@ -73,6 +90,9 @@ public class AIMealPlanService : IAIMealPlanService
         // Create meal plan with AI-generated recipes
         _logger.LogInformation("Creating meal plan with recipes...");
         var mealPlan = await CreateMealPlanWithRecipesAsync(dto, userId, selectedRecipes);
+        
+        // Save the credit deduction
+        await _unitOfWork.SaveChangesAsync();
         
         _logger.LogInformation("=== AI MEAL PLAN GENERATION COMPLETED ===");
         return mealPlan;

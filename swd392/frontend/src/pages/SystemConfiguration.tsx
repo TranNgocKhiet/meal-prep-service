@@ -93,7 +93,7 @@ const SystemConfiguration = () => {
   return (
     <div className="container">
       <div className="crud-header">
-        <h1>System Configuration</h1>
+        <h1 style={{ color: '#fff' }}>System Configuration</h1>
       </div>
 
       {error && <div className="error-message">{error}</div>}

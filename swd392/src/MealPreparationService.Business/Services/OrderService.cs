@@ -31,11 +31,23 @@ public class OrderService : IOrderService
         var cart = await _unitOfWork.Carts.GetAllQueryable()
             .Include(c => c.CartItems)
                 .ThenInclude(ci => ci.MenuMeal)
+                    .ThenInclude(mm => mm.Menu)
             .FirstOrDefaultAsync(c => c.AccountId == userId);
 
         if (cart == null || !cart.CartItems.Any())
         {
             throw new InvalidOperationException("Cart is empty");
+        }
+
+        // Validate all menu items are not from past dates
+        var today = DateTime.UtcNow.Date;
+        var pastMenuItems = cart.CartItems
+            .Where(ci => ci.MenuMeal.Menu.MenuDate.Date < today)
+            .ToList();
+
+        if (pastMenuItems.Any())
+        {
+            throw new InvalidOperationException("Cannot order meals from past menus. Please remove past menu items from your cart.");
         }
 
         // Calculate total amount
@@ -236,6 +248,8 @@ public class OrderService : IOrderService
         _logger.LogInformation("Confirming order {OrderId} by staff {StaffId}", orderId, staffId);
 
         var order = await _unitOfWork.Orders.GetAllQueryable()
+            .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.MenuMeal)
             .FirstOrDefaultAsync(o => o.Id == orderId);
 
         if (order == null)
@@ -246,6 +260,24 @@ public class OrderService : IOrderService
         if (order.StatusId != 1) // Not pending (1 = OrderPending)
         {
             throw new InvalidOperationException("Only pending orders can be confirmed");
+        }
+
+        // Subtract quantities from menu meals
+        foreach (var orderDetail in order.OrderDetails)
+        {
+            var menuMeal = orderDetail.MenuMeal;
+            
+            if (menuMeal.AvailableQuantity < orderDetail.Quantity)
+            {
+                throw new InvalidOperationException(
+                    $"Insufficient quantity for menu meal {menuMeal.Id}. Available: {menuMeal.AvailableQuantity}, Requested: {orderDetail.Quantity}");
+            }
+
+            menuMeal.AvailableQuantity -= orderDetail.Quantity;
+            menuMeal.UpdatedAt = DateTime.UtcNow;
+            
+            _logger.LogInformation("Subtracted {Quantity} from MenuMeal {MenuMealId}. New available quantity: {NewQuantity}", 
+                orderDetail.Quantity, menuMeal.Id, menuMeal.AvailableQuantity);
         }
 
         order.StatusId = 3; // OrderConfirmed

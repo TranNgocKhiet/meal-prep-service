@@ -301,7 +301,7 @@ const AdminMenu = () => {
   return (
     <div className="container">
       <div className="crud-header">
-        <h1>Daily Menu Management</h1>
+        <h1 style={{ color: '#fff' }}>Daily Menu Management</h1>
         <div className="crud-actions">
           <input
             type="text"
@@ -608,10 +608,10 @@ const AdminMenu = () => {
           <div className="modal-content">
             <h2>Meal Information</h2>
             <div style={{ marginBottom: '1.5rem' }}>
-              <p><strong>Menu Date:</strong> {new Date(selectedMenu.menuDate).toLocaleDateString()}</p>
-              <p><strong>Meal Type:</strong> {getMealTypeName(selectedMeal.mealTypeId)}</p>
-              <p><strong>Price:</strong> {selectedMeal.price.toLocaleString('vi-VN')} VND</p>
-              <p><strong>Available Quantity:</strong> {selectedMeal.availableQuantity}</p>
+              <p style={{ color: '#000' }}><strong>Menu Date:</strong> {new Date(selectedMenu.menuDate).toLocaleDateString()}</p>
+              <p style={{ color: '#000' }}><strong>Meal Type:</strong> {getMealTypeName(selectedMeal.mealTypeId)}</p>
+              <p style={{ color: '#000' }}><strong>Price:</strong> {selectedMeal.price.toLocaleString('vi-VN')} VND</p>
+              <p style={{ color: '#000' }}><strong>Available Quantity:</strong> {selectedMeal.availableQuantity}</p>
               
               {selectedMeal.menuMealRecipes && selectedMeal.menuMealRecipes.length > 0 && (
                 <div style={{ 
@@ -619,7 +619,8 @@ const AdminMenu = () => {
                   padding: '0.75rem', 
                   background: '#f7fafc', 
                   borderRadius: '6px',
-                  border: '1px solid #e2e8f0'
+                  border: '1px solid #e2e8f0',
+                  color: '#000'
                 }}>
                   <strong>Nutritional Information:</strong>
                   <div style={{ marginTop: '0.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
@@ -633,7 +634,7 @@ const AdminMenu = () => {
             </div>
 
             <div>
-              <h3 style={{ marginBottom: '1rem' }}>Recipes ({selectedMeal.menuMealRecipes?.length || 0})</h3>
+              <h3 style={{ marginBottom: '1rem', color: '#000' }}>Recipes ({selectedMeal.menuMealRecipes?.length || 0})</h3>
               {selectedMeal.menuMealRecipes && selectedMeal.menuMealRecipes.length > 0 ? (
                 <div style={{ 
                   maxHeight: '300px', 

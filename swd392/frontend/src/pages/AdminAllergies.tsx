@@ -87,7 +87,7 @@ const AdminAllergies = () => {
   return (
     <div className="container">
       <div className="crud-header">
-        <h1>Allergies Management</h1>
+        <h1 style={{ color: '#fff' }}>Allergies Management</h1>
         <div className="crud-actions">
           <input
             type="text"

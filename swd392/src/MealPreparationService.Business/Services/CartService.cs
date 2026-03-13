@@ -67,11 +67,21 @@ public class CartService : ICartService
 
         // Check if menu meal exists and has availability
         var menuMeal = await _unitOfWork.MenuMeals.GetAllQueryable()
+            .Include(mm => mm.Menu)
             .FirstOrDefaultAsync(mm => mm.Id == dto.MenuMealId);
 
         if (menuMeal == null)
         {
             throw new KeyNotFoundException($"Menu meal {dto.MenuMealId} not found");
+        }
+
+        // Check if menu date is in the past
+        var menuDate = menuMeal.Menu.MenuDate.Date;
+        var today = DateTime.UtcNow.Date;
+        
+        if (menuDate < today)
+        {
+            throw new InvalidOperationException("Cannot order meals from past menus");
         }
 
         if (menuMeal.AvailableQuantity < dto.Quantity)

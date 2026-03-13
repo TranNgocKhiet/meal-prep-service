@@ -11,6 +11,7 @@ public class UnitOfWork : IUnitOfWork
     
     private IAccountRepository? _accountRepository;
     private IRoleRepository? _roleRepository;
+    private IGoogleAuthRepository? _googleAuthRepository;
     private IMealPlanRepository? _mealPlanRepository;
     private IRecipeRepository? _recipeRepository;
     private IIngredientRepository? _ingredientRepository;
@@ -46,6 +47,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IAccountRepository Accounts => _accountRepository ??= new AccountRepository(_context);
     public IRoleRepository Roles => _roleRepository ??= new RoleRepository(_context);
+    public IGoogleAuthRepository GoogleAuths => _googleAuthRepository ??= new GoogleAuthRepository(_context);
     public IMealPlanRepository MealPlans => _mealPlanRepository ??= new MealPlanRepository(_context);
     public IRecipeRepository Recipes => _recipeRepository ??= new RecipeRepository(_context);
     public IIngredientRepository Ingredients => _ingredientRepository ??= new IngredientRepository(_context);

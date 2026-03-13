@@ -122,24 +122,6 @@ const Recipes = () => {
     navigate(`/recipes/${recipeId}`);
   };
 
-  const toggleFavorite = async (recipeId: string, isFavorite: boolean) => {
-    try {
-      if (isFavorite) {
-        await apiClient.delete(`/recipes/${recipeId}/favorite`);
-      } else {
-        await apiClient.post(`/recipes/${recipeId}/favorite`);
-      }
-      
-      // Update local state
-      setRecipes(recipes.map(r => 
-        r.id === recipeId ? { ...r, isFavorite: !isFavorite } : r
-      ));
-    } catch (err) {
-      const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to update favorite');
-    }
-  };
-
   const highlightSearchTerm = (text: string) => {
     if (!searchTerm) return text;
     

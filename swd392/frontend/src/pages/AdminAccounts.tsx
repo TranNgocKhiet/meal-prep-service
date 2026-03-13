@@ -48,7 +48,7 @@ const AdminAccounts = () => {
     password: '',
     fullName: '',
     phoneNumber: '',
-    roleId: 1
+    roleId: 4 // Default to Customer role
   });
 
   useEffect(() => {
@@ -109,7 +109,7 @@ const AdminAccounts = () => {
     // Use the selected role filter if available, otherwise default to first non-Admin role
     const defaultRoleId = selectedRoleFilter !== null 
       ? selectedRoleFilter 
-      : roles.find(r => r.name !== 'Admin')?.id || 2;
+      : roles.find(r => r.name !== 'Admin')?.id || 4; // Default to Customer (ID 4)
     
     setFormData({
       email: '',
@@ -164,6 +164,13 @@ const AdminAccounts = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate role is selected
+    if (!formData.roleId || formData.roleId === 0) {
+      alert('Please select a role');
+      return;
+    }
+    
     try {
       if (editingItem) {
         await apiClient.put(`/admin/accounts/${editingItem.id}`, formData);
@@ -183,7 +190,7 @@ const AdminAccounts = () => {
   return (
     <div className="container">
       <div className="crud-header">
-        <h1>Account Management</h1>
+        <h1 style={{ color: '#fff' }}>Account Management</h1>
         <div className="crud-actions">
           <input
             type="text"
@@ -326,6 +333,7 @@ const AdminAccounts = () => {
                   onChange={(e) => setFormData({ ...formData, roleId: Number(e.target.value) })}
                   required
                 >
+                  <option value="">Select a role</option>
                   {roles.filter(role => role.name !== 'Admin').map(role => (
                     <option key={role.id} value={role.id}>
                       {role.name}

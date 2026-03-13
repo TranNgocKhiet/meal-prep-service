@@ -169,6 +169,101 @@ public class RevenueReportController : ControllerBase
         }
     }
 
+    [HttpPost("calculate")]
+    public async Task<ActionResult<ApiResponse<RevenueReport>>> CalculateRevenue(
+        [FromQuery] int month,
+        [FromQuery] int year)
+    {
+        try
+        {
+            _logger.LogInformation("Calculating revenue for {Month}/{Year}", month, year);
+
+            // Check if report already exists for this month/year
+            var existingReport = await _unitOfWork.RevenueReports.GetAllQueryable()
+                .FirstOrDefaultAsync(r => r.Month == month && r.Year == year);
+
+            if (existingReport != null)
+            {
+                return BadRequest(new ApiResponse<RevenueReport>
+                {
+                    Success = false,
+                    Message = $"Revenue report for {month}/{year} already exists. Please delete it first if you want to recalculate."
+                });
+            }
+
+            // Calculate date range for the month
+            var startDate = new DateTime(year, month, 1);
+            var endDate = startDate.AddMonths(1).AddDays(-1);
+
+            _logger.LogInformation("Date range: {StartDate} to {EndDate}", startDate, endDate);
+
+            // Calculate Order Revenue (only confirmed orders)
+            var orderRevenue = await _unitOfWork.Orders.GetAllQueryable()
+                .Include(o => o.PaymentGateway)
+                .Where(o => o.Date >= startDate && o.Date <= endDate
+                    && o.PaymentGateway.StatusId == 3) // Confirmed/Paid status
+                .SumAsync(o => o.Amount);
+
+            // Count total orders
+            var totalOrders = await _unitOfWork.Orders.GetAllQueryable()
+                .Include(o => o.PaymentGateway)
+                .Where(o => o.Date >= startDate && o.Date <= endDate
+                    && o.PaymentGateway.StatusId == 3)
+                .CountAsync();
+
+            // Calculate AI Credit Revenue (successful transactions)
+            var aiCreditRevenue = await _unitOfWork.AICreditTransactions.GetAllQueryable()
+                .Include(t => t.PaymentGateway)
+                .Include(t => t.AIcreditPackage)
+                .Where(t => t.CreatedAt >= startDate && t.CreatedAt <= endDate
+                    && t.PaymentGateway.StatusId == 3) // Confirmed/Paid status
+                .SumAsync(t => t.AIcreditPackage.Price);
+
+            // Calculate Subscription Revenue (active subscriptions in this period)
+            // Note: Assuming UserSubscriptions table tracks subscription purchases
+            var subscriptionRevenue = await _unitOfWork.UserSubscriptions.GetAllQueryable()
+                .Include(s => s.SubscriptionPackage)
+                .Where(s => s.StartDate >= startDate && s.StartDate <= endDate)
+                .SumAsync(s => s.SubscriptionPackage.Price);
+
+            _logger.LogInformation("Calculated - Orders: {OrderRev}, AI Credits: {AiRev}, Subscriptions: {SubRev}, Total Orders: {TotalOrders}",
+                orderRevenue, aiCreditRevenue, subscriptionRevenue, totalOrders);
+
+            // Create new revenue report
+            var report = new RevenueReport
+            {
+                Id = Guid.NewGuid().ToString(),
+                Month = month,
+                Year = year,
+                TotalOrderRev = orderRevenue,
+                TotalAiCreditRev = aiCreditRevenue,
+                TotalSubscriptionRev = subscriptionRevenue,
+                TotalOrdersCount = totalOrders,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _unitOfWork.RevenueReports.AddAsync(report);
+            await _unitOfWork.SaveChangesAsync();
+
+            return Ok(new ApiResponse<RevenueReport>
+            {
+                Success = true,
+                Data = report,
+                Message = "Revenue calculated and saved successfully"
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating revenue for {Month}/{Year}", month, year);
+            return StatusCode(500, new ApiResponse<RevenueReport>
+            {
+                Success = false,
+                Message = "An error occurred while calculating revenue"
+            });
+        }
+    }
+
     [HttpDelete("{id}")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(string id)
     {

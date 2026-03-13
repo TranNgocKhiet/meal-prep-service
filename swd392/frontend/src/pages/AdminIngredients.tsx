@@ -100,7 +100,7 @@ const AdminIngredients = () => {
   return (
     <div className="container">
       <div className="crud-header">
-        <h1>Ingredients Management</h1>
+        <h1 style={{ color: '#fff' }}>Ingredients Management</h1>
         <div className="crud-actions">
           <input
             type="text"

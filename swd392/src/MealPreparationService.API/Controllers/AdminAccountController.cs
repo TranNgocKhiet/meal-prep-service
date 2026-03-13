@@ -210,7 +210,22 @@ public class AdminAccountController : ControllerBase
             existing.Email = dto.Email;
             existing.FullName = dto.FullName;
             existing.PhoneNumber = dto.PhoneNumber ?? string.Empty;
-            existing.RoleId = dto.RoleId;
+            
+            // Validate RoleId exists before updating
+            if (dto.RoleId != existing.RoleId)
+            {
+                var roleExists = await _unitOfWork.Roles.GetByIdAsync(dto.RoleId);
+                if (roleExists == null)
+                {
+                    return BadRequest(new ApiResponse<Account>
+                    {
+                        Success = false,
+                        Message = $"Role with ID {dto.RoleId} does not exist"
+                    });
+                }
+                existing.RoleId = dto.RoleId;
+            }
+            
             existing.CurrentCredits = dto.CurrentCredits;
             existing.IsActive = dto.IsActive;
             existing.UpdatedAt = DateTime.UtcNow;

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Container from '../components/layout/Container';
 import apiClient from '../config/api';
+import { useAuth } from '../hooks/useAuth';
 import './CreateAIMealPlan.css';
 
 const CreateAIMealPlan = () => {
+  const { user } = useAuth();
   const [name, setName] = useState('');
   const [durationDays, setDurationDays] = useState(3);
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -13,6 +15,8 @@ const CreateAIMealPlan = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const currentCredits = user?.currentCredits || 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +28,12 @@ const CreateAIMealPlan = () => {
 
     if (!healthInfo.trim() || !goals.trim()) {
       setError('Please provide health information and goals');
+      return;
+    }
+
+    // Check if user has enough credits
+    if (currentCredits < 1) {
+      setError('Insufficient AI credits. Please purchase more credits to generate AI meal plans.');
       return;
     }
 
@@ -80,6 +90,22 @@ const CreateAIMealPlan = () => {
               Our AI will analyze your virtual fridge contents, health information, and goals 
               to generate a personalized meal plan that prioritizes ingredients with nearest expiry dates.
             </p>
+            <div className="credits-info">
+              <span className="credits-label">Your AI Credits:</span>
+              <span className={`credits-value ${currentCredits < 1 ? 'low-credits' : ''}`}>
+                {currentCredits}
+              </span>
+              <span className="credits-cost">• Cost: 1 credit per generation</span>
+              {currentCredits < 1 && (
+                <button
+                  type="button"
+                  className="btn-link"
+                  onClick={() => navigate('/ai-credits')}
+                >
+                  Purchase Credits
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
