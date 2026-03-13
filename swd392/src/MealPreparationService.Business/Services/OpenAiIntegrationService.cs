@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,7 @@ public class OpenAiIntegrationService : IOpenAiService
 {
     private readonly ChatClient _chatClient;
     private readonly ILogger<OpenAiIntegrationService> _logger;
+    private readonly IDateTimeService _dateTimeService;
     private readonly int _timeoutSeconds;
     private readonly SemaphoreSlim _rateLimiter;
     private readonly ICacheService _cacheService;
@@ -21,10 +23,12 @@ public class OpenAiIntegrationService : IOpenAiService
     public OpenAiIntegrationService(
         IConfiguration configuration,
         ILogger<OpenAiIntegrationService> logger,
-        ICacheService cacheService)
+        ICacheService cacheService,
+        IDateTimeService dateTimeService)
     {
         _logger = logger;
         _cacheService = cacheService;
+        _dateTimeService = dateTimeService;
         
         var apiKey = configuration["OpenAI:ApiKey"] 
             ?? throw new InvalidOperationException("OpenAI API key is not configured");
@@ -186,7 +190,7 @@ Provide practical, actionable health advice.";
         
         try
         {
-            var requestStartTime = DateTime.UtcNow;
+            var requestStartTime = _dateTimeService.Now;
             
             // Log external API call (sanitized)
             _logger.LogInformation(
@@ -204,7 +208,7 @@ Provide practical, actionable health advice.";
             var completion = await _chatClient.CompleteChatAsync(messages, cancellationToken: cts.Token);
             
             var response = completion.Value.Content[0].Text;
-            var requestEndTime = DateTime.UtcNow;
+            var requestEndTime = _dateTimeService.Now;
             var duration = (requestEndTime - requestStartTime).TotalMilliseconds;
             
             // Log successful API call with response details
@@ -439,3 +443,5 @@ Respond with ONLY valid JSON in this exact format:
         return $"openai:{prefix}:{hashString}";
     }
 }
+
+

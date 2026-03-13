@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.DataAccess.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
@@ -9,20 +10,23 @@ public class MealTrackingService : IMealTrackingService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<MealTrackingService> _logger;
+    private readonly IDateTimeService _dateTimeService;
 
     public MealTrackingService(
         IUnitOfWork unitOfWork,
-        ILogger<MealTrackingService> logger)
+        ILogger<MealTrackingService> logger,
+        IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<List<MealDto>> GetActiveMealsAsync(string userId)
     {
         _logger.LogInformation("Getting active meals for user {UserId}", userId);
 
-        var now = DateTime.UtcNow.Date;
+        var now = _dateTimeService.Now.Date;
         
         // Get active meal plans with their meals
         var mealPlans = await _unitOfWork.MealPlans.GetAllQueryable()
@@ -148,7 +152,7 @@ public class MealTrackingService : IMealTrackingService
         // Check fridge availability
         var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(userId);
         var availableIngredients = fridgeItems
-            .Where(fi => fi.ExpiryDate >= DateTime.UtcNow)
+            .Where(fi => fi.ExpiryDate >= _dateTimeService.Now)
             .GroupBy(fi => fi.IngredientId)
             .ToDictionary(g => g.Key, g => g.Sum(fi => fi.CurrentAmount));
 
@@ -271,7 +275,7 @@ public class MealTrackingService : IMealTrackingService
         {
             var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(userId);
             var userIngredients = fridgeItems
-                .Where(fi => fi.IngredientId == ingredient.IngredientId && fi.ExpiryDate >= DateTime.UtcNow)
+                .Where(fi => fi.IngredientId == ingredient.IngredientId && fi.ExpiryDate >= _dateTimeService.Now)
                 .OrderBy(fi => fi.ExpiryDate) // Use oldest items first (FIFO)
                 .ToList();
 
@@ -289,7 +293,7 @@ public class MealTrackingService : IMealTrackingService
                 else
                 {
                     item.CurrentAmount -= remainingToDeduct;
-                    item.UpdatedAt = DateTime.UtcNow;
+                    item.UpdatedAt = _dateTimeService.Now;
                     remainingToDeduct = 0;
                 }
             }
@@ -377,7 +381,7 @@ public class MealTrackingService : IMealTrackingService
 
         // Calculate ingredients that were deducted
         var ingredientsToReturn = new List<IngredientReturnDto>();
-        var defaultExpiryDate = DateTime.UtcNow.AddDays(7);
+        var defaultExpiryDate = _dateTimeService.Now.AddDays(7);
         
         foreach (var mealRecipe in meal.MealRecipes)
         {
@@ -422,7 +426,7 @@ public class MealTrackingService : IMealTrackingService
             {
                 Id = Guid.NewGuid().ToString(),
                 AccountId = userId,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = _dateTimeService.Now
             };
             await _unitOfWork.Fridges.AddAsync(fridge);
         }
@@ -438,8 +442,8 @@ public class MealTrackingService : IMealTrackingService
                 IngredientId = ingredient.IngredientId,
                 CurrentAmount = ingredient.Amount,
                 ExpiryDate = ingredient.ExpiryDate,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = _dateTimeService.Now,
+                UpdatedAt = _dateTimeService.Now
             };
 
             await _unitOfWork.FridgeItems.AddAsync(fridgeItem);
@@ -447,7 +451,7 @@ public class MealTrackingService : IMealTrackingService
                 ingredient.Amount, ingredient.Unit, ingredient.IngredientName, ingredient.ExpiryDate.ToShortDateString());
         }
 
-        fridge.UpdatedAt = DateTime.UtcNow;
+        fridge.UpdatedAt = _dateTimeService.Now;
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -455,7 +459,7 @@ public class MealTrackingService : IMealTrackingService
     {
         _logger.LogInformation("Updating expired meals");
 
-        var now = DateTime.UtcNow.Date;
+        var now = _dateTimeService.Now.Date;
         
         var mealPlans = await _unitOfWork.MealPlans.GetAllQueryable()
             .Include(mp => mp.Meals)
@@ -489,7 +493,7 @@ public class MealTrackingService : IMealTrackingService
             throw new KeyNotFoundException($"Meal plan {mealPlanId} not found");
         }
 
-        var now = DateTime.UtcNow.Date;
+        var now = _dateTimeService.Now.Date;
         var totalMeals = mealPlan.Meals.Count;
         var finishedMeals = mealPlan.Meals.Count(m => m.MealFinished);
         var expiredMeals = mealPlan.Meals.Count(m => m.ServerDate.Date < now && !m.MealFinished);
@@ -512,3 +516,5 @@ public class MealTrackingService : IMealTrackingService
         };
     }
 }
+
+

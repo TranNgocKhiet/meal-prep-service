@@ -20,7 +20,8 @@ public class HealthController : ControllerBase
         _logger.LogInformation("Health check endpoint called");
         
         return Ok(ApiResponse<object>.SuccessResponse(
-            new { status = "healthy", timestamp = DateTime.UtcNow },
+            new { status = "healthy", timestamp = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")) },
             "Service is running"));
     }
 }
+

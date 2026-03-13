@@ -122,7 +122,7 @@ public class DeliveryController : ControllerBase
             {
                 Latitude = dto.Latitude,
                 Longitude = dto.Longitude,
-                Timestamp = DateTime.UtcNow
+                Timestamp = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
             };
 
             await _deliveryService.UpdateLocationAsync(deliveryId, location);
@@ -463,3 +463,4 @@ public class EstimatedTimeResult
     public double EstimatedTimeMinutes { get; set; }
     public string EstimatedTime { get; set; } = string.Empty;
 }
+

@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.DataAccess.Data;
 using MealPreparationService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +10,11 @@ namespace MealPreparationService.DataAccess.Repositories;
 /// </summary>
 public class DeliveryScheduleRepository : Repository<DeliverySchedule>, IDeliveryScheduleRepository
 {
-    public DeliveryScheduleRepository(ApplicationDbContext context) : base(context)
+    private readonly IDateTimeService _dateTimeService;
+
+    public DeliveryScheduleRepository(ApplicationDbContext context, IDateTimeService dateTimeService) : base(context)
     {
+        _dateTimeService = dateTimeService;
     }
 
     /// <summary>
@@ -55,7 +59,7 @@ public class DeliveryScheduleRepository : Repository<DeliverySchedule>, IDeliver
     /// </summary>
     public async Task<List<DeliverySchedule>> GetUpcomingDeliveriesAsync(string driverId)
     {
-        var now = DateTime.UtcNow;
+        var now = _dateTimeService.Now;
         return await _dbSet
             .Include(ds => ds.Driver)
             .Include(ds => ds.Order)
@@ -64,3 +68,4 @@ public class DeliveryScheduleRepository : Repository<DeliverySchedule>, IDeliver
             .ToListAsync();
     }
 }
+

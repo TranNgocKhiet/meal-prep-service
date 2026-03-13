@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.DataAccess.UnitOfWork;
 using MealPreparationService.Domain.Entities;
@@ -11,15 +12,18 @@ public class AICreditTransactionService : IAICreditTransactionService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IVnPayService _vnPayService;
     private readonly ILogger<AICreditTransactionService> _logger;
+    private readonly IDateTimeService _dateTimeService;
 
     public AICreditTransactionService(
         IUnitOfWork unitOfWork,
         IVnPayService vnPayService,
-        ILogger<AICreditTransactionService> logger)
+        ILogger<AICreditTransactionService> logger,
+        IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _vnPayService = vnPayService;
         _logger = logger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<List<AICreditTransactionDto>> GetUserTransactionsAsync(string userId)
@@ -53,7 +57,7 @@ public class AICreditTransactionService : IAICreditTransactionService
             TransactionNo = "",
             BankCode = "",
             ResponseCode = "",
-            PayDate = DateTime.UtcNow
+            PayDate = _dateTimeService.Now
         };
 
         await _unitOfWork.PaymentGateways.AddAsync(paymentGateway);
@@ -65,7 +69,7 @@ public class AICreditTransactionService : IAICreditTransactionService
             AccountId = userId,
             AIcreditPackageId = dto.AIcreditPackageId,
             PaymentGatewayId = paymentGateway.Id,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = _dateTimeService.Now
         };
 
         await _unitOfWork.AICreditTransactions.AddAsync(transaction);
@@ -128,7 +132,7 @@ public class AICreditTransactionService : IAICreditTransactionService
         transaction.PaymentGateway.TransactionNo = callbackResult.TransactionId ?? "";
         transaction.PaymentGateway.BankCode = ""; // BankCode not available in callback
         transaction.PaymentGateway.ResponseCode = callbackResult.ResponseCode ?? "00";
-        transaction.PaymentGateway.PayDate = DateTime.UtcNow;
+        transaction.PaymentGateway.PayDate = _dateTimeService.Now;
 
         // Add credits to user account
         transaction.Account.CurrentCredits += transaction.AIcreditPackage.CreditAmount;
@@ -163,3 +167,5 @@ public class AICreditTransactionService : IAICreditTransactionService
         };
     }
 }
+
+

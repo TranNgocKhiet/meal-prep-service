@@ -8,5 +8,8 @@ public class AIcreditTransaction : BaseEntity
     public AIcreditPackage AIcreditPackage { get; set; } = null!;
     public string PaymentGatewayId { get; set; } = string.Empty;
     public PaymentGateway PaymentGateway { get; set; } = null!;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 }
+
+
+

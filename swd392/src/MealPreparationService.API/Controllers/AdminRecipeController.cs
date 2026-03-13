@@ -87,8 +87,8 @@ public class AdminRecipeController : ControllerBase
                 Id = Guid.NewGuid().ToString(),
                 RecipeName = dto.RecipeName,
                 Instructions = dto.Instructions,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
+                UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
             };
             
             await _unitOfWork.Recipes.AddAsync(recipe);
@@ -129,7 +129,7 @@ public class AdminRecipeController : ControllerBase
 
             existing.RecipeName = dto.RecipeName;
             existing.Instructions = dto.Instructions;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             await _unitOfWork.Recipes.UpdateAsync(existing);
             await _unitOfWork.SaveChangesAsync();
@@ -173,3 +173,4 @@ public class AdminRecipeController : ControllerBase
         }
     }
 }
+

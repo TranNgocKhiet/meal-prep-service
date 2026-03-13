@@ -86,7 +86,7 @@ public class SystemConfigurationController : ControllerBase
         try
         {
             config.Id = Guid.NewGuid().ToString();
-            config.UpdatedAt = DateTime.UtcNow;
+            config.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             await _unitOfWork.SystemConfigurations.AddAsync(config);
 
@@ -128,7 +128,7 @@ public class SystemConfigurationController : ControllerBase
             existing.Value = config.Value;
             existing.DataType = config.DataType;
             existing.Description = config.Description;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             _unitOfWork.SystemConfigurations.UpdateAsync(existing);
 
@@ -185,6 +185,7 @@ public class SystemConfigurationController : ControllerBase
         }
     }
 }
+
 
 
 

@@ -58,7 +58,7 @@ public class VnPayService : IVnPayService
 
         try
         {
-            var requestStartTime = DateTime.UtcNow;
+            var requestStartTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
             
             _logger.LogInformation("VNPay: Received payment request - OrderId: {OrderId}, Amount: {Amount}", 
                 request.OrderId, request.Amount);
@@ -146,7 +146,7 @@ public class VnPayService : IVnPayService
             var transactionDateStr = parameters.GetValueOrDefault("vnp_PayDate", "");
 
             var amount = long.TryParse(amountStr, out var amountValue) ? amountValue / 100m : 0; // VNPay returns amount in xu (1/100 dong)
-            var transactionDate = DateTime.TryParseExact(transactionDateStr, "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate) ? parsedDate : DateTime.UtcNow;
+            var transactionDate = DateTime.TryParseExact(transactionDateStr, "yyyyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDate) ? parsedDate : TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             var success = responseCode == "00";
             return new VnPayCallbackDto

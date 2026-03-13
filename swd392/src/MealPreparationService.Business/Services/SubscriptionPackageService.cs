@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.DataAccess.UnitOfWork;
 using MealPreparationService.Domain.Entities;
@@ -10,11 +11,13 @@ public class SubscriptionPackageService : ISubscriptionPackageService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<SubscriptionPackageService> _logger;
+    private readonly IDateTimeService _dateTimeService;
 
-    public SubscriptionPackageService(IUnitOfWork unitOfWork, ILogger<SubscriptionPackageService> logger)
+    public SubscriptionPackageService(IUnitOfWork unitOfWork, ILogger<SubscriptionPackageService> logger, IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<List<SubscriptionPackageDto>> GetAllAsync()
@@ -50,8 +53,8 @@ public class SubscriptionPackageService : ISubscriptionPackageService
             CreditAmount = dto.CreditAmount,
             DurationDays = dto.DurationDays,
             Description = dto.Description,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = _dateTimeService.Now,
+            UpdatedAt = _dateTimeService.Now
         };
 
         await _unitOfWork.SubscriptionPackages.AddAsync(package);
@@ -76,7 +79,7 @@ public class SubscriptionPackageService : ISubscriptionPackageService
         package.CreditAmount = dto.CreditAmount;
         package.DurationDays = dto.DurationDays;
         package.Description = dto.Description;
-        package.UpdatedAt = DateTime.UtcNow;
+        package.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -113,3 +116,5 @@ public class SubscriptionPackageService : ISubscriptionPackageService
         };
     }
 }
+
+

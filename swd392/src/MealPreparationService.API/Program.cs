@@ -4,6 +4,7 @@ using MealPreparationService.DataAccess.Data;
 using MealPreparationService.DataAccess.Repositories;
 using MealPreparationService.DataAccess.UnitOfWork;
 using MealPreparationService.DataAccess.Interceptors;
+using MealPreparationService.Domain.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -155,6 +156,7 @@ builder.Services.AddScoped<IVirtualFridgeService, VirtualFridgeService>();
 builder.Services.AddScoped<IAICreditPackageService, AICreditPackageService>();
 builder.Services.AddScoped<ISubscriptionPackageService, SubscriptionPackageService>();
 builder.Services.AddScoped<IAICreditTransactionService, AICreditTransactionService>();
+builder.Services.AddSingleton<IDateTimeService, DateTimeService>();
 // TODO: Implement these services
 // builder.Services.AddScoped<IGroceryListService, GroceryListService>();
 // builder.Services.AddScoped<IAllergyCheckService, AllergyCheckService>();
@@ -273,7 +275,8 @@ using (var scope = app.Services.CreateScope())
     {
         var unitOfWork = services.GetRequiredService<IUnitOfWork>();
         var logger = services.GetRequiredService<ILogger<MealPreparationService.DataAccess.Data.DatabaseSeeder>>();
-        var seeder = new MealPreparationService.DataAccess.Data.DatabaseSeeder(unitOfWork, logger);
+        var dateTimeService = services.GetRequiredService<IDateTimeService>();
+        var seeder = new MealPreparationService.DataAccess.Data.DatabaseSeeder(unitOfWork, logger, dateTimeService);
         await seeder.SeedAsync();
         Log.Information("Database seeding completed successfully");
     }

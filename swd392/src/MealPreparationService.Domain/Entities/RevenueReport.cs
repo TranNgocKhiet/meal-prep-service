@@ -8,6 +8,9 @@ public class RevenueReport : BaseEntity
     public decimal TotalOrderRev { get; set; }
     public decimal TotalAiCreditRev { get; set; }
     public int TotalOrdersCount { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
+
+
+

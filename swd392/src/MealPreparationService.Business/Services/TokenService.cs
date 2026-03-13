@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -11,14 +12,16 @@ namespace MealPreparationService.Business.Services;
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
+    private readonly IDateTimeService _dateTimeService;
     private readonly string _secretKey;
     private readonly string _issuer;
     private readonly string _audience;
     private readonly int _expirationHours;
 
-    public TokenService(IConfiguration configuration)
+    public TokenService(IConfiguration configuration, IDateTimeService dateTimeService)
     {
         _configuration = configuration;
+        _dateTimeService = dateTimeService;
         _secretKey = _configuration["JwtSettings:SecretKey"] 
             ?? throw new InvalidOperationException("JWT SecretKey is not configured");
         _issuer = _configuration["JwtSettings:Issuer"] 
@@ -47,7 +50,7 @@ public class TokenService : ITokenService
             issuer: _issuer,
             audience: _audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(_expirationHours),
+            expires: _dateTimeService.Now.AddHours(_expirationHours),
             signingCredentials: credentials
         );
 
@@ -81,7 +84,7 @@ public class TokenService : ITokenService
             issuer: _issuer,
             audience: _audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddDays(7), // Refresh token valid for 7 days
+            expires: _dateTimeService.Now.AddDays(7), // Refresh token valid for 7 days
             signingCredentials: credentials
         );
 
@@ -130,3 +133,5 @@ public class TokenService : ITokenService
         }
     }
 }
+
+

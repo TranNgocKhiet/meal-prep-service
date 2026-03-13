@@ -31,7 +31,7 @@ public class UserSubscriptionRepository : Repository<UserSubscription>, IUserSub
 
     public async Task<UserSubscription?> GetActiveSubscriptionAsync(string accountId)
     {
-        var now = DateTime.UtcNow;
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
         return await _dbSet
             .Include(us => us.SubscriptionPackage)
             .Include(us => us.PaymentGateway)
@@ -42,7 +42,7 @@ public class UserSubscriptionRepository : Repository<UserSubscription>, IUserSub
 
     public async Task<List<UserSubscription>> GetExpiringSubscriptionsAsync(DateTime beforeDate)
     {
-        var now = DateTime.UtcNow;
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
         return await _dbSet
             .Include(us => us.Account)
             .Include(us => us.SubscriptionPackage)
@@ -51,3 +51,4 @@ public class UserSubscriptionRepository : Repository<UserSubscription>, IUserSub
             .ToListAsync();
     }
 }
+

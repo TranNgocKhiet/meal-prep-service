@@ -150,8 +150,8 @@ public class AdminAccountController : ControllerBase
                 RoleId = dto.RoleId,
                 CurrentCredits = dto.CurrentCredits,
                 IsActive = dto.IsActive,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
+                UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
                 GoogleAuthId = dto.GoogleAuthId
             };
 
@@ -228,7 +228,7 @@ public class AdminAccountController : ControllerBase
             
             existing.CurrentCredits = dto.CurrentCredits;
             existing.IsActive = dto.IsActive;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
             existing.GoogleAuthId = dto.GoogleAuthId;
 
             // Only update password if provided
@@ -312,7 +312,7 @@ public class AdminAccountController : ControllerBase
 
             // Toggle the IsActive status
             account.IsActive = !account.IsActive;
-            account.UpdatedAt = DateTime.UtcNow;
+            account.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             await _unitOfWork.Accounts.UpdateAsync(account);
             await _unitOfWork.SaveChangesAsync();
@@ -337,3 +337,4 @@ public class AdminAccountController : ControllerBase
         }
     }
 }
+

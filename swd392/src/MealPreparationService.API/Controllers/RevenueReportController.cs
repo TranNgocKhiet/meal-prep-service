@@ -103,8 +103,8 @@ public class RevenueReportController : ControllerBase
         try
         {
             report.Id = Guid.NewGuid().ToString();
-            report.CreatedAt = DateTime.UtcNow;
-            report.UpdatedAt = DateTime.UtcNow;
+            report.CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
+            report.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             await _unitOfWork.RevenueReports.AddAsync(report);
 
@@ -147,7 +147,7 @@ public class RevenueReportController : ControllerBase
             existing.TotalOrderRev = report.TotalOrderRev;
             existing.TotalAiCreditRev = report.TotalAiCreditRev;
             existing.TotalOrdersCount = report.TotalOrdersCount;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             _unitOfWork.RevenueReports.UpdateAsync(existing);
 
@@ -239,8 +239,8 @@ public class RevenueReportController : ControllerBase
                 TotalAiCreditRev = aiCreditRevenue,
                 TotalSubscriptionRev = subscriptionRevenue,
                 TotalOrdersCount = totalOrders,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
+                UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
             };
 
             await _unitOfWork.RevenueReports.AddAsync(report);
@@ -298,6 +298,7 @@ public class RevenueReportController : ControllerBase
         }
     }
 }
+
 
 
 

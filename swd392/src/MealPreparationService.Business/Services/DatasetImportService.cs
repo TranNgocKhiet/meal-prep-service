@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.DataAccess.Data;
 using MealPreparationService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ public class DatasetImportService : IDatasetImportService
     private readonly IExcelReaderService _excelReader;
     private readonly IConfiguration _configuration;
     private readonly ILogger<DatasetImportService> _logger;
+    private readonly IDateTimeService _dateTimeService;
     private readonly string _datasetFolderPath;
     private const string ImportCompletionKey = "DatasetImportCompleted";
 
@@ -25,12 +27,14 @@ public class DatasetImportService : IDatasetImportService
         ApplicationDbContext context,
         IExcelReaderService excelReader,
         IConfiguration configuration,
-        ILogger<DatasetImportService> logger)
+        ILogger<DatasetImportService> logger,
+        IDateTimeService dateTimeService)
     {
         _context = context;
         _excelReader = excelReader;
         _configuration = configuration;
         _logger = logger;
+        _dateTimeService = dateTimeService;
         
         // Get the base directory and construct the dataset path
         // From: src/MealPreparationService.API/bin/Debug/net9.0
@@ -78,7 +82,7 @@ public class DatasetImportService : IDatasetImportService
     {
         var result = new ImportResultDto
         {
-            ImportedAt = DateTime.UtcNow
+            ImportedAt = _dateTimeService.Now
         };
 
         try
@@ -418,7 +422,7 @@ public class DatasetImportService : IDatasetImportService
                 Value = value ?? string.Empty,
                 DataType = dataType ?? "String",
                 Description = description ?? string.Empty,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = _dateTimeService.Now
             };
             systemConfigurations.Add(systemConfiguration);
         }
@@ -663,8 +667,8 @@ public class DatasetImportService : IDatasetImportService
                 RecipeName = name,
                 // Use Instructions column for Instructions field
                 Instructions = GetColumnValue(row, "Instructions", "instructions", "Description") ?? string.Empty,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = _dateTimeService.Now,
+                UpdatedAt = _dateTimeService.Now
             };
             recipes.Add(recipe);
 
@@ -980,14 +984,14 @@ public class DatasetImportService : IDatasetImportService
                 Value = "true",
                 DataType = "Boolean",
                 Description = "Indicates whether the initial dataset import has been completed",
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = _dateTimeService.Now
             };
             await _context.SystemConfigurations.AddAsync(importFlag);
         }
         else
         {
             importFlag.Value = "true";
-            importFlag.UpdatedAt = DateTime.UtcNow;
+            importFlag.UpdatedAt = _dateTimeService.Now;
             _context.SystemConfigurations.Update(importFlag);
         }
 
@@ -1022,3 +1026,5 @@ public class DatasetImportService : IDatasetImportService
         return null;
     }
 }
+
+

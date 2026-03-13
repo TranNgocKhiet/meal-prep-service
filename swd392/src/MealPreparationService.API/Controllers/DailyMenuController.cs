@@ -163,8 +163,8 @@ public class DailyMenuController : ControllerBase
                 Id = Guid.NewGuid().ToString(),
                 StatusId = 16, // MenuDrafted - always start as draft
                 MenuDate = dto.MenuDate,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
+                UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
             };
 
             await _unitOfWork.DailyMenus.AddAsync(menu);
@@ -180,8 +180,8 @@ public class DailyMenuController : ControllerBase
                     MealTypeId = mealTypeId,
                     Price = 0, // Default price, admin will set later
                     AvailableQuantity = 0, // Default quantity, admin will set later
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
+                    UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
                 };
                 await _unitOfWork.MenuMeals.AddAsync(menuMeal);
             }
@@ -277,7 +277,7 @@ public class DailyMenuController : ControllerBase
             menuMeal.ProteinG = nutritionTotals.Protein;
             menuMeal.FatG = nutritionTotals.Fat;
             menuMeal.CarbsG = nutritionTotals.Carbs;
-            menuMeal.UpdatedAt = DateTime.UtcNow;
+            menuMeal.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
             
             await _unitOfWork.MenuMeals.UpdateAsync(menuMeal);
 
@@ -400,7 +400,7 @@ public class DailyMenuController : ControllerBase
             }
 
             menu.StatusId = dto.StatusId;
-            menu.UpdatedAt = DateTime.UtcNow;
+            menu.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
             await _unitOfWork.DailyMenus.UpdateAsync(menu);
 
             // Reload with includes
@@ -467,7 +467,7 @@ public class DailyMenuController : ControllerBase
 
             menuMeal.Price = dto.Price;
             menuMeal.AvailableQuantity = dto.AvailibleQuantity;
-            menuMeal.UpdatedAt = DateTime.UtcNow;
+            menuMeal.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             _logger.LogInformation("Updating meal {MealId} price to {Price}", mealId, dto.Price);
 
@@ -519,7 +519,7 @@ public class DailyMenuController : ControllerBase
 
             existing.StatusId = dto.StatusId;
             existing.MenuDate = dto.MenuDate;
-            existing.UpdatedAt = DateTime.UtcNow;
+            existing.UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"));
 
             await _unitOfWork.DailyMenus.UpdateAsync(existing);
 
@@ -543,8 +543,8 @@ public class DailyMenuController : ControllerBase
                     MealTypeId = mealDto.MealTypeId,
                     Price = mealDto.Price,
                     AvailableQuantity = mealDto.AvailibleQuantity,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time")),
+                    UpdatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"))
                 };
 
                 await _unitOfWork.MenuMeals.AddAsync(menuMeal);
@@ -637,3 +637,4 @@ public class DailyMenuController : ControllerBase
         }
     }
 }
+

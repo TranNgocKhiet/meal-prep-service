@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.DataAccess.UnitOfWork;
 using Microsoft.Extensions.Logging;
@@ -9,15 +10,18 @@ public class PaymentService : IPaymentService
     private readonly IVnPayService _vnPayService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<PaymentService> _logger;
+    private readonly IDateTimeService _dateTimeService;
 
     public PaymentService(
         IVnPayService vnPayService,
         IUnitOfWork unitOfWork,
-        ILogger<PaymentService> logger)
+        ILogger<PaymentService> logger,
+        IDateTimeService dateTimeService)
     {
         _vnPayService = vnPayService;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<PaymentUrlDto> CreatePaymentUrlAsync(string orderId, decimal amount, string returnUrl, string ipAddress)
@@ -96,7 +100,7 @@ public class PaymentService : IPaymentService
             // Update order with payment gateway and set status to Confirmed (3 = OrderConfirmed)
             order.PaymentGatewayId = paymentGateway.Id;
             order.StatusId = 3; // OrderConfirmed
-            order.UpdatedAt = DateTime.UtcNow;
+            order.UpdatedAt = _dateTimeService.Now;
             
             await _unitOfWork.Orders.UpdateAsync(order);
             await _unitOfWork.SaveChangesAsync();
@@ -162,3 +166,5 @@ public class PaymentService : IPaymentService
         return await _vnPayService.ValidateSignatureAsync(parameters);
     }
 }
+
+

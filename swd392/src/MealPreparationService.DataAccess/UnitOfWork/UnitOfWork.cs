@@ -1,5 +1,6 @@
 using MealPreparationService.DataAccess.Data;
 using MealPreparationService.DataAccess.Repositories;
+using MealPreparationService.Domain.Services;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace MealPreparationService.DataAccess.UnitOfWork;
@@ -7,6 +8,7 @@ namespace MealPreparationService.DataAccess.UnitOfWork;
 public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
+    private readonly IDateTimeService _dateTimeService;
     private IDbContextTransaction? _transaction;
     
     private IAccountRepository? _accountRepository;
@@ -40,9 +42,10 @@ public class UnitOfWork : IUnitOfWork
     private IRevenueReportRepository? _revenueReportRepository;
     private ISystemConfigurationRepository? _systemConfigurationRepository;
 
-    public UnitOfWork(ApplicationDbContext context)
+    public UnitOfWork(ApplicationDbContext context, IDateTimeService dateTimeService)
     {
         _context = context;
+        _dateTimeService = dateTimeService;
     }
 
     public IAccountRepository Accounts => _accountRepository ??= new AccountRepository(_context);
@@ -67,7 +70,7 @@ public class UnitOfWork : IUnitOfWork
     public IDailyMenuRepository DailyMenus => _dailyMenuRepository ??= new DailyMenuRepository(_context);
     public IMenuMealRecipeRepository MenuMealRecipes => _menuMealRecipeRepository ??= new MenuMealRecipeRepository(_context);
     public IOrderDetailRepository OrderDetails => _orderDetailRepository ??= new OrderDetailRepository(_context);
-    public IDeliveryScheduleRepository DeliverySchedules => _deliveryScheduleRepository ??= new DeliveryScheduleRepository(_context);
+    public IDeliveryScheduleRepository DeliverySchedules => _deliveryScheduleRepository ??= new DeliveryScheduleRepository(_context, _dateTimeService);
     public IPaymentGatewayRepository PaymentGateways => _paymentGatewayRepository ??= new PaymentGatewayRepository(_context);
     public ISubscriptionPackageRepository SubscriptionPackages => _subscriptionPackageRepository ??= new SubscriptionPackageRepository(_context);
     public IUserSubscriptionRepository UserSubscriptions => _userSubscriptionRepository ??= new UserSubscriptionRepository(_context);

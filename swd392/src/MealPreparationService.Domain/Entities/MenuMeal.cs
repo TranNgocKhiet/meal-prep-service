@@ -12,11 +12,14 @@ public class MenuMeal : BaseEntity
     public decimal CarbsG { get; set; }
     public decimal Price { get; set; }
     public int AvailableQuantity { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     
     // Navigation properties
     public ICollection<MenuMealRecipe> MenuMealRecipes { get; set; } = new List<MenuMealRecipe>();
     public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 }
+
+
+

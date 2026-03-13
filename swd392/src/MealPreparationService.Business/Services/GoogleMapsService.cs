@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,6 +16,7 @@ public class GoogleMapsService : IGoogleMapsService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<GoogleMapsService> _logger;
+    private readonly IDateTimeService _dateTimeService;
     private readonly string _apiKey;
     private readonly int _timeoutSeconds;
     private const string BaseUrl = "https://maps.googleapis.com/maps/api";
@@ -22,10 +24,12 @@ public class GoogleMapsService : IGoogleMapsService
     public GoogleMapsService(
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
-        ILogger<GoogleMapsService> logger)
+        ILogger<GoogleMapsService> logger,
+        IDateTimeService dateTimeService)
     {
         _httpClient = httpClientFactory.CreateClient("GoogleMaps");
         _logger = logger;
+        _dateTimeService = dateTimeService;
         
         _apiKey = configuration["GoogleMaps:ApiKey"] 
             ?? throw new InvalidOperationException("Google Maps API key is not configured");
@@ -48,7 +52,7 @@ public class GoogleMapsService : IGoogleMapsService
     {
         try
         {
-            var requestStartTime = DateTime.UtcNow;
+            var requestStartTime = _dateTimeService.Now;
             var origin = $"{originLat},{originLng}";
             var destination = $"{destLat},{destLng}";
             
@@ -91,7 +95,7 @@ public class GoogleMapsService : IGoogleMapsService
 
             // Distance is returned in meters, convert to kilometers
             var distanceKm = element.Distance.Value / 1000.0;
-            var requestEndTime = DateTime.UtcNow;
+            var requestEndTime = _dateTimeService.Now;
             var duration = (requestEndTime - requestStartTime).TotalMilliseconds;
             
             _logger.LogInformation(
@@ -165,7 +169,7 @@ public class GoogleMapsService : IGoogleMapsService
                 Latitude = location.Lat,
                 Longitude = location.Lng,
                 Address = formattedAddress,
-                Timestamp = DateTime.UtcNow
+                Timestamp = _dateTimeService.Now
             };
         }
         catch (HttpRequestException ex)
@@ -381,3 +385,5 @@ public class GoogleMapsService : IGoogleMapsService
 
     #endregion
 }
+
+

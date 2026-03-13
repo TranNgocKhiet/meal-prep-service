@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.Business.Models;
 using MealPreparationService.DataAccess.UnitOfWork;
@@ -12,15 +13,18 @@ public class OrderService : IOrderService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<OrderService> _logger;
     private readonly IVnPayService _vnPayService;
+    private readonly IDateTimeService _dateTimeService;
 
     public OrderService(
         IUnitOfWork unitOfWork, 
         ILogger<OrderService> logger,
-        IVnPayService vnPayService)
+        IVnPayService vnPayService,
+        IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _vnPayService = vnPayService;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<OrderDto> CreateOrderAsync(CreateOrderDto dto, string userId)
@@ -40,7 +44,7 @@ public class OrderService : IOrderService
         }
 
         // Validate all menu items are not from past dates
-        var today = DateTime.UtcNow.Date;
+        var today = _dateTimeService.Now.Date;
         var pastMenuItems = cart.CartItems
             .Where(ci => ci.MenuMeal.Menu.MenuDate.Date < today)
             .ToList();
@@ -70,13 +74,13 @@ public class OrderService : IOrderService
             Id = Guid.NewGuid().ToString(),
             CustomerId = userId,
             StatusId = initialStatusId,
-            Date = DateTime.UtcNow,
+            Date = _dateTimeService.Now,
             Amount = totalAmount,
             PaymentMethod = dto.PaymentMethod,
             Address = dto.Address,
             PhoneNumber = dto.PhoneNumber,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = _dateTimeService.Now,
+            UpdatedAt = _dateTimeService.Now
         };
 
         // Create order details from cart items
@@ -89,8 +93,8 @@ public class OrderService : IOrderService
                 MenuMealId = cartItem.MenuMealId,
                 Quantity = cartItem.Quantity,
                 UnitPrice = cartItem.MenuMeal.Price,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = _dateTimeService.Now,
+                UpdatedAt = _dateTimeService.Now
             };
             order.OrderDetails.Add(orderDetail);
         }
@@ -99,7 +103,7 @@ public class OrderService : IOrderService
 
         // Clear cart after order creation
         cart.CartItems.Clear();
-        cart.UpdatedAt = DateTime.UtcNow;
+        cart.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -274,7 +278,7 @@ public class OrderService : IOrderService
             }
 
             menuMeal.AvailableQuantity -= orderDetail.Quantity;
-            menuMeal.UpdatedAt = DateTime.UtcNow;
+            menuMeal.UpdatedAt = _dateTimeService.Now;
             
             _logger.LogInformation("Subtracted {Quantity} from MenuMeal {MenuMealId}. New available quantity: {NewQuantity}", 
                 orderDetail.Quantity, menuMeal.Id, menuMeal.AvailableQuantity);
@@ -282,7 +286,7 @@ public class OrderService : IOrderService
 
         order.StatusId = 3; // OrderConfirmed
         order.OrderConfirmedBy = staffId;
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -302,7 +306,7 @@ public class OrderService : IOrderService
         }
 
         order.StatusId = 2; // OrderCanceled
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -330,7 +334,7 @@ public class OrderService : IOrderService
         }
 
         order.StatusId = statusId;
-        order.UpdatedAt = DateTime.UtcNow;
+        order.UpdatedAt = _dateTimeService.Now;
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -405,3 +409,5 @@ public class OrderService : IOrderService
         };
     }
 }
+
+

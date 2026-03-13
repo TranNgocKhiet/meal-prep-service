@@ -9,6 +9,9 @@ public class DeliverySchedule : BaseEntity
     public DateTime DeliveryTime { get; set; }
     public string Address { get; set; } = string.Empty;
     public string DriverContact { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
 }
+
+
+

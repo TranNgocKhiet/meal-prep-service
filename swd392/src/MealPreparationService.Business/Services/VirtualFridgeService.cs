@@ -1,3 +1,4 @@
+using MealPreparationService.Domain.Services;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.DataAccess.UnitOfWork;
 using MealPreparationService.Domain.Entities;
@@ -10,13 +11,16 @@ public class VirtualFridgeService : IVirtualFridgeService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<VirtualFridgeService> _logger;
+    private readonly IDateTimeService _dateTimeService;
 
     public VirtualFridgeService(
         IUnitOfWork unitOfWork,
-        ILogger<VirtualFridgeService> logger)
+        ILogger<VirtualFridgeService> logger,
+        IDateTimeService dateTimeService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<FridgeItemDto> AddItemAsync(AddFridgeItemDto dto, string userId)
@@ -31,7 +35,7 @@ public class VirtualFridgeService : IVirtualFridgeService
             {
                 Id = Guid.NewGuid().ToString(),
                 AccountId = userId,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = _dateTimeService.Now
             };
             await _unitOfWork.Fridges.AddAsync(fridge);
         }
@@ -52,12 +56,12 @@ public class VirtualFridgeService : IVirtualFridgeService
             IngredientId = dto.IngredientId,
             CurrentAmount = dto.Quantity,
             ExpiryDate = dto.ExpiryDate,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = _dateTimeService.Now,
+            UpdatedAt = _dateTimeService.Now
         };
 
         await _unitOfWork.FridgeItems.AddAsync(fridgeItem);
-        fridge.UpdatedAt = DateTime.UtcNow;
+        fridge.UpdatedAt = _dateTimeService.Now;
         await _unitOfWork.SaveChangesAsync();
 
         // Load ingredient for response
@@ -86,7 +90,7 @@ public class VirtualFridgeService : IVirtualFridgeService
             fridgeItem.ExpiryDate = dto.ExpiryDate.Value;
         }
 
-        fridgeItem.UpdatedAt = DateTime.UtcNow;
+        fridgeItem.UpdatedAt = _dateTimeService.Now;
         await _unitOfWork.SaveChangesAsync();
 
         return MapToDto(fridgeItem);
@@ -114,7 +118,7 @@ public class VirtualFridgeService : IVirtualFridgeService
 
         if (!includeExpired)
         {
-            fridgeItems = fridgeItems.Where(fi => fi.ExpiryDate >= DateTime.UtcNow).ToList();
+            fridgeItems = fridgeItems.Where(fi => fi.ExpiryDate >= _dateTimeService.Now).ToList();
         }
 
         return fridgeItems.Select(MapToDto).ToList();
@@ -124,7 +128,7 @@ public class VirtualFridgeService : IVirtualFridgeService
     {
         var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(userId);
         var totalAmount = fridgeItems
-            .Where(fi => fi.IngredientId == ingredientId && fi.ExpiryDate >= DateTime.UtcNow)
+            .Where(fi => fi.IngredientId == ingredientId && fi.ExpiryDate >= _dateTimeService.Now)
             .Sum(fi => fi.CurrentAmount);
 
         return totalAmount >= quantity;
@@ -138,7 +142,7 @@ public class VirtualFridgeService : IVirtualFridgeService
         {
             var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(userId);
             var userIngredients = fridgeItems
-                .Where(fi => fi.IngredientId == ingredient.IngredientId && fi.ExpiryDate >= DateTime.UtcNow)
+                .Where(fi => fi.IngredientId == ingredient.IngredientId && fi.ExpiryDate >= _dateTimeService.Now)
                 .OrderBy(fi => fi.ExpiryDate)
                 .ToList();
 
@@ -156,7 +160,7 @@ public class VirtualFridgeService : IVirtualFridgeService
                 else
                 {
                     item.CurrentAmount -= remainingToDeduct;
-                    item.UpdatedAt = DateTime.UtcNow;
+                    item.UpdatedAt = _dateTimeService.Now;
                     remainingToDeduct = 0;
                 }
             }
@@ -174,11 +178,11 @@ public class VirtualFridgeService : IVirtualFridgeService
     {
         _logger.LogInformation("Getting expiring items for user {UserId}", userId);
 
-        var thresholdDate = DateTime.UtcNow.AddDays(daysThreshold);
+        var thresholdDate = _dateTimeService.Now.AddDays(daysThreshold);
         var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(userId);
 
         var expiringItems = fridgeItems
-            .Where(fi => fi.ExpiryDate <= thresholdDate && fi.ExpiryDate >= DateTime.UtcNow)
+            .Where(fi => fi.ExpiryDate <= thresholdDate && fi.ExpiryDate >= _dateTimeService.Now)
             .ToList();
 
         return expiringItems.Select(MapToDto).ToList();
@@ -246,7 +250,7 @@ public class VirtualFridgeService : IVirtualFridgeService
         // Get current fridge items
         var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(userId);
         var currentIngredients = fridgeItems
-            .Where(fi => fi.ExpiryDate >= DateTime.UtcNow)
+            .Where(fi => fi.ExpiryDate >= _dateTimeService.Now)
             .GroupBy(fi => fi.IngredientId)
             .ToDictionary(g => g.Key, g => g.Sum(fi => fi.CurrentAmount));
 
@@ -319,7 +323,7 @@ public class VirtualFridgeService : IVirtualFridgeService
 
     private FridgeItemDto MapToDto(FridgeItem item)
     {
-        var now = DateTime.UtcNow;
+        var now = _dateTimeService.Now;
         var daysUntilExpiry = (item.ExpiryDate.Date - now.Date).Days;
 
         return new FridgeItemDto
@@ -342,3 +346,5 @@ public class VirtualFridgeService : IVirtualFridgeService
         };
     }
 }
+
+
