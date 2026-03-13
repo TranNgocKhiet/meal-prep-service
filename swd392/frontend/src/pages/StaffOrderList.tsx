@@ -112,11 +112,11 @@ const StaffOrderList = () => {
       } else if (activeTab === 'canceled') {
         return statusLower.includes('cancel');
       } else if (activeTab === 'preparing') {
-        return statusLower.includes('preparing');
+        return statusLower.includes('preparing') && !statusLower.includes('failed');
       } else if (activeTab === 'preparingFailed') {
         return statusLower.includes('preparingfailed');
       } else if (activeTab === 'prepared') {
-        return statusLower.includes('prepared');
+        return statusLower.includes('prepared') && !statusLower.includes('preparing');
       } else if (activeTab === 'onScheduled') {
         return statusLower.includes('delivering');
       }

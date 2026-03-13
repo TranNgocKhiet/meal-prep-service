@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import apiClient from '../config/api';
+import { useAuth } from '../hooks/useAuth';
 import { formatVND } from '../utils/currency';
 import './TodaysMenu.css';
 
@@ -25,6 +26,9 @@ const TodaysMenu = () => {
   const [menu, setMenu] = useState<DailyMenu | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
+  const { user } = useAuth();
+  const isCustomer = user?.roleName === 'Customer';
 
   useEffect(() => {
     fetchTodaysMenu();
@@ -54,6 +58,26 @@ const TodaysMenu = () => {
       setError(err.response?.data?.message || 'Failed to load today\'s menu');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddToCart = async (menuMealId: string) => {
+    try {
+      setAddingToCart(menuMealId);
+      const response = await apiClient.post('/cart/items', {
+        menuMealId: menuMealId,
+        quantity: 1
+      });
+
+      if (response.data.success) {
+        alert('Added to cart successfully!');
+        // Refresh menu to update available quantity
+        await fetchTodaysMenu();
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to add to cart');
+    } finally {
+      setAddingToCart(null);
     }
   };
 
@@ -113,9 +137,15 @@ const TodaysMenu = () => {
               <span className={`availability ${meal.availableQuantity > 0 ? 'in-stock' : 'out-of-stock'}`} style={{ color: meal.availableQuantity > 0 ? '#48bb78' : '#e53e3e' }}>
                 {meal.availableQuantity > 0 ? `${meal.availableQuantity} available` : 'Out of stock'}
               </span>
-              <button className="btn-primary" disabled={meal.availableQuantity === 0}>
-                Add to Cart
-              </button>
+              {isCustomer && (
+                <button 
+                  className="btn-primary" 
+                  disabled={meal.availableQuantity === 0 || addingToCart === meal.id}
+                  onClick={() => handleAddToCart(meal.id)}
+                >
+                  {addingToCart === meal.id ? 'Adding...' : 'Add to Cart'}
+                </button>
+              )}
             </div>
           </div>
         ))}
