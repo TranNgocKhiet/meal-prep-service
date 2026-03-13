@@ -1,0 +1,413 @@
+@page
+@model MealPrepService.Web.Pages.AITest.MealNutritionAnalyzerModel
+@{
+    ViewData["Title"] = "Custom Meal Nutrition Analyzer";
+}
+
+<div class="container mt-4">
+    <h2>🥗 Custom Meal Nutrition Analyzer</h2>
+    <p class="text-muted">Describe your meal and ingredients. AI will estimate nutrition and provide conflict/advice notes.</p>
+
+    <form id="antiforgeryForm" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Meal Input</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-bold" for="mealDescription">Meal Description</label>
+                <textarea id="mealDescription" class="form-control" rows="3" placeholder="Example: Grilled salmon with spinach salad and yogurt dressing"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <label class="form-label fw-bold mb-0">Ingredients</label>
+                <button type="button" id="addIngredientBtn" class="btn btn-outline-secondary btn-sm">+ Add Ingredient</button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ingredientsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ingredient Name</th>
+                            <th style="width: 150px;">Quantity</th>
+                            <th style="width: 150px;">Unit</th>
+                            <th style="width: 80px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="text" class="form-control ingredient-name" placeholder="Chicken breast" /></td>
+                            <td><input type="number" step="0.01" min="0" class="form-control ingredient-quantity" placeholder="200" /></td>
+                            <td><input type="text" class="form-control ingredient-unit" placeholder="gram" /></td>
+                            <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-row-btn">✕</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button type="button" id="analyzeBtn" class="btn btn-success">
+                Analyze Nutrition
+            </button>
+            <a asp-page="/AITest/Index" class="btn btn-secondary ms-2">Back</a>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="nutritionResultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-black">
+                <h5 class="modal-title">Meal Nutrition Result</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="resultMealSummary" class="fw-bold"></h6>
+                <hr />
+                <div class="row g-2" id="nutritionCards"></div>
+                <hr />
+                <div>
+                    <h6>Ingredient Conflict Notes</h6>
+                    <ul id="resultConflicts" class="mb-3"></ul>
+                </div>
+                <div>
+                    <h6>Best Consumption Advice</h6>
+                    <p id="resultAdvice" class="mb-3"></p>
+                </div>
+                <div>
+                    <h6>Overall Note</h6>
+                    <p id="resultOverallNote" class="mb-0"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Loading Screen -->
+<div id="aiLoadingScreen">
+    <div class="loading-content">
+        <div class="robot-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25.286 25.286 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135Z"/>
+                <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z"/>
+            </svg>
+        </div>
+        <div class="loading-text">
+            AI is Analyzing Your Meal<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+        </div>
+        <div class="loading-subtext">
+            Estimating nutrients and checking ingredient compatibility
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar"></div>
+        </div>
+        <div class="ai-features">
+            <div class="ai-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+                <span>Nutrient Estimation</span>
+            </div>
+            <div class="ai-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+                <span>Conflict Detection</span>
+            </div>
+            <div class="ai-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                </svg>
+                <span>Consumption Advice</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        #aiLoadingScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #aiLoadingScreen.show {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: #fff;
+        }
+
+        .robot-icon {
+            font-size: 120px;
+            color: #22c55e;
+            animation: robotBounce 1.5s ease-in-out infinite;
+        }
+
+        @@keyframes robotBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-20px) rotate(-5deg);
+            }
+
+            75% {
+                transform: translateY(-10px) rotate(5deg);
+            }
+        }
+
+        .loading-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            color: #fff;
+        }
+
+        .loading-subtext {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 1rem;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots span {
+            animation: dotPulse 1.5s infinite;
+            opacity: 0;
+        }
+
+        .loading-dots span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @@keyframes dotPulse {
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .progress-bar-container {
+            width: 300px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 2rem auto 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            border-radius: 10px;
+            animation: progressAnimation 2s ease-in-out infinite;
+        }
+
+        @@keyframes progressAnimation {
+            0% {
+                width: 0%;
+            }
+
+            50% {
+                width: 70%;
+            }
+
+            100% {
+                width: 100%;
+            }
+        }
+
+        .ai-features {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .ai-feature {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+        }
+
+        .ai-feature svg {
+            color: #22c55e;
+        }
+    </style>
+
+    <script>
+        const addIngredientBtn = document.getElementById('addIngredientBtn');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const ingredientsTableBody = document.querySelector('#ingredientsTable tbody');
+        const aiLoadingScreen = document.getElementById('aiLoadingScreen');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            aiLoadingScreen.classList.remove('show');
+        });
+
+        addIngredientBtn.addEventListener('click', () => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" class="form-control ingredient-name" placeholder="Ingredient name" /></td>
+                <td><input type="number" step="0.01" min="0" class="form-control ingredient-quantity" placeholder="0" /></td>
+                <td><input type="text" class="form-control ingredient-unit" placeholder="unit" /></td>
+                <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-row-btn">✕</button></td>
+            `;
+            ingredientsTableBody.appendChild(row);
+        });
+
+        ingredientsTableBody.addEventListener('click', (event) => {
+            if (!event.target.classList.contains('remove-row-btn')) {
+                return;
+            }
+
+            const rows = ingredientsTableBody.querySelectorAll('tr');
+            if (rows.length === 1) {
+                return;
+            }
+
+            event.target.closest('tr').remove();
+        });
+
+        analyzeBtn.addEventListener('click', async () => {
+            const mealDescription = document.getElementById('mealDescription').value.trim();
+            const rows = ingredientsTableBody.querySelectorAll('tr');
+
+            const ingredients = Array.from(rows)
+                .map(row => ({
+                    ingredientName: row.querySelector('.ingredient-name').value.trim(),
+                    quantity: parseFloat(row.querySelector('.ingredient-quantity').value),
+                    unit: row.querySelector('.ingredient-unit').value.trim()
+                }))
+                .filter(item => item.ingredientName && item.unit && !Number.isNaN(item.quantity) && item.quantity > 0);
+
+            if (!mealDescription) {
+                alert('Please enter meal description.');
+                return;
+            }
+
+            if (ingredients.length === 0) {
+                alert('Please enter at least one valid ingredient.');
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const originalText = analyzeBtn.innerHTML;
+            let loadingTimeoutHandle;
+            analyzeBtn.disabled = true;
+            aiLoadingScreen.classList.add('show');
+
+            loadingTimeoutHandle = setTimeout(function() {
+                if (aiLoadingScreen.classList.contains('show')) {
+                    aiLoadingScreen.classList.remove('show');
+                    alert('The AI analysis is taking longer than expected. Please try again.');
+                }
+            }, 30000);
+
+            try {
+                const response = await fetch('/AITest/MealNutritionAnalyzer?handler=Analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ mealDescription, ingredients })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert(result.message || 'Failed to analyze meal nutrition.');
+                    return;
+                }
+
+                renderResult(result.data);
+                const modal = new bootstrap.Modal(document.getElementById('nutritionResultModal'));
+                modal.show();
+            } catch (error) {
+                alert('Unexpected error while analyzing nutrition.');
+            } finally {
+                clearTimeout(loadingTimeoutHandle);
+                aiLoadingScreen.classList.remove('show');
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = originalText;
+            }
+        });
+
+        function renderResult(data) {
+            document.getElementById('resultMealSummary').textContent = data.mealSummary || 'Meal nutrition analysis';
+            document.getElementById('resultAdvice').textContent = data.bestConsumptionAdvice || 'No advice provided.';
+            document.getElementById('resultOverallNote').textContent = data.overallNote || 'No additional note.';
+
+            const conflictsEl = document.getElementById('resultConflicts');
+            conflictsEl.innerHTML = '';
+            const conflicts = data.ingredientConflicts || [];
+            if (conflicts.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = 'No major ingredient conflicts detected.';
+                conflictsEl.appendChild(li);
+            } else {
+                conflicts.forEach(conflict => {
+                    const li = document.createElement('li');
+                    li.textContent = conflict;
+                    conflictsEl.appendChild(li);
+                });
+            }
+
+            const nutritionCards = document.getElementById('nutritionCards');
+            nutritionCards.innerHTML = '';
+            const metrics = [
+                { label: 'Calories', value: data.totalCalories, unit: 'kcal' },
+                { label: 'Protein', value: data.proteinG, unit: 'g' },
+                { label: 'Carbs', value: data.carbsG, unit: 'g' },
+                { label: 'Fat', value: data.fatG, unit: 'g' },
+                { label: 'Fiber', value: data.fiberG, unit: 'g' },
+                { label: 'Sugar', value: data.sugarG, unit: 'g' },
+                { label: 'Sodium', value: data.sodiumMg, unit: 'mg' }
+            ];
+
+            metrics.forEach(metric => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4';
+                col.innerHTML = `
+                    <div class="border rounded p-2 h-100 bg-light text-black">
+                        <div class="text-black small">${metric.label}</div>
+                        <div class="fw-bold text-black">${Number(metric.value || 0).toFixed(2)} ${metric.unit}</div>
+                    </div>
+                `;
+                nutritionCards.appendChild(col);
+            });
+        }
+    </script>
+}

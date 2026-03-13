@@ -98,10 +98,19 @@ namespace MealPrepService.BusinessLogicLayer.Services
         {
             try
             {
+                _logger.LogInformation("Generating AI recommendations for customer {CustomerId} with {RecipeCount} candidates (max: {MaxRecommendations})",
+                    context.Customer.Id,
+                    candidateRecipes.Count,
+                    maxRecommendations);
+
                 var prompt = BuildRecommendationPrompt(context, candidateRecipes, maxRecommendations);
                 var response = await CallOpenAIAsync(prompt);
-                
-                return ParseRecommendationResponse(response, candidateRecipes);
+                var result = ParseRecommendationResponse(response, candidateRecipes);
+
+                _logger.LogInformation("AI recommendations generated successfully. Returned {RecommendationCount} recommendations",
+                    result.RecommendedRecipes.Count);
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -120,10 +129,22 @@ namespace MealPrepService.BusinessLogicLayer.Services
         {
             try
             {
+                _logger.LogInformation("Generating diversity-aware recommendations for customer {CustomerId}. MealType: {MealType}, TargetDate: {TargetDate}, Candidates: {CandidateCount}, RecentRecipes: {RecentCount}, Max: {MaxRecommendations}",
+                    context.Customer.Id,
+                    mealType,
+                    targetDate,
+                    candidateRecipes.Count,
+                    recentRecipeIds.Count,
+                    maxRecommendations);
+
                 var prompt = BuildDiversityAwarePrompt(context, candidateRecipes, maxRecommendations, recentRecipeIds, targetDate, mealType);
                 var response = await CallOpenAIAsync(prompt);
-                
-                return ParseRecommendationResponse(response, candidateRecipes);
+                var result = ParseRecommendationResponse(response, candidateRecipes);
+
+                _logger.LogInformation("Diversity-aware recommendations generated successfully. Returned {RecommendationCount} recommendations",
+                    result.RecommendedRecipes.Count);
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -143,6 +164,37 @@ namespace MealPrepService.BusinessLogicLayer.Services
             {
                 _logger.LogError(ex, "Failed to generate reasoning for recipe {RecipeId}", recipe.Id);
                 return "This recipe matches your dietary preferences and nutritional goals.";
+            }
+        }
+
+        public async Task<CustomMealNutritionAnalysis> AnalyzeCustomMealNutritionAsync(CustomMealNutritionRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("Analyzing custom meal nutrition. DescriptionLength: {DescriptionLength}, IngredientCount: {IngredientCount}",
+                    request.MealDescription?.Length ?? 0,
+                    request.Ingredients?.Count ?? 0);
+
+                var prompt = BuildCustomMealNutritionPrompt(request);
+                var response = await CallOpenAIAsync(prompt);
+                var result = ParseCustomMealNutritionResponse(response, request);
+
+                _logger.LogInformation("Custom meal nutrition analysis completed. Calories: {Calories}, Protein: {Protein}g, Carbs: {Carbs}g, Fat: {Fat}g",
+                    result.TotalCalories,
+                    result.ProteinG,
+                    result.CarbsG,
+                    result.FatG);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to analyze custom meal nutrition");
+                return new CustomMealNutritionAnalysis
+                {
+                    MealSummary = request.MealDescription,
+                    OverallNote = "Unable to analyze this meal right now. Please try again later."
+                };
             }
         }
 
@@ -258,6 +310,50 @@ namespace MealPrepService.BusinessLogicLayer.Services
             return sb.ToString();
         }
 
+        private string BuildCustomMealNutritionPrompt(CustomMealNutritionRequest request)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine("You are a professional nutritionist. Estimate nutrition for custom meals from user-provided ingredients.");
+            sb.AppendLine("Use realistic nutrition estimations per ingredient amount and summarize totals.");
+            sb.AppendLine();
+            sb.AppendLine("## Meal Description");
+            sb.AppendLine(request.MealDescription);
+            sb.AppendLine();
+            sb.AppendLine("## Ingredients");
+
+            foreach (var ingredient in request.Ingredients)
+            {
+                sb.AppendLine($"- {ingredient.IngredientName}: {ingredient.Quantity} {ingredient.Unit}");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("## Required Analysis");
+            sb.AppendLine("1. Estimate total calories, protein(g), carbs(g), fat(g), fiber(g), sugar(g), sodium(mg).");
+            sb.AppendLine("2. Detect potential conflicts between ingredients (digestion, nutrient absorption, high sodium/sugar/fat combinations, etc.).");
+            sb.AppendLine("3. Suggest best way/time/portion to consume this meal.");
+            sb.AppendLine("4. Keep advice practical and short.");
+            sb.AppendLine();
+            sb.AppendLine("Return JSON only in this format:");
+            sb.AppendLine(@"{
+  ""mealSummary"": ""Short meal summary"",
+  ""nutrition"": {
+    ""totalCalories"": 0,
+    ""proteinG"": 0,
+    ""carbsG"": 0,
+    ""fatG"": 0,
+    ""fiberG"": 0,
+    ""sugarG"": 0,
+    ""sodiumMg"": 0
+  },
+  ""ingredientConflicts"": [""Conflict note""],
+  ""bestConsumptionAdvice"": ""Advice text"",
+  ""overallNote"": ""Short overall nutrition note""
+}");
+
+            return sb.ToString();
+        }
+
         private string BuildRecommendationPrompt(
             CustomerContext context,
             List<Recipe> candidateRecipes,
@@ -346,6 +442,11 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
         private async Task<string> CallOpenAIAsync(string prompt)
         {
+            _logger.LogDebug("Calling OpenAI endpoint {Endpoint} using model {Model}. PromptLength: {PromptLength}",
+                _apiEndpoint,
+                _model,
+                prompt.Length);
+
             var requestBody = new
             {
                 model = _model,
@@ -366,6 +467,8 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 _logger.LogError("OpenAI API error: {StatusCode} - {Error}", response.StatusCode, error);
                 throw new Exception($"OpenAI API error: {response.StatusCode}");
             }
+
+            _logger.LogDebug("OpenAI API call successful. StatusCode: {StatusCode}", response.StatusCode);
 
             var responseContent = await response.Content.ReadAsStringAsync();
             var jsonResponse = JsonDocument.Parse(responseContent);
@@ -436,6 +539,86 @@ namespace MealPrepService.BusinessLogicLayer.Services
             return new AIRecommendationResponse
             {
                 OverallReasoning = "Unable to parse AI recommendations"
+            };
+        }
+
+        private CustomMealNutritionAnalysis ParseCustomMealNutritionResponse(
+            string aiResponse,
+            CustomMealNutritionRequest request)
+        {
+            try
+            {
+                var jsonStart = aiResponse.IndexOf('{');
+                var jsonEnd = aiResponse.LastIndexOf('}') + 1;
+
+                if (jsonStart >= 0 && jsonEnd > jsonStart)
+                {
+                    var jsonContent = aiResponse.Substring(jsonStart, jsonEnd - jsonStart);
+                    var parsed = JsonDocument.Parse(jsonContent);
+                    var root = parsed.RootElement;
+
+                    var result = new CustomMealNutritionAnalysis
+                    {
+                        MealSummary = root.TryGetProperty("mealSummary", out var mealSummary)
+                            ? mealSummary.GetString() ?? request.MealDescription
+                            : request.MealDescription,
+                        BestConsumptionAdvice = root.TryGetProperty("bestConsumptionAdvice", out var advice)
+                            ? advice.GetString() ?? string.Empty
+                            : string.Empty,
+                        OverallNote = root.TryGetProperty("overallNote", out var overallNote)
+                            ? overallNote.GetString() ?? string.Empty
+                            : string.Empty
+                    };
+
+                    if (root.TryGetProperty("ingredientConflicts", out var conflicts) &&
+                        conflicts.ValueKind == JsonValueKind.Array)
+                    {
+                        result.IngredientConflicts = conflicts
+                            .EnumerateArray()
+                            .Select(x => x.GetString())
+                            .Where(x => !string.IsNullOrWhiteSpace(x))
+                            .Cast<string>()
+                            .ToList();
+                    }
+
+                    if (root.TryGetProperty("nutrition", out var nutrition))
+                    {
+                        result.TotalCalories = GetNumberValue(nutrition, "totalCalories");
+                        result.ProteinG = GetNumberValue(nutrition, "proteinG");
+                        result.CarbsG = GetNumberValue(nutrition, "carbsG");
+                        result.FatG = GetNumberValue(nutrition, "fatG");
+                        result.FiberG = GetNumberValue(nutrition, "fiberG");
+                        result.SugarG = GetNumberValue(nutrition, "sugarG");
+                        result.SodiumMg = GetNumberValue(nutrition, "sodiumMg");
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse custom nutrition response");
+            }
+
+            return new CustomMealNutritionAnalysis
+            {
+                MealSummary = request.MealDescription,
+                OverallNote = "Unable to parse nutrition analysis response."
+            };
+        }
+
+        private static double GetNumberValue(JsonElement parent, string propertyName)
+        {
+            if (!parent.TryGetProperty(propertyName, out var element))
+            {
+                return 0;
+            }
+
+            return element.ValueKind switch
+            {
+                JsonValueKind.Number => element.GetDouble(),
+                JsonValueKind.String when double.TryParse(element.GetString(), out var value) => value,
+                _ => 0
             };
         }
     }

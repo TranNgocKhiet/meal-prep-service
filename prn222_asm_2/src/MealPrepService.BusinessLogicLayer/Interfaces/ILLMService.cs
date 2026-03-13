@@ -35,6 +35,11 @@ namespace MealPrepService.BusinessLogicLayer.Interfaces
             CustomerContext context);
 
         /// <summary>
+        /// Analyze custom meal nutrition for user-provided ingredients that are not in the system database.
+        /// </summary>
+        Task<CustomMealNutritionAnalysis> AnalyzeCustomMealNutritionAsync(CustomMealNutritionRequest request);
+
+        /// <summary>
         /// Check if the LLM service is available and healthy
         /// </summary>
         Task<bool> IsAvailableAsync();
@@ -59,5 +64,33 @@ namespace MealPrepService.BusinessLogicLayer.Interfaces
         public double ConfidenceScore { get; set; }
         public string Reasoning { get; set; } = string.Empty;
         public List<string> MatchedCriteria { get; set; } = new();
+    }
+
+    public class CustomMealNutritionRequest
+    {
+        public string MealDescription { get; set; } = string.Empty;
+        public List<CustomMealIngredientInput> Ingredients { get; set; } = new();
+    }
+
+    public class CustomMealIngredientInput
+    {
+        public string IngredientName { get; set; } = string.Empty;
+        public decimal Quantity { get; set; }
+        public string Unit { get; set; } = string.Empty;
+    }
+
+    public class CustomMealNutritionAnalysis
+    {
+        public string MealSummary { get; set; } = string.Empty;
+        public double TotalCalories { get; set; }
+        public double ProteinG { get; set; }
+        public double CarbsG { get; set; }
+        public double FatG { get; set; }
+        public double FiberG { get; set; }
+        public double SugarG { get; set; }
+        public double SodiumMg { get; set; }
+        public List<string> IngredientConflicts { get; set; } = new();
+        public string BestConsumptionAdvice { get; set; } = string.Empty;
+        public string OverallNote { get; set; } = string.Empty;
     }
 }
