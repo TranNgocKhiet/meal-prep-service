@@ -95,6 +95,26 @@
                 </div>
             </div>
 
+            <div class="card bg-light mb-4">
+                <div class="card-body">
+                    <h6 class="card-title">Customer Information</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Name:</strong></p>
+                            <p>@(string.IsNullOrWhiteSpace(Model.OrderDetails.CustomerName) ? "N/A" : Model.OrderDetails.CustomerName)</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Phone Number:</strong></p>
+                            <p>@(string.IsNullOrWhiteSpace(Model.OrderDetails.CustomerContact) ? "N/A" : Model.OrderDetails.CustomerContact)</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Address:</strong></p>
+                            <p>@(string.IsNullOrWhiteSpace(Model.OrderDetails.DeliveryAddress) ? "N/A" : Model.OrderDetails.DeliveryAddress)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             @if (Model.Status.Equals("pending_confirmation", StringComparison.OrdinalIgnoreCase) && 
                  Model.PaymentMethod.Equals("COD", StringComparison.OrdinalIgnoreCase))
             {

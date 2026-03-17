@@ -157,6 +157,21 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Customer Name</small>
+                                    <span class="fw-semibold">@(string.IsNullOrWhiteSpace(order.CustomerName) ? "N/A" : order.CustomerName)</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Phone Number</small>
+                                    <span class="fw-semibold">@(string.IsNullOrWhiteSpace(order.CustomerContact) ? "N/A" : order.CustomerContact)</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted d-block">Delivery Address</small>
+                                    <span class="fw-semibold">@(string.IsNullOrWhiteSpace(order.DeliveryAddress) ? "N/A" : order.DeliveryAddress)</span>
+                                </div>
+                            </div>
+
                             @if (order.OrderDetails.Any())
                             {
                                 <div class="table-responsive">
@@ -186,8 +201,8 @@
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <strong class="text-dark">Total Items: @order.ItemsCount</strong>
-                                    <strong class="text-dark">Order Total: $@order.TotalAmount.ToString("N2")</strong>
+                                    <strong class="text-muted">Total Items: @order.ItemsCount</strong>
+                                    <strong class="text-muted">Order Total: $@order.TotalAmount.ToString("N2")</strong>
                                 </div>
                             }
                             else
@@ -460,6 +475,14 @@
         border-radius: 0.75rem;
         background: #f8fafc;
         padding: 1rem;
+    }
+
+    .schedule-card .form-label {
+        color: #000000 !important;
+    }
+
+    .schedule-card small.text-muted {
+        color: #000000 !important;
     }
 
     @@media (max-width: 991px) {
