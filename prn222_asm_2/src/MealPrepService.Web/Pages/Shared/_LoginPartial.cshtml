@@ -12,7 +12,7 @@
                 </svg>
                 <span class="user-name-text">@User.FindFirst(ClaimTypes.Name)?.Value</span>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu" aria-labelledby="userDropdown">
                 <li>
                     <h6 class="dropdown-header">
                         @User.FindFirst(ClaimTypes.Email)?.Value

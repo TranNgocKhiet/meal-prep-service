@@ -11,7 +11,7 @@
 <body class="bg-black text-white d-flex flex-column min-vh-100">
     <header>
         <nav class="navbar navbar-expand-lg app-navbar mb-3">
-            <div class="container">
+            <div class="container-fluid app-navbar-inner">
                 <a class="navbar-brand app-brand" asp-page="/Index">
                     <span class="app-brand-icon"><i class="bi bi-basket2-fill"></i></span>
                     <span>
@@ -24,7 +24,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse app-navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
+                    <ul class="navbar-nav app-main-nav">
                         <li class="nav-item">
                             <a class="nav-link app-nav-link" asp-page="/Index">
                                 <i class="bi bi-house-door"></i> Home
@@ -46,7 +46,7 @@
                             </a>
                         </li>
 
-                        @if (User.IsInRole("Manager") || User.IsInRole("Admin"))
+                        @if (User.IsInRole("Manager"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link app-nav-link" asp-page="/Order/StaffReview">
