@@ -10,7 +10,7 @@
     .order-delivery-black h6,
     .order-delivery-black p,
     .order-delivery-black small,
-    .order-delivery-black span,
+    .order-delivery-black span:not(.badge),
     .order-delivery-black strong,
     .order-delivery-black th,
     .order-delivery-black td,
@@ -18,20 +18,16 @@
         color: #000 !important;
     }
 
+    .order-delivery-black .badge,
+    .order-delivery-black .badge i {
+        color: inherit !important;
+    }
+
     .order-delivery-black .table thead th,
     .order-delivery-black .table tbody td {
         color: #000 !important;
         background-color: #fff !important;
         border-color: #dee2e6 !important;
-    }
-
-    .order-delivery-black .badge:not(.bg-warning):not(.text-dark) {
-        color: #fff !important;
-    }
-
-    .order-delivery-black .badge.bg-warning,
-    .order-delivery-black .badge.text-dark {
-        color: #212529 !important;
     }
 
     .order-delivery-black .delivery-section-title {
@@ -125,46 +121,7 @@
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
                                 <small class="text-muted">Order #@order.Id.ToString().Substring(0, 8)</small>
-                                @if (order.Status.Equals("pending", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-warning">Pending</span>
-                                }
-                                else if (order.Status.Equals("awaiting_online_payment", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-info">Awaiting VNPay</span>
-                                }
-                                else if (order.Status.Equals("pending_confirmation", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-warning text-dark">Pending Confirmation</span>
-                                }
-                                else if (order.Status.Equals("confirmed", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-success">Confirmed</span>
-                                }
-                                else if (order.Status.Equals("delivering", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-primary">Delivering</span>
-                                }
-                                else if (order.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-success">Customer Received</span>
-                                }
-                                else if (order.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-danger">Customer Reject</span>
-                                }
-                                else if (order.Status.Equals("failed", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-dark">Failed</span>
-                                }
-                                else if (order.Status.Equals("payment_failed", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <span class="badge bg-danger">Payment Failed</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">@order.Status</span>
-                                }
+                                <partial name="~/Pages/Shared/_OrderStatusBadge.cshtml" model="order.Status" />
                             </div>
                         </div>
                         <div class="card-body">
@@ -180,29 +137,6 @@
 
                             @if (order.DeliverySchedule != null)
                             {
-                                var deliveryReportLabel = order.Status?.ToLowerInvariant() switch
-                                {
-                                    "pending_confirmation" => "Waiting for staff confirmation",
-                                    "confirmed" => "Scheduled for dispatch",
-                                    "delivering" => "In transit to customer",
-                                    "customer_received" => "Delivered successfully",
-                                    "customer_reject" => "Delivery rejected by customer",
-                                    "failed" => "Delivery failed",
-                                    "cancelled" => "Delivery/order cancelled",
-                                    _ => "Delivery status is being updated"
-                                };
-
-                                var reportBadgeClass = order.Status?.ToLowerInvariant() switch
-                                {
-                                    "customer_received" => "bg-success",
-                                    "customer_reject" => "bg-danger",
-                                    "failed" => "bg-dark",
-                                    "delivering" => "bg-primary",
-                                    "confirmed" => "bg-info",
-                                    "pending_confirmation" => "bg-warning text-dark",
-                                    _ => "bg-secondary"
-                                };
-
                                 var trackingStep = order.Status?.ToLowerInvariant() switch
                                 {
                                     "pending_confirmation" => "Waiting Confirmation",
@@ -218,7 +152,7 @@
                                 <div class="border rounded p-2 mb-3 bg-light text-dark order-delivery-black">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <small class="fw-semibold mb-0">Delivery Tracking</small>
-                                        <span class="badge @reportBadgeClass">@deliveryReportLabel</span>
+                                        <partial name="~/Pages/Shared/_OrderStatusBadge.cshtml" model="order.Status" />
                                     </div>
                                     <small class="d-block mb-1"><strong>Current Step:</strong> @trackingStep</small>
                                     @if (!string.IsNullOrWhiteSpace(order.DeliverySchedule.DriverContact))
@@ -374,11 +308,11 @@
                                             }
                                             else if (order.Status.Equals("failed", StringComparison.OrdinalIgnoreCase))
                                             {
-                                                <span class="badge bg-dark">Failed</span>
+                                                <span class="badge bg-danger">Failed</span>
                                             }
                                             else if (order.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase))
                                             {
-                                                <span class="badge bg-secondary">Cancelled</span>
+                                                <span class="badge bg-danger">Cancelled</span>
                                             }
                                             else
                                             {
