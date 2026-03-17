@@ -33,6 +33,10 @@
     .order-delivery-black .badge.text-dark {
         color: #212529 !important;
     }
+
+    .order-delivery-black .delivery-section-title {
+        color: #fff !important;
+    }
 </style>
 
 <div class="container mt-4">
@@ -66,11 +70,38 @@
             .ToList();
 
         var deliveryReportOrders = Model.Orders
-            .Where(o => o.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
-                     || o.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
-                     || o.Status.Equals("failed", StringComparison.OrdinalIgnoreCase)
-                     || o.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase))
+            .Where(o => string.Equals(o.Status, "customer_received", StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(o.Status, "customer_reject", StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(o.Status, "failed", StringComparison.OrdinalIgnoreCase)
+                     || string.Equals(o.Status, "cancelled", StringComparison.OrdinalIgnoreCase))
             .ToList();
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4 col-lg-3">
+                        <label asp-for="StatusFilter" class="form-label">Filter By Status</label>
+                        <select asp-for="StatusFilter" class="form-select">
+                            <option value="all">All statuses</option>
+                            @foreach (var status in Model.AvailableStatuses)
+                            {
+                                <option value="@status">@status</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel"></i> Apply Filter
+                        </button>
+                    </div>
+                    <div class="col-auto">
+                        <a asp-page="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         <div class="row">
             @foreach (var order in Model.Orders)
@@ -207,7 +238,7 @@
 
         <div id="delivery-history" class="card mt-4 text-dark order-delivery-black">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Delivery History</h5>
+                <h5 class="mb-0 delivery-section-title"><i class="bi bi-clock-history"></i> Delivery History</h5>
                 <span class="badge bg-secondary">@deliveryHistoryOrders.Count</span>
             </div>
             <div class="card-body">
@@ -236,7 +267,7 @@
 
         <div id="delivery-report" class="card mt-4 text-dark order-delivery-black">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Delivery Report</h5>
+                <h5 class="mb-0 delivery-section-title"><i class="bi bi-clipboard-data"></i> Delivery Report</h5>
                 <span class="badge bg-secondary">@deliveryReportOrders.Count</span>
             </div>
             <div class="card-body">

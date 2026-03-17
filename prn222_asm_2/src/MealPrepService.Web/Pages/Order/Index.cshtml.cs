@@ -23,17 +23,37 @@ public class IndexModel : PageModel
 
     public List<OrderDto> Orders { get; set; } = new();
 
+    [BindProperty(SupportsGet = true)]
+    public string StatusFilter { get; set; } = "all";
+
+    public IReadOnlyList<string> AvailableStatuses { get; private set; } = Array.Empty<string>();
+
     public async Task<IActionResult> OnGetAsync()
     {
         try
         {
             var accountId = GetCurrentAccountId();
             var orderDtos = await _orderService.GetByAccountIdAsync(accountId);
-            
+
+            AvailableStatuses = orderDtos
+                .Select(o => o.Status)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(s => s.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(s => s)
+                .ToList();
+
+            if (!string.Equals(StatusFilter, "all", StringComparison.OrdinalIgnoreCase))
+            {
+                orderDtos = orderDtos
+                    .Where(o => string.Equals(o.Status, StatusFilter, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
             Orders = orderDtos
                 .OrderByDescending(o => o.OrderDate)
                 .ToList();
-            
+
             return Page();
         }
         catch (Exception ex)
