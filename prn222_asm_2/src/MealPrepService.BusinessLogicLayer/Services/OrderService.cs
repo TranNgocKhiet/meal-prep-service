@@ -57,9 +57,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException($"Account with ID {accountId} not found");
             }
 
-            await _unitOfWork.BeginTransactionAsync();
-
-            try
+            var createdOrder = await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
                 // Create order entity
                 var order = new Order
@@ -114,18 +112,19 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
                 await _unitOfWork.Orders.AddAsync(order);
                 await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
 
                 _logger.LogInformation("Order {OrderId} created for account {AccountId} with total amount {TotalAmount}", 
                     order.Id, accountId, totalAmount);
 
-                return await MapToDtoAsync(order);
-            }
-            catch
+                return order;
+            });
+
+            if (createdOrder == null)
             {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
+                throw new BusinessException("Failed to retrieve created order");
             }
+
+            return await MapToDtoAsync(createdOrder);
         }
 
         public async Task<OrderDto> ProcessPaymentAsync(Guid orderId, string paymentMethod, string? deliveryAddress = null, DateTime? preferredDeliveryTime = null, string? customerPhone = null)
@@ -175,9 +174,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException("Preferred delivery time must be in the future");
             }
 
-            await _unitOfWork.BeginTransactionAsync();
-
-            try
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
                 order.PaymentMethod = normalizedPaymentMethod;
                 order.UpdatedAt = DateTime.UtcNow;
@@ -199,15 +196,11 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
 
-                return await MapToDtoAsync(order);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
+                return;
+            });
+
+            return await MapToDtoAsync(order);
         }
 
         public async Task<OrderDto> GetByIdAsync(Guid orderId)
@@ -250,9 +243,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException("Order not found");
             }
 
-            await _unitOfWork.BeginTransactionAsync();
-
-            try
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
                 if (callbackResult.ResponseCode == "00") // Success
                 {
@@ -281,15 +272,11 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
-                
-                return await MapToDtoAsync(order);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
+
+                return;
+            });
+
+            return await MapToDtoAsync(order);
         }
 
         public async Task<OrderDto> ConfirmCashPaymentAsync(Guid orderId, Guid deliveryManId)
@@ -311,9 +298,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException("Cash payment is already confirmed for this order");
             }
             
-            await _unitOfWork.BeginTransactionAsync();
-            
-            try
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
                 order.PaymentConfirmedAt = DateTime.UtcNow;
                 order.PaymentConfirmedBy = deliveryManId;
@@ -321,18 +306,14 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
-                
-                _logger.LogInformation("Cash payment confirmed for COD order {OrderId} by delivery man {DeliveryManId}", 
-                    orderId, deliveryManId);
-                
-                return await MapToDtoAsync(order);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
+
+                return;
+            });
+
+            _logger.LogInformation("Cash payment confirmed for COD order {OrderId} by delivery man {DeliveryManId}", 
+                orderId, deliveryManId);
+
+            return await MapToDtoAsync(order);
         }
 
         public async Task UpdateOrderStatusAsync(Guid orderId, string status)

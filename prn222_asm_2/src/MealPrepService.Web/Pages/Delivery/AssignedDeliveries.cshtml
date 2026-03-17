@@ -32,10 +32,40 @@
         <a asp-page="./AssignedDeliveries" asp-route-tab="delivering" class="btn @(Model.Tab == "delivering" ? "btn-warning" : "btn-outline-warning")">
             Delivering (@Model.DeliveringCount)
         </a>
-        <a asp-page="./AssignedDeliveries" asp-route-tab="completed" class="btn @(Model.Tab == "completed" ? "btn-primary" : "btn-outline-primary")">
+        <a asp-page="./AssignedDeliveries"
+           asp-route-tab="completed"
+           asp-route-completedStatus="@Model.CompletedStatus"
+           asp-route-completedDate="@(Model.CompletedDate?.ToString("yyyy-MM-dd"))"
+           class="btn @(Model.Tab == "completed" ? "btn-primary" : "btn-outline-primary")">
             Completed (@Model.CompletedCount)
         </a>
     </div>
+
+    @if (Model.Tab == "completed")
+    {
+        <form method="get" class="card card-body mb-3">
+            <input type="hidden" name="tab" value="completed" />
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label mb-1" for="completedStatus">Status</label>
+                    <select id="completedStatus" name="completedStatus" class="form-select">
+                        <option value="all" selected="@(Model.CompletedStatus == "all")">All</option>
+                        <option value="customer_received" selected="@(Model.CompletedStatus == "customer_received")">Customer Received</option>
+                        <option value="customer_reject" selected="@(Model.CompletedStatus == "customer_reject")">Customer Reject</option>
+                        <option value="failed" selected="@(Model.CompletedStatus == "failed")">Failed</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label mb-1" for="completedDate">Delivery Date</label>
+                    <input id="completedDate" name="completedDate" type="date" class="form-control" value="@(Model.CompletedDate?.ToString("yyyy-MM-dd"))" />
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Apply Filter</button>
+                    <a asp-page="./AssignedDeliveries" asp-route-tab="completed" asp-route-completedStatus="all" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </div>
+        </form>
+    }
 
     @if (Model.Deliveries.Any())
     {

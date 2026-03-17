@@ -26,6 +26,12 @@ public class AssignedDeliveriesModel : PageModel
     [BindProperty(SupportsGet = true)]
     public string Tab { get; set; } = "delivering";
 
+    [BindProperty(SupportsGet = true)]
+    public string CompletedStatus { get; set; } = "all";
+
+    [BindProperty(SupportsGet = true)]
+    public DateTime? CompletedDate { get; set; }
+
     public int DeliveringCount { get; set; }
     public int CompletedCount { get; set; }
 
@@ -37,13 +43,24 @@ public class AssignedDeliveriesModel : PageModel
             var deliveries = await _deliveryService.GetByDeliveryManAsync(deliveryManId);
 
             Tab = NormalizeTab(Tab);
+            CompletedStatus = NormalizeCompletedStatus(CompletedStatus);
+
             var allDeliveries = deliveries.OrderBy(d => d.DeliveryTime).ToList();
+
             DeliveringCount = allDeliveries.Count(IsDelivering);
             CompletedCount = allDeliveries.Count(IsCompleted);
 
             Deliveries = Tab == "completed"
-                ? allDeliveries.Where(IsCompleted).OrderByDescending(d => d.DeliveryTime).ToList()
-                : allDeliveries.Where(IsDelivering).OrderBy(d => d.DeliveryTime).ToList();
+                ? allDeliveries
+                    .Where(IsCompleted)
+                    .Where(MatchesCompletedStatus)
+                    .Where(MatchesCompletedDate)
+                    .OrderByDescending(d => d.DeliveryTime)
+                    .ToList()
+                : allDeliveries
+                    .Where(IsDelivering)
+                    .OrderBy(d => d.DeliveryTime)
+                    .ToList();
             
             return Page();
         }
@@ -76,6 +93,28 @@ public class AssignedDeliveriesModel : PageModel
     {
         var normalized = (tab ?? string.Empty).Trim().ToLowerInvariant();
         return normalized == "completed" ? "completed" : "delivering";
+    }
+
+    private static string NormalizeCompletedStatus(string? status)
+    {
+        var normalized = (status ?? string.Empty).Trim().ToLowerInvariant();
+
+        return normalized == "customer_received"
+               || normalized == "customer_reject"
+               || normalized == "failed"
+            ? normalized
+            : "all";
+    }
+
+    private bool MatchesCompletedStatus(DeliveryScheduleDto delivery)
+    {
+        return CompletedStatus == "all"
+               || delivery.OrderStatus.Equals(CompletedStatus, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool MatchesCompletedDate(DeliveryScheduleDto delivery)
+    {
+        return !CompletedDate.HasValue || delivery.DeliveryTime.Date == CompletedDate.Value.Date;
     }
 
     private static bool IsDelivering(DeliveryScheduleDto delivery)

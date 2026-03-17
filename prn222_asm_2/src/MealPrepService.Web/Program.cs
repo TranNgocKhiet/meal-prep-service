@@ -56,7 +56,15 @@ try
     {
         builder.Services.AddDbContext<MealPrepDbContext>(options =>
             options.UseSqlServer(
-                connectionString ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
+                connectionString ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."),
+                sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorNumbersToAdd: null);
+                    sqlOptions.CommandTimeout(60);
+                }));
     }
 
     // Add FluentValidation

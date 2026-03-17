@@ -359,25 +359,17 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException($"Order must be in delivering state before completion. Current status: {order.Status}");
             }
 
-            await _unitOfWork.BeginTransactionAsync();
-
-            try
+            await _unitOfWork.ExecuteInTransactionAsync(async () =>
             {
                 order.Status = normalized;
                 order.UpdatedAt = DateTime.UtcNow;
 
                 await _unitOfWork.Orders.UpdateAsync(order);
                 await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
 
                 _logger.LogInformation("Delivery {DeliveryId} completed with status {Status} for order {OrderId}", 
                     deliveryId, normalized, deliverySchedule.OrderId);
-            }
-            catch
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                throw;
-            }
+            });
         }
 
         public async Task UpdateDeliveryTimeAsync(Guid deliveryId, DateTime newTime)

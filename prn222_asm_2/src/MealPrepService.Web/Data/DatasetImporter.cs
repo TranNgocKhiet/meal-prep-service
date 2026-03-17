@@ -19,24 +19,29 @@ public class DatasetImporter
 
     public async Task ImportAllAsync()
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        var strategy = _context.Database.CreateExecutionStrategy();
 
-        try
+        await strategy.ExecuteAsync(async () =>
         {
-            await ImportAllergiesAsync();
-            await ImportIngredientsAsync();
-            await ImportRecipesAsync();
-            await ImportRecipeIngredientsAsync();
+            await using var transaction = await _context.Database.BeginTransactionAsync();
 
-            await transaction.CommitAsync();
-            Console.WriteLine("Import completed successfully!");
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            Console.WriteLine($"Import failed: {ex.Message}");
-            throw;
-        }
+            try
+            {
+                await ImportAllergiesAsync();
+                await ImportIngredientsAsync();
+                await ImportRecipesAsync();
+                await ImportRecipeIngredientsAsync();
+
+                await transaction.CommitAsync();
+                Console.WriteLine("Import completed successfully!");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Import failed: {ex.Message}");
+                throw;
+            }
+        });
     }
 
     private async Task ImportAllergiesAsync()

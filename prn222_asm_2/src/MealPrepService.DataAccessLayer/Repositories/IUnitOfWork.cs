@@ -39,6 +39,8 @@ namespace MealPrepService.DataAccessLayer.Repositories
 
         // Transaction management
         Task<int> SaveChangesAsync();
+        Task ExecuteInTransactionAsync(Func<Task> operation);
+        Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> operation);
         Task BeginTransactionAsync();
         Task CommitTransactionAsync();
         Task RollbackTransactionAsync();
