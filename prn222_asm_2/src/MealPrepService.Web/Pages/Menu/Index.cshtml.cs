@@ -23,28 +23,17 @@ public class IndexModel : PageModel
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string ActiveTab { get; set; } = "current";
+    public string Period { get; set; } = "month";
 
-    public async Task<IActionResult> OnGetAsync(string tab = "current")
+    public async Task<IActionResult> OnGetAsync(string tab = "current", string period = "month", DateTime? fromDate = null, DateTime? toDate = null)
     {
         try
         {
             var menuList = new List<DailyMenuDto>();
-            DateTime startDate;
-            DateTime endDate;
-            
-            if (tab == "past")
-            {
-                // Get past menus (last 90 days)
-                startDate = DateTime.Today.AddDays(-90);
-                endDate = DateTime.Today.AddDays(-1);
-            }
-            else
-            {
-                // Get current and future menus (today + next 30 days)
-                tab = "current";
-                startDate = DateTime.Today;
-                endDate = DateTime.Today.AddDays(30);
-            }
+            tab = string.Equals(tab, "past", StringComparison.OrdinalIgnoreCase) ? "past" : "current";
+            period = NormalizePeriod(period);
+
+            var (startDate, endDate) = ResolveDateRange(tab, period, fromDate, toDate);
             
             // Get menus for each day in the range
             for (var date = startDate; date <= endDate; date = date.AddDays(1))
@@ -60,11 +49,15 @@ public class IndexModel : PageModel
             StartDate = startDate;
             EndDate = endDate;
             ActiveTab = tab;
+            Period = period;
             
             // Set ViewData properties for the view
             ViewData["StartDate"] = startDate;
             ViewData["EndDate"] = endDate;
             ViewData["ActiveTab"] = tab;
+            ViewData["Period"] = period;
+            ViewData["FromDate"] = startDate;
+            ViewData["ToDate"] = endDate;
             
             return Page();
         }
@@ -75,5 +68,46 @@ public class IndexModel : PageModel
             Menus = new List<DailyMenuDto>();
             return Page();
         }
+    }
+
+    private static string NormalizePeriod(string? period)
+    {
+        return period?.ToLowerInvariant() switch
+        {
+            "week" => "week",
+            "month" => "month",
+            "quarter" => "quarter",
+            "year" => "year",
+            "custom" => "custom",
+            _ => "month"
+        };
+    }
+
+    private static (DateTime StartDate, DateTime EndDate) ResolveDateRange(string tab, string period, DateTime? fromDate, DateTime? toDate)
+    {
+        if (period == "custom" && fromDate.HasValue && toDate.HasValue)
+        {
+            var customStart = fromDate.Value.Date;
+            var customEnd = toDate.Value.Date;
+            if (customEnd < customStart)
+            {
+                (customStart, customEnd) = (customEnd, customStart);
+            }
+
+            return (customStart, customEnd);
+        }
+
+        var today = DateTime.Today;
+        var days = period switch
+        {
+            "week" => 7,
+            "quarter" => 90,
+            "year" => 365,
+            _ => 30
+        };
+
+        return tab == "past"
+            ? (today.AddDays(-days), today.AddDays(-1))
+            : (today, today.AddDays(days - 1));
     }
 }

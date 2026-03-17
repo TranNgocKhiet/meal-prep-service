@@ -67,7 +67,7 @@
             </div>
         </div>
         <div class="card-body">
-            @if (TempData["SuccessMessage"] != null)
+            <!-- @if (TempData["SuccessMessage"] != null)
             {
                 <div class="alert alert-dismissible fade show" role="alert" style="background-color: white; color: black; border: 2px solid black;">
                     @TempData["SuccessMessage"]
@@ -81,7 +81,7 @@
                     @TempData["ErrorMessage"]
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-            }
+            } -->
 
             @if (Model.MenuMeals.Any())
             {
@@ -256,7 +256,7 @@
     </div>
 
     <div class="mt-3">
-        <a asp-page="Index" class="btn btn-secondary">
+        <a asp-page="Index" asp-route-tab="@Model.ActiveTab" asp-route-period="@Model.Period" asp-route-fromDate="@(Model.FromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(Model.ToDate?.ToString("yyyy-MM-dd"))" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Back to Menu List
         </a>
     </div>

@@ -3,6 +3,9 @@
 @{
     ViewData["Title"] = "Menu Management";
     var activeTab = (string?)ViewData["ActiveTab"] ?? "current";
+    var period = (string?)ViewData["Period"] ?? "month";
+    var fromDate = ((DateTime?)ViewData["FromDate"])?.ToString("yyyy-MM-dd") ?? string.Empty;
+    var toDate = ((DateTime?)ViewData["ToDate"])?.ToString("yyyy-MM-dd") ?? string.Empty;
 }
 
 <div class="container mt-4">
@@ -33,19 +36,50 @@
     <ul class="nav nav-tabs mb-3" id="menuTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <a class="nav-link @(activeTab == "current" ? "active" : "")" 
-               asp-page="Index" asp-route-tab="current" 
+               asp-page="Index" asp-route-tab="current" asp-route-period="@period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate"
                role="tab">
                 <i class="bi bi-calendar-check"></i> Current & Future Menus
             </a>
         </li>
         <li class="nav-item" role="presentation">
             <a class="nav-link @(activeTab == "past" ? "active" : "")" 
-               asp-page="Index" asp-route-tab="past" 
+               asp-page="Index" asp-route-tab="past" asp-route-period="@period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate"
                role="tab">
                 <i class="bi bi-calendar-x"></i> Past Menus
             </a>
         </li>
     </ul>
+
+    <div class="card mb-3" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end" id="menuFilterForm">
+                <input type="hidden" name="tab" value="@activeTab" />
+                <div class="col-md-3">
+                    <label for="period" class="form-label text-white">Filter period</label>
+                    <select id="period" name="period" class="form-select">
+                        <option value="week" selected="@(period == "week" ? "selected" : null)">Week</option>
+                        <option value="month" selected="@(period == "month" ? "selected" : null)">Month</option>
+                        <option value="quarter" selected="@(period == "quarter" ? "selected" : null)">Quarter</option>
+                        <option value="year" selected="@(period == "year" ? "selected" : null)">Year</option>
+                        <option value="custom" selected="@(period == "custom" ? "selected" : null)">Custom date range</option>
+                    </select>
+                </div>
+                <div class="col-md-3 custom-range-group @(period == "custom" ? string.Empty : "d-none")">
+                    <label for="fromDate" class="form-label text-white">From date</label>
+                    <input id="fromDate" name="fromDate" type="date" class="form-control" value="@fromDate" />
+                </div>
+                <div class="col-md-3 custom-range-group @(period == "custom" ? string.Empty : "d-none")">
+                    <label for="toDate" class="form-label text-white">To date</label>
+                    <input id="toDate" name="toDate" type="date" class="form-control" value="@toDate" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-funnel"></i> Apply Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Tab Content -->
     <div class="card">
@@ -104,7 +138,7 @@
                                     <td class="text-white" style="background-color: transparent;">@menu.MenuMeals.Count</td>
                                     <td class="text-white" style="background-color: transparent;">@menu.MenuMeals.Sum(m => m.AvailableQuantity)</td>
                                     <td class="text-white" style="background-color: transparent;">
-                                        <a asp-page="Details" asp-route-id="@menu.Id" class="btn btn-sm btn-info">
+                                        <a asp-page="Details" asp-route-id="@menu.Id" asp-route-tab="@activeTab" asp-route-period="@period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate" class="btn btn-sm btn-info">
                                             <i class="bi bi-eye"></i> View
                                         </a>
                                         @if (activeTab == "current")
@@ -172,3 +206,26 @@
         border-color: #22c55e;
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var periodSelect = document.getElementById('period');
+        var customRangeGroups = document.querySelectorAll('.custom-range-group');
+
+        function toggleCustomRange() {
+            var showCustom = periodSelect && periodSelect.value === 'custom';
+            customRangeGroups.forEach(function (group) {
+                if (showCustom) {
+                    group.classList.remove('d-none');
+                } else {
+                    group.classList.add('d-none');
+                }
+            });
+        }
+
+        if (periodSelect) {
+            periodSelect.addEventListener('change', toggleCustomRange);
+            toggleCustomRange();
+        }
+    });
+</script>
