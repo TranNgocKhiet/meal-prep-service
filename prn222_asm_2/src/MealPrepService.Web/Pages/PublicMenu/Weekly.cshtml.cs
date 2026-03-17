@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
 using MealPrepService.BusinessLogicLayer.Interfaces;
 using MealPrepService.BusinessLogicLayer.DTOs;
+using MealPrepService.Web.PresentationLayer.Cart;
 
 
 namespace MealPrepService.Web.Pages.PublicMenu;
@@ -79,5 +80,60 @@ public class WeeklyModel : PageModel
     {
         var diff = (7 + (date.DayOfWeek - DayOfWeek.Sunday)) % 7;
         return date.AddDays(-1 * diff).Date;
+    }
+
+    public async Task<IActionResult> OnPostAddToCartAsync(Guid menuMealId, int quantity = 1, DateTime? startDate = null)
+    {
+        if (!User.Identity?.IsAuthenticated ?? true)
+        {
+            return RedirectToPage("/Account/Login", new
+            {
+                returnUrl = Url.Page("/PublicMenu/Weekly", new { startDate = startDate?.ToString("yyyy-MM-dd") })
+            });
+        }
+
+        if (!User.IsInRole("Customer"))
+        {
+            TempData["ErrorMessage"] = "Only customers can add items to cart.";
+            return RedirectToPage(new { startDate });
+        }
+
+        try
+        {
+            var todayMenu = await _menuService.GetByDateAsync(DateTime.Today);
+            var meal = todayMenu?.MenuMeals.FirstOrDefault(x => x.Id == menuMealId && !x.IsSoldOut);
+
+            if (meal == null)
+            {
+                TempData["ErrorMessage"] = "Only meals from today's menu can be added to cart.";
+                return RedirectToPage(new { startDate });
+            }
+
+            var cart = HttpContext.Session.GetCartItems();
+            var existing = cart.FirstOrDefault(x => x.MenuMealId == menuMealId);
+
+            if (existing == null)
+            {
+                cart.Add(new CartItemSession
+                {
+                    MenuMealId = menuMealId,
+                    Quantity = Math.Max(1, quantity)
+                });
+            }
+            else
+            {
+                existing.Quantity = Math.Min(existing.Quantity + Math.Max(1, quantity), meal.AvailableQuantity);
+            }
+
+            HttpContext.Session.SaveCartItems(cart);
+            TempData["SuccessMessage"] = $"{meal.RecipeName} added to cart.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed adding menu meal {MenuMealId} to cart from weekly view", menuMealId);
+            TempData["ErrorMessage"] = "Could not add this item to cart.";
+        }
+
+        return RedirectToPage(new { startDate });
     }
 }

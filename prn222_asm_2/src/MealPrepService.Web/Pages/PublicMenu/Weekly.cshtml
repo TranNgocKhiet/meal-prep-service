@@ -5,6 +5,15 @@
 }
 
 <div class="container mt-4">
+    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Customer"))
+    {
+        <div class="d-flex justify-content-end mb-3">
+            <a asp-page="/Order/MyCart" class="btn btn-outline-primary">
+                <i class="bi bi-bag"></i> My Cart
+            </a>
+        </div>
+    }
+
     <div class="text-center mb-4">
         <h2>Weekly Menu</h2>
         <p class="lead">@Model.WeekStartDate.ToString("MMM dd") - @Model.WeekEndDate.ToString("MMM dd, yyyy")</p>
@@ -50,8 +59,8 @@
                             @foreach (var meal in dailyMenu.AvailableMeals)
                             {
                                 <div class="col-md-6 col-lg-4 mb-3">
-                                    <div class="card h-100 border-0 shadow-sm">
-                                        <div class="card-body">
+                                    <div class="card h-100 border-0 shadow-sm menu-meal-card">
+                                        <div class="card-body d-flex flex-column">
                                             <h6 class="card-title">@meal.RecipeName</h6>
                                             
                                             @if (meal.Recipe != null)
@@ -66,18 +75,48 @@
                                                 </div>
                                             }
 
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
+                                            <div class="menu-card-footer mt-auto">
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
                                                     <h5 class="text-primary mb-0">$@meal.Price.ToString("F2")</h5>
                                                     <small class="text-muted">@meal.AvailableQuantity left</small>
                                                 </div>
-                                                @if (User.Identity.IsAuthenticated && User.IsInRole("Customer"))
+
+                                                @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Customer"))
                                                 {
-                                                    <button class="btn btn-sm btn-secondary" disabled title="Order feature coming in Checkpoint 2">
-                                                        Order (Soon)
-                                                    </button>
+                                                    @if (dailyMenu.MenuDate.Date == DateTime.Today)
+                                                    {
+                                                        <form method="post" asp-page-handler="AddToCart">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="menuMealId" value="@meal.Id" />
+                                                            <input type="hidden" name="quantity" value="1" />
+                                                            <input type="hidden" name="startDate" value="@Model.WeekStartDate.ToString("yyyy-MM-dd")" />
+                                                            <button type="submit" class="btn btn-primary w-100">
+                                                                <i class="bi bi-cart-plus"></i> Add to Cart
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button class="btn btn-outline-secondary w-100" disabled title="Only today's meals can be added to cart">
+                                                            <i class="bi bi-lock"></i> Add to Cart
+                                                        </button>
+                                                    }
                                                 }
-                                                @* No order button for Admin, Manager, or DeliveryMan *@
+                                                else if (User.Identity?.IsAuthenticated != true)
+                                                {
+                                                    @if (dailyMenu.MenuDate.Date == DateTime.Today)
+                                                    {
+                                                        <a asp-page="/Account/Login" asp-route-returnUrl="@Url.Page("/PublicMenu/Weekly", new { startDate = Model.WeekStartDate.ToString("yyyy-MM-dd") })" class="btn btn-outline-primary w-100">
+                                                            Login to Order
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button class="btn btn-outline-secondary w-100" disabled>
+                                                            Available on @dailyMenu.MenuDate.ToString("ddd")
+                                                        </button>
+                                                    }
+                                                }
                                             </div>
                                         </div>
                                     </div>
@@ -108,6 +147,19 @@
         </a>
     </div>
 </div>
+
+<style>
+    .menu-meal-card .card-body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .menu-card-footer {
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>
 
 
 @section Scripts {
