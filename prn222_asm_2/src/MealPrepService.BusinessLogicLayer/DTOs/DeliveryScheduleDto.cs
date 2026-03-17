@@ -21,7 +21,9 @@ public class DeliveryScheduleDto
     public string OrderStatus => Order?.Status ?? "unknown";
     public decimal TotalAmount => Order?.TotalAmount ?? 0;
     public string PaymentMethod => Order?.PaymentMethod ?? "unknown";
-    public string CustomerName => Order?.CustomerName ?? "Unknown";
+    public string CustomerName => string.IsNullOrWhiteSpace(Order?.CustomerName)
+        ? "Unknown"
+        : Order.CustomerName;
     public string CustomerContact => string.IsNullOrWhiteSpace(CustomerPhone)
         ? (Order?.CustomerContact ?? "N/A")
         : CustomerPhone;

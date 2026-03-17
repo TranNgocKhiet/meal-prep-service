@@ -12,7 +12,7 @@
         </button>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
+    <!-- @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-dismissible fade show" role="alert" style="background-color: white; color: black; border: 2px solid black;">
             @TempData["SuccessMessage"]
@@ -26,7 +26,7 @@
             @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    }
+    } -->
 
     <div class="d-flex gap-2 mb-3">
         <a asp-page="./AssignedDeliveries" asp-route-tab="delivering" class="btn @(Model.Tab == "delivering" ? "btn-warning" : "btn-outline-warning")">
@@ -69,7 +69,7 @@
 
     @if (Model.Deliveries.Any())
     {
-        @foreach (var delivery in Model.Deliveries.OrderBy(d => d.DeliveryTime))
+        @foreach (var delivery in Model.Deliveries)
         {
             <div class="card mb-3 @(delivery.OrderStatus.Equals("delivered", StringComparison.OrdinalIgnoreCase) ? "border-primary" : "")">
                 <div class="card-header">
@@ -94,7 +94,7 @@
                             }
                             else if (delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase))
                             {
-                                <span class="badge bg-dark">Failed</span>
+                                <span class="badge bg-danger">Failed</span>
                             }
                             else
                             {
@@ -118,13 +118,6 @@
                             <p class="mb-0"><strong>Total Items:</strong> @delivery.ItemsCount</p>
                         </div>
                     </div>
-
-                    @if (!string.IsNullOrEmpty(delivery.DeliveryNotes))
-                    {
-                        <div class="alert alert-light mt-3 mb-0">
-                            <strong>Delivery Notes:</strong> @delivery.DeliveryNotes
-                        </div>
-                    }
                 </div>
                 <div class="card-footer bg-transparent">
                     <div class="d-flex justify-content-end gap-2">
@@ -137,13 +130,6 @@
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#completeDeliveryModal-@delivery.Id.ToString("N")">
                                 <i class="bi bi-check2-square"></i> Confirm Delivery Result
                             </button>
-                        }
-
-                        @if (delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase) || delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase) || delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase))
-                        {
-                            <span class="text-success">
-                                <i class="bi bi-check-circle-fill"></i> Delivery Completed
-                            </span>
                         }
                     </div>
                 </div>
@@ -258,6 +244,11 @@
 <style>
     .card {
         transition: box-shadow 0.3s ease;
+    }
+
+    .card-header .badge {
+        font-size: 0.9rem;
+        padding: 0.45rem 0.75rem;
     }
     
     .card:hover {

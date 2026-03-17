@@ -121,6 +121,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 
                 if (order != null)
                 {
+                    var customer = await _unitOfWork.Accounts.GetByIdAsync(order.AccountId);
                     dto.Order = new OrderDto
                     {
                         Id = order.Id,
@@ -129,6 +130,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                         TotalAmount = order.TotalAmount,
                         PaymentMethod = order.PaymentMethod,
                         Status = order.Status,
+                        CustomerName = ResolveAccountDisplayName(customer),
+                        CustomerContact = dto.CustomerContact,
+                        DeliveryAddress = dto.Address,
                         OrderDetails = await BuildOrderDetailsAsync(order.Id)
                     };
                 }
@@ -168,6 +172,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 
                 if (order != null)
                 {
+                    var customer = await _unitOfWork.Accounts.GetByIdAsync(order.AccountId);
                     dto.Order = new OrderDto
                     {
                         Id = order.Id,
@@ -176,6 +181,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                         TotalAmount = order.TotalAmount,
                         PaymentMethod = order.PaymentMethod,
                         Status = order.Status,
+                        CustomerName = ResolveAccountDisplayName(customer),
+                        CustomerContact = dto.CustomerContact,
+                        DeliveryAddress = dto.Address,
                         OrderDetails = await BuildOrderDetailsAsync(order.Id)
                     };
                 }
@@ -228,7 +236,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
                     TotalAmount = order.TotalAmount,
                     PaymentMethod = order.PaymentMethod,
                     Status = order.Status,
-                    CustomerName = customer?.FullName ?? string.Empty,
+                    CustomerName = ResolveAccountDisplayName(customer),
                     CustomerContact = dto.CustomerContact,
                     DeliveryAddress = dto.Address,
                     OrderDetails = await BuildOrderDetailsAsync(order.Id)
@@ -465,6 +473,26 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 CustomerPhone = deliverySchedule.CustomerPhone,
                 DriverContact = deliverySchedule.DriverContact
             };
+        }
+
+        private static string ResolveAccountDisplayName(Account? account)
+        {
+            if (account == null)
+            {
+                return string.Empty;
+            }
+
+            if (!string.IsNullOrWhiteSpace(account.FullName))
+            {
+                return account.FullName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(account.Email))
+            {
+                return account.Email;
+            }
+
+            return string.Empty;
         }
     }
 }
