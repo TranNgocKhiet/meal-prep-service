@@ -47,7 +47,6 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="menuMealId" value="@item.MenuMealId" />
                                                 <input type="number" name="quantity" min="1" max="@item.AvailableQuantity" value="@item.Quantity" class="form-control form-control-sm" style="width:90px;" />
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>
                                             </form>
                                         </td>
                                         <td class="text-end">$@item.Subtotal.ToString("F2")</td>
