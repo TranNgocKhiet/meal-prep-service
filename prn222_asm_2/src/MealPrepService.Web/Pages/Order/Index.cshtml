@@ -37,6 +37,20 @@
     .order-delivery-black .delivery-section-title {
         color: #fff !important;
     }
+
+    .delivery-dropdown-header {
+        background-color: #212529;
+    }
+
+    .delivery-dropdown-toggle {
+        color: #fff;
+    }
+
+    .delivery-dropdown-toggle:hover,
+    .delivery-dropdown-toggle:focus {
+        color: #fff;
+        text-decoration: none;
+    }
 </style>
 
 <div class="container mt-4">
@@ -63,13 +77,13 @@
         </div>
     }
 
-    @if (Model.Orders.Any())
+    @if (Model.FilteredOrders.Any())
     {
-        var deliveryHistoryOrders = Model.Orders
+        var deliveryHistoryOrders = Model.FilteredOrders
             .Where(o => o.DeliverySchedule != null)
             .ToList();
 
-        var deliveryReportOrders = Model.Orders
+        var deliveryReportOrders = Model.FilteredOrders
             .Where(o => string.Equals(o.Status, "customer_received", StringComparison.OrdinalIgnoreCase)
                      || string.Equals(o.Status, "customer_reject", StringComparison.OrdinalIgnoreCase)
                      || string.Equals(o.Status, "failed", StringComparison.OrdinalIgnoreCase)
@@ -236,12 +250,60 @@
             }
         </div>
 
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Orders pagination" class="mt-2">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-page="Index"
+                           asp-route-StatusFilter="@Model.StatusFilter"
+                           asp-route-PageNumber="@(Model.PageNumber - 1)">
+                            Previous
+                        </a>
+                    </li>
+
+                    @for (var i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <a class="page-link"
+                               asp-page="Index"
+                               asp-route-StatusFilter="@Model.StatusFilter"
+                               asp-route-PageNumber="@i">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           asp-page="Index"
+                           asp-route-StatusFilter="@Model.StatusFilter"
+                           asp-route-PageNumber="@(Model.PageNumber + 1)">
+                            Next
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+
         <div id="delivery-history" class="card mt-4 text-dark order-delivery-black">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 delivery-section-title"><i class="bi bi-clock-history"></i> Delivery History</h5>
-                <span class="badge bg-secondary">@deliveryHistoryOrders.Count</span>
+            <div class="card-header p-0 delivery-dropdown-header">
+                <button class="btn btn-link delivery-dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center px-3 py-2"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#deliveryHistoryCollapse"
+                        aria-expanded="false"
+                        aria-controls="deliveryHistoryCollapse">
+                    <h5 class="mb-0 delivery-section-title"><i class="bi bi-clock-history"></i> Delivery History</h5>
+                    <span>
+                        <span class="badge bg-secondary me-2">@deliveryHistoryOrders.Count</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </span>
+                </button>
             </div>
-            <div class="card-body">
+            <div id="deliveryHistoryCollapse" class="collapse">
+                <div class="card-body">
                 @if (deliveryHistoryOrders.Any())
                 {
                     <div class="list-group list-group-flush">
@@ -262,15 +324,27 @@
                 {
                     <p class="text-dark mb-0">No delivery history yet.</p>
                 }
+                </div>
             </div>
         </div>
 
         <div id="delivery-report" class="card mt-4 text-dark order-delivery-black">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 delivery-section-title"><i class="bi bi-clipboard-data"></i> Delivery Report</h5>
-                <span class="badge bg-secondary">@deliveryReportOrders.Count</span>
+            <div class="card-header p-0 delivery-dropdown-header">
+                <button class="btn btn-link delivery-dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center px-3 py-2"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#deliveryReportCollapse"
+                        aria-expanded="false"
+                        aria-controls="deliveryReportCollapse">
+                    <h5 class="mb-0 delivery-section-title"><i class="bi bi-clipboard-data"></i> Delivery Report</h5>
+                    <span>
+                        <span class="badge bg-secondary me-2">@deliveryReportOrders.Count</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </span>
+                </button>
             </div>
-            <div class="card-body">
+            <div id="deliveryReportCollapse" class="collapse">
+                <div class="card-body">
                 @if (deliveryReportOrders.Any())
                 {
                     <div class="table-responsive">
@@ -326,6 +400,7 @@
                 {
                     <p class="text-dark mb-0">No completed delivery report yet.</p>
                 }
+                </div>
             </div>
         </div>
     }
@@ -334,11 +409,22 @@
         <div class="card">
             <div class="card-body text-center py-5">
                 <i class="bi bi-cart-x" style="font-size: 4rem; color: #ccc;"></i>
-                <h4 class="mt-3">No Orders Yet</h4>
-                <p class="text-muted">You haven't placed any orders yet. Check out today's menu to get started!</p>
-                <a asp-page="/PublicMenu/Today" class="btn btn-primary mt-3">
-                    <i class="bi bi-calendar-day"></i> View Today's Menu
-                </a>
+                @if (string.Equals(Model.StatusFilter, "all", StringComparison.OrdinalIgnoreCase))
+                {
+                    <h4 class="mt-3">No Orders Yet</h4>
+                    <p class="text-muted">You haven't placed any orders yet. Check out today's menu to get started!</p>
+                    <a asp-page="/PublicMenu/Today" class="btn btn-primary mt-3">
+                        <i class="bi bi-calendar-day"></i> View Today's Menu
+                    </a>
+                }
+                else
+                {
+                    <h4 class="mt-3">No Orders Match This Filter</h4>
+                    <p class="text-muted">Try a different status filter or clear the current filter.</p>
+                    <a asp-page="Index" class="btn btn-outline-secondary mt-3">
+                        <i class="bi bi-arrow-counterclockwise"></i> Clear Filter
+                    </a>
+                }
             </div>
         </div>
     }

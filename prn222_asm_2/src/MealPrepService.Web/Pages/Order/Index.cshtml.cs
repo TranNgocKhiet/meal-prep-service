@@ -22,11 +22,18 @@ public class IndexModel : PageModel
     }
 
     public List<OrderDto> Orders { get; set; } = new();
+    public List<OrderDto> FilteredOrders { get; private set; } = new();
 
     [BindProperty(SupportsGet = true)]
     public string StatusFilter { get; set; } = "all";
 
+    [BindProperty(SupportsGet = true)]
+    public int PageNumber { get; set; } = 1;
+
     public IReadOnlyList<string> AvailableStatuses { get; private set; } = Array.Empty<string>();
+    public int PageSize { get; } = 6;
+    public int TotalOrders { get; private set; }
+    public int TotalPages { get; private set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -50,8 +57,28 @@ public class IndexModel : PageModel
                     .ToList();
             }
 
-            Orders = orderDtos
+            FilteredOrders = orderDtos
                 .OrderByDescending(o => o.OrderDate)
+                .ToList();
+
+            TotalOrders = FilteredOrders.Count;
+            TotalPages = TotalOrders == 0
+                ? 1
+                : (int)Math.Ceiling(TotalOrders / (double)PageSize);
+
+            if (PageNumber < 1)
+            {
+                PageNumber = 1;
+            }
+
+            if (PageNumber > TotalPages)
+            {
+                PageNumber = TotalPages;
+            }
+
+            Orders = FilteredOrders
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
                 .ToList();
 
             return Page();
