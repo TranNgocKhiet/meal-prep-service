@@ -238,6 +238,12 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException($"Menu meal with ID {menuMealId} not found");
             }
 
+            var relatedOrderDetails = await _unitOfWork.OrderDetails.FindAsync(od => od.MenuMealId == menuMealId);
+            if (relatedOrderDetails.Any())
+            {
+                throw new BusinessException("Cannot remove this meal from menu because it is already included in existing orders.");
+            }
+
             await _unitOfWork.MenuMeals.DeleteAsync(menuMealId);
             await _unitOfWork.SaveChangesAsync();
 
