@@ -50,14 +50,18 @@ namespace MealPrepService.BusinessLogicLayer.Services
 
             // Calculate date range for the month
             var startDate = new DateTime(year, month, 1);
-            var endDate = startDate.AddMonths(1).AddDays(-1);
+            var endDate = startDate.AddMonths(1);
 
-            // Calculate order revenue for the month
-            var totalOrderRevenue = await _unitOfWork.Orders.GetTotalRevenueByMonthAsync(year, month);
+            // Calculate order revenue and count for the month
+            // Only include orders that are NOT: awaiting_online_payment, cancelled, pending, pending_confirmation
+            var excludedStatuses = new[] { "awaiting_online_payment", "cancelled", "pending", "pending_confirmation" };
+            var allOrders = await _unitOfWork.Orders.GetByDateRangeAsync(startDate, endDate);
+            var revenueOrders = allOrders
+                .Where(o => !excludedStatuses.Contains(o.Status))
+                .ToList();
 
-            // Count total orders for the month
-            var orders = await _unitOfWork.Orders.GetByDateRangeAsync(startDate, endDate.AddDays(1));
-            var totalOrdersCount = orders.Count();
+            var totalOrderRevenue = revenueOrders.Sum(o => o.TotalAmount);
+            var totalOrdersCount = revenueOrders.Count;
 
             // NOTE: Subscription revenue calculation is deferred to checkpoint 2
             var totalSubscriptionRevenue = 0m;
@@ -77,7 +81,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
             await _unitOfWork.RevenueReports.AddAsync(report);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Monthly revenue report generated successfully for {Year}-{Month}", year, month);
+            _logger.LogInformation("Monthly revenue report generated successfully for {Year}-{Month}. Orders counted: {OrderCount}, Revenue: {Revenue}", year, month, totalOrdersCount, totalOrderRevenue);
 
             return MapToDto(report);
         }

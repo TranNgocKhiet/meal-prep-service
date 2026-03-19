@@ -37,7 +37,7 @@
 
     <!-- Summary Cards -->
     <div class="row mb-4">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Total Staff</h5>
@@ -45,7 +45,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Managers</h5>
@@ -53,11 +53,19 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Delivery Men</h5>
                     <h2 class="text-success">@Model.TotalDeliveryMen</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Customers</h5>
+                    <h2 class="text-warning">@Model.TotalCustomers</h2>
                 </div>
             </div>
         </div>
@@ -71,8 +79,32 @@
                     <label for="role" class="form-label text-white">Filter by Role</label>
                     <select name="role" id="role" class="form-select" onchange="this.form.submit()" data-placeholder="Select a role..." style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
                         <option value="">All Staff</option>
-                        <option value="Manager" selected="@(Model.FilterRole == "Manager")">Managers</option>
-                        <option value="DeliveryMan" selected="@(Model.FilterRole == "DeliveryMan")">Delivery Men</option>
+                        @if (Model.FilterRole == "Manager")
+                        {
+                            <option value="Manager" selected>Managers</option>
+                        }
+                        else
+                        {
+                            <option value="Manager">Managers</option>
+                        }
+
+                        @if (Model.FilterRole == "DeliveryMan")
+                        {
+                            <option value="DeliveryMan" selected>Delivery Men</option>
+                        }
+                        else
+                        {
+                            <option value="DeliveryMan">Delivery Men</option>
+                        }
+
+                        @if (Model.FilterRole == "Customer")
+                        {
+                            <option value="Customer" selected>Customers</option>
+                        }
+                        else
+                        {
+                            <option value="Customer">Customers</option>
+                        }
                     </select>
                 </div>
             </form>
@@ -80,7 +112,7 @@
         </div>
     </div>
 
-    <!-- Staff Accounts Table -->
+    <!-- Staff / Customer Accounts Table -->
     <div class="card" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
         <div class="card-header text-white" style="background-color: #1e293b;">
             <h5 class="mb-0">
@@ -116,17 +148,25 @@
                                     </td>
                                     <td class="text-white" style="background-color: transparent;">@account.Email</td>
                                     <td style="background-color: transparent;">
-                                        <span class="@account.RoleBadgeClass">@account.Role</span>
+                                        @* Render a badge based on role inline to avoid relying on view-model extensions *@
+                                        <span class="badge @(account.Role == "Manager" ? "bg-info" : account.Role == "DeliveryMan" ? "bg-success" : "bg-primary")">@account.Role</span>
                                     </td>
                                     <td class="text-end" style="background-color: transparent;">
-                                        <a asp-page="EditStaffAccount" asp-route-id="@account.Id" 
-                                           class="btn btn-sm btn-outline-primary" title="Edit">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </a>
-                                        <a asp-page="DeleteStaffAccount" asp-route-id="@account.Id" 
-                                           class="btn btn-sm btn-outline-danger" title="Delete">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </a>
+                                        @if (account.Role != "Customer")
+                                        {
+                                            <a asp-page="EditStaffAccount" asp-route-id="@account.Id" 
+                                               class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <a asp-page="DeleteStaffAccount" asp-route-id="@account.Id" 
+                                               class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Actions not available for customers</span>
+                                        }
                                     </td>
                                 </tr>
                             }

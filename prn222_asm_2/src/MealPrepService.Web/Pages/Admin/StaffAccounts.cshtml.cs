@@ -17,9 +17,12 @@ public class StaffAccountsModel : PageModel
     public string? FilterRole { get; set; }
 
     // Helper properties for statistics
-    public int TotalStaff => Accounts.Count;
+    public int TotalStaff => Accounts.Count(a => a.Role == "Manager" || a.Role == "DeliveryMan");
     public int TotalManagers => Accounts.Count(a => a.Role == "Manager");
     public int TotalDeliveryMen => Accounts.Count(a => a.Role == "DeliveryMan");
+
+    // New: total customers across the system (always populated)
+    public int TotalCustomers { get; set; }
 
     public StaffAccountsModel(
         IAccountService accountService,
@@ -33,14 +36,20 @@ public class StaffAccountsModel : PageModel
     {
         try
         {
+            // Always get total customers count for the summary card
+            var customers = await _accountService.GetAccountsByRoleAsync("Customer");
+            TotalCustomers = customers?.Count() ?? 0;
+
             IEnumerable<AccountDto> accounts;
-            
-            if (!string.IsNullOrWhiteSpace(role) && (role == "Manager" || role == "DeliveryMan"))
+
+            // Allow filtering for Manager, DeliveryMan and Customer
+            if (!string.IsNullOrWhiteSpace(role) && (role == "Manager" || role == "DeliveryMan" || role == "Customer"))
             {
                 accounts = await _accountService.GetAccountsByRoleAsync(role);
             }
             else
             {
+                // Default view: show staff accounts (Manager and DeliveryMan)
                 accounts = await _accountService.GetAllStaffAccountsAsync();
             }
 
