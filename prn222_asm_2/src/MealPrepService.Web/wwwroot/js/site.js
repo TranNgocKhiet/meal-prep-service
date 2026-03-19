@@ -6,6 +6,11 @@ $(document).ready(function() {
     // Function to initialize Select2
     function initializeSelect2(element) {
         var $element = $(element);
+
+        // Skip Select2 for controls that explicitly opt out.
+        if ($element.hasClass('no-select2') || $element.data('no-select2') === true) {
+            return;
+        }
         
         // Check if Select2 is already initialized
         if ($element.hasClass('select2-hidden-accessible')) {
