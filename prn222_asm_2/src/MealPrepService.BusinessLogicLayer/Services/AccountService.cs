@@ -9,6 +9,15 @@ namespace MealPrepService.BusinessLogicLayer.Services
 {
     public class AccountService : IAccountService
     {
+        private static readonly HashSet<string> ValidRoles = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Admin",
+            "Staff",
+            "Manager",
+            "DeliveryMan",
+            "Customer"
+        };
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordHasher _passwordHasher;
         private readonly ILogger<AccountService> _logger;
@@ -121,15 +130,14 @@ namespace MealPrepService.BusinessLogicLayer.Services
             return await _unitOfWork.Accounts.EmailExistsAsync(email);
         }
 
-        // Admin CRUD operations for Manager and DeliveryMan accounts
+        // Admin CRUD operations for all accounts
         public async Task<IEnumerable<AccountDto>> GetAllStaffAccountsAsync()
         {
             var accounts = await _unitOfWork.Accounts.GetAllAsync();
-            var staffAccounts = accounts.Where(a => a.Role == "Manager" || a.Role == "DeliveryMan");
-            
-            _logger.LogInformation("Retrieved {Count} staff accounts", staffAccounts.Count());
-            
-            return staffAccounts.Select(MapToDto);
+
+            _logger.LogInformation("Retrieved {Count} accounts", accounts.Count());
+
+            return accounts.Select(MapToDto);
         }
 
         public async Task<IEnumerable<AccountDto>> GetAccountsByRoleAsync(string role)
@@ -159,10 +167,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new ArgumentException("Role is required", nameof(role));
             }
 
-            // Validate role is Manager or DeliveryMan
-            if (role != "Manager" && role != "DeliveryMan")
+            if (!ValidRoles.Contains(role))
             {
-                throw new BusinessException("Invalid role. Only Manager and DeliveryMan roles can be created.");
+                throw new BusinessException("Invalid role. Allowed roles: Admin, Staff, Manager, DeliveryMan, Customer.");
             }
 
             if (string.IsNullOrWhiteSpace(dto.Email))
@@ -183,7 +190,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
             // Validate email doesn't exist
             if (await _unitOfWork.Accounts.EmailExistsAsync(dto.Email))
             {
-                _logger.LogWarning("Staff account creation attempt with existing email: {Email}", dto.Email);
+                _logger.LogWarning("Account creation attempt with existing email: {Email}", dto.Email);
                 throw new BusinessException("Email already exists");
             }
 
@@ -204,7 +211,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
             await _unitOfWork.Accounts.AddAsync(account);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Staff account created successfully for email: {Email} with role: {Role}", dto.Email, role);
+            _logger.LogInformation("Account created successfully for email: {Email} with role: {Role}", dto.Email, role);
 
             return MapToDto(account);
         }
@@ -223,12 +230,6 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new NotFoundException($"Account with ID {accountId} not found");
             }
 
-            // Validate role is Manager or DeliveryMan
-            if (account.Role != "Manager" && account.Role != "DeliveryMan")
-            {
-                throw new BusinessException("Only Manager and DeliveryMan accounts can be updated through this method.");
-            }
-
             if (string.IsNullOrWhiteSpace(dto.Email))
             {
                 throw new BusinessException("Email is required");
@@ -239,16 +240,15 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException("Full name is required");
             }
 
-            // Validate role if being changed
-            if (!string.IsNullOrWhiteSpace(dto.Role) && dto.Role != "Manager" && dto.Role != "DeliveryMan")
+            if (!string.IsNullOrWhiteSpace(dto.Role) && !ValidRoles.Contains(dto.Role))
             {
-                throw new BusinessException("Invalid role. Only Manager and DeliveryMan roles are allowed.");
+                throw new BusinessException("Invalid role. Allowed roles: Admin, Staff, Manager, DeliveryMan, Customer.");
             }
 
             // Check if email is being changed and if new email already exists
             if (dto.Email != account.Email && await _unitOfWork.Accounts.EmailExistsAsync(dto.Email))
             {
-                _logger.LogWarning("Staff account update attempt with existing email: {Email}", dto.Email);
+                _logger.LogWarning("Account update attempt with existing email: {Email}", dto.Email);
                 throw new BusinessException("Email already exists");
             }
 
@@ -270,7 +270,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
             await _unitOfWork.Accounts.UpdateAsync(account);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Staff account updated successfully for ID: {AccountId}", accountId);
+            _logger.LogInformation("Account updated successfully for ID: {AccountId}", accountId);
 
             return MapToDto(account);
         }
@@ -284,16 +284,10 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new NotFoundException($"Account with ID {accountId} not found");
             }
 
-            // Validate role is Manager or DeliveryMan
-            if (account.Role != "Manager" && account.Role != "DeliveryMan")
-            {
-                throw new BusinessException("Only Manager and DeliveryMan accounts can be deleted through this method.");
-            }
-
             await _unitOfWork.Accounts.DeleteAsync(accountId);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("Staff account deleted successfully for ID: {AccountId}", accountId);
+            _logger.LogInformation("Account deleted successfully for ID: {AccountId}", accountId);
 
             return true;
         }

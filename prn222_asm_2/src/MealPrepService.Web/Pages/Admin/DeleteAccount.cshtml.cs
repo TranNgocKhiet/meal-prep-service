@@ -9,10 +9,10 @@ using MealPrepService.BusinessLogicLayer.Exceptions;
 namespace MealPrepService.Web.Pages.Admin;
 
 [Authorize(Roles = "Admin")]
-public class DeleteStaffAccountModel : PageModel
+public class DeleteAccountModel : PageModel
 {
     private readonly IAccountService _accountService;
-    private readonly ILogger<DeleteStaffAccountModel> _logger;
+    private readonly ILogger<DeleteAccountModel> _logger;
 
     public Guid Id { get; set; }
     public string Email { get; set; } = string.Empty;
@@ -22,14 +22,17 @@ public class DeleteStaffAccountModel : PageModel
     // Helper property for UI
     public string RoleBadgeClass => Role switch
     {
+        "Admin" => "badge bg-danger",
+        "Staff" => "badge bg-secondary",
         "Manager" => "badge bg-info",
         "DeliveryMan" => "badge bg-success",
+        "Customer" => "badge bg-primary",
         _ => "badge bg-secondary"
     };
 
-    public DeleteStaffAccountModel(
+    public DeleteAccountModel(
         IAccountService accountService,
-        ILogger<DeleteStaffAccountModel> logger)
+        ILogger<DeleteAccountModel> logger)
     {
         _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -40,12 +43,6 @@ public class DeleteStaffAccountModel : PageModel
         try
         {
             var account = await _accountService.GetByIdAsync(id);
-            
-            if (account.Role != "Manager" && account.Role != "DeliveryMan")
-            {
-                TempData["ErrorMessage"] = "Only Manager and DeliveryMan accounts can be deleted.";
-                return RedirectToPage("/Admin/StaffAccounts");
-            }
 
             Id = account.Id;
             Email = account.Email;
@@ -57,13 +54,13 @@ public class DeleteStaffAccountModel : PageModel
         catch (BusinessException ex)
         {
             TempData["ErrorMessage"] = ex.Message;
-            return RedirectToPage("/Admin/StaffAccounts");
+            return RedirectToPage("/Admin/Accounts");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while loading staff account for deletion");
+            _logger.LogError(ex, "Error occurred while loading account for deletion");
             TempData["ErrorMessage"] = "An error occurred while loading the account.";
-            return RedirectToPage("/Admin/StaffAccounts");
+            return RedirectToPage("/Admin/Accounts");
         }
     }
 }

@@ -9,7 +9,7 @@ namespace MealPrepService.BusinessLogicLayer.Interfaces
         Task<AccountDto> GetByIdAsync(Guid accountId);
         Task<bool> EmailExistsAsync(string email);
         
-        // Admin CRUD operations for Manager and DeliveryMan accounts
+        // Admin CRUD operations for all accounts
         Task<IEnumerable<AccountDto>> GetAllStaffAccountsAsync();
         Task<IEnumerable<AccountDto>> GetAccountsByRoleAsync(string role);
         Task<AccountDto> CreateStaffAccountAsync(CreateAccountDto dto, string role);

@@ -1,20 +1,20 @@
 @page
-@model MealPrepService.Web.Pages.Admin.StaffAccountsModel
+@model MealPrepService.Web.Pages.Admin.AccountsModel
 @{
-    ViewData["Title"] = "Staff Accounts Management";
+    ViewData["Title"] = "Accounts Management";
 }
 
 <div class="container mt-4">
     <div class="row mb-4">
         <div class="col-md-8">
-            <h2><i class="fas fa-users-cog"></i> Staff Accounts Management</h2>
-            <p class="text-muted">Manage Manager and Delivery Man accounts</p>
+            <h2><i class="fas fa-users-cog"></i> Accounts Management</h2>
+            <p class="text-muted">Manage Admin, Staff, Manager, Delivery Man, and Customer accounts</p>
         </div>
         <div class="col-md-4 text-end">
-            <a asp-page="CreateStaffAccount"
+            <a asp-page="CreateAccount"
                class="btn text-white"
                style="background-color:#22B14C; border-color:#22B14C;">
-                <i class="fas fa-plus"></i> Create New Staff Account
+                <i class="fas fa-plus"></i> Create New Account
             </a>
         </div>
     </div>
@@ -35,52 +35,75 @@
         </div>
     }
 
-    <!-- Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card text-center">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-6 g-3 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center h-100 account-summary-card">
                 <div class="card-body">
-                    <h5 class="card-title">Total Staff</h5>
-                    <h2 class="text-primary">@Model.TotalStaff</h2>
+                    <h5 class="card-title">Total</h5>
+                    <h2 class="text-primary">@Model.TotalAccounts</h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-center">
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center h-100 account-summary-card">
+                <div class="card-body">
+                    <h5 class="card-title">Admins</h5>
+                    <h2 class="text-danger">@Model.TotalAdmins</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center h-100 account-summary-card">
                 <div class="card-body">
                     <h5 class="card-title">Managers</h5>
                     <h2 class="text-info">@Model.TotalManagers</h2>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-center">
+        <div class="col-md-4 col-lg-2">
+            <div class="card text-center h-100 account-summary-card">
+                <div class="card-body">
+                    <h5 class="card-title">Staff</h5>
+                    <h2 class="text-secondary">@Model.TotalStaff</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card text-center h-100 account-summary-card">
                 <div class="card-body">
                     <h5 class="card-title">Delivery Men</h5>
                     <h2 class="text-success">@Model.TotalDeliveryMen</h2>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Filter -->
-    <div class="card mb-4" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
-        <div class="card-body">
-            <form method="get" asp-page="StaffAccounts" class="row g-3">
-                <div class="col-md-4">
-                    <label for="role" class="form-label text-white">Filter by Role</label>
-                    <select name="role" id="role" class="form-select" onchange="this.form.submit()" data-placeholder="Select a role..." style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
-                        <option value="">All Staff</option>
-                        <option value="Manager" selected="@(Model.FilterRole == "Manager")">Managers</option>
-                        <option value="DeliveryMan" selected="@(Model.FilterRole == "DeliveryMan")">Delivery Men</option>
-                    </select>
+        <div class="col-md-4 col-lg-3">
+            <div class="card text-center h-100 account-summary-card">
+                <div class="card-body">
+                    <h5 class="card-title">Customers</h5>
+                    <h2 class="text-warning">@Model.TotalCustomers</h2>
                 </div>
-            </form>
-
+            </div>
         </div>
     </div>
 
-    <!-- Staff Accounts Table -->
+    <div class="card mb-4" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+        <div class="card-body">
+            <form method="get" asp-page="Accounts" class="row g-3">
+                <div class="col-md-6 col-xl-5">
+                    <label for="role" class="form-label text-white">Filter by Role</label>
+                    <select name="role" id="role" class="form-select no-select2" onchange="this.form.submit()" data-no-select2="true" style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
+                        <option value="">All Accounts</option>
+                        <option value="Admin" selected="@(Model.FilterRole == "Admin")">Admins</option>
+                        <option value="Staff" selected="@(Model.FilterRole == "Staff")">Staff</option>
+                        <option value="Manager" selected="@(Model.FilterRole == "Manager")">Managers</option>
+                        <option value="DeliveryMan" selected="@(Model.FilterRole == "DeliveryMan")">Delivery Men</option>
+                        <option value="Customer" selected="@(Model.FilterRole == "Customer")">Customers</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
         <div class="card-header text-white" style="background-color: #1e293b;">
             <h5 class="mb-0">
@@ -90,7 +113,7 @@
                 }
                 else
                 {
-                    <span>All Staff Accounts</span>
+                    <span>All Accounts</span>
                 }
             </h5>
         </div>
@@ -119,11 +142,11 @@
                                         <span class="@account.RoleBadgeClass">@account.Role</span>
                                     </td>
                                     <td class="text-end" style="background-color: transparent;">
-                                        <a asp-page="EditStaffAccount" asp-route-id="@account.Id" 
+                                        <a asp-page="EditAccount" asp-route-id="@account.Id"
                                            class="btn btn-sm btn-outline-primary" title="Edit">
                                             <i class="fas fa-edit"></i> Edit
                                         </a>
-                                        <a asp-page="DeleteStaffAccount" asp-route-id="@account.Id" 
+                                        <a asp-page="DeleteAccount" asp-route-id="@account.Id"
                                            class="btn btn-sm btn-outline-danger" title="Delete">
                                             <i class="fas fa-trash"></i> Delete
                                         </a>
@@ -137,10 +160,21 @@
             else
             {
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> No staff accounts found.
-                    <a asp-page="CreateStaffAccount" class="alert-link">Create one now</a>.
+                    <i class="fas fa-info-circle"></i> No accounts found.
+                    <a asp-page="CreateAccount" class="alert-link">Create one now</a>.
                 </div>
             }
         </div>
     </div>
 </div>
+
+<style>
+    .account-summary-card {
+        background-color: #0f1b46;
+        border: 1px solid rgba(34, 177, 76, 0.3);
+    }
+
+    .account-summary-card .card-title {
+        color: #ffffff;
+    }
+</style>

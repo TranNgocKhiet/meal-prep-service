@@ -1,7 +1,7 @@
 @page
-@model MealPrepService.Web.Pages.Admin.EditStaffAccountModel
+@model MealPrepService.Web.Pages.Admin.EditAccountModel
 @{
-    ViewData["Title"] = "Edit Staff Account";
+    ViewData["Title"] = "Edit Account";
 }
 
 <div class="container mt-4">
@@ -9,10 +9,10 @@
         <div class="col-md-8 offset-md-2">
             <div class="card">
                 <div class="card-header">
-                    <h4><i class="fas fa-user-edit"></i> Edit Staff Account</h4>
+                    <h4><i class="fas fa-user-edit"></i> Edit Account</h4>
                 </div>
                 <div class="card-body">
-                    <form asp-page="EditStaffAccount" method="post">
+                    <form asp-page="EditAccount" method="post">
                         <input type="hidden" asp-for="Id" />
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
@@ -31,11 +31,14 @@
                         <div class="mb-3">
                             <label asp-for="Role" class="form-label"></label>
                             <select asp-for="Role" class="form-select">
+                                <option value="Admin">Admin</option>
+                                <option value="Staff">Staff</option>
                                 <option value="Manager">Manager</option>
                                 <option value="DeliveryMan">Delivery Man</option>
+                                <option value="Customer">Customer</option>
                             </select>
                             <span asp-validation-for="Role" class="text-danger"></span>
-                            <div class="form-text">Select the role for this staff member</div>
+                            <div class="form-text">Select the role for this account</div>
                         </div>
 
                         <hr class="my-4" />
@@ -56,7 +59,7 @@
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a asp-page="StaffAccounts" class="btn btn-secondary">
+                            <a asp-page="Accounts" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">

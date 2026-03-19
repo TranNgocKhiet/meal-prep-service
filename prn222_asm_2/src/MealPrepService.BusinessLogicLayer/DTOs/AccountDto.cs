@@ -11,6 +11,7 @@ namespace MealPrepService.BusinessLogicLayer.DTOs
         public string RoleBadgeClass => Role switch
         {
             "Admin" => "badge bg-danger",
+            "Staff" => "badge bg-secondary",
             "Manager" => "badge bg-info",
             "DeliveryMan" => "badge bg-success",
             "Customer" => "badge bg-primary",

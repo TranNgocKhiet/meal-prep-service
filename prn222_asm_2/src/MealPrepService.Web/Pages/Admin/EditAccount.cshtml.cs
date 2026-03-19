@@ -10,10 +10,10 @@ using MealPrepService.BusinessLogicLayer.Exceptions;
 namespace MealPrepService.Web.Pages.Admin;
 
 [Authorize(Roles = "Admin")]
-public class EditStaffAccountModel : PageModel
+public class EditAccountModel : PageModel
 {
     private readonly IAccountService _accountService;
-    private readonly ILogger<EditStaffAccountModel> _logger;
+    private readonly ILogger<EditAccountModel> _logger;
 
     [BindProperty]
     public Guid Id { get; set; }
@@ -33,9 +33,9 @@ public class EditStaffAccountModel : PageModel
     [BindProperty]
     public string? ConfirmPassword { get; set; }
 
-    public EditStaffAccountModel(
+    public EditAccountModel(
         IAccountService accountService,
-        ILogger<EditStaffAccountModel> logger)
+        ILogger<EditAccountModel> logger)
     {
         _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -46,12 +46,6 @@ public class EditStaffAccountModel : PageModel
         try
         {
             var account = await _accountService.GetByIdAsync(id);
-            
-            if (account.Role != "Manager" && account.Role != "DeliveryMan")
-            {
-                TempData["ErrorMessage"] = "Only Manager and DeliveryMan accounts can be edited.";
-                return RedirectToPage("/Admin/StaffAccounts");
-            }
 
             Id = account.Id;
             Email = account.Email;
@@ -63,13 +57,13 @@ public class EditStaffAccountModel : PageModel
         catch (BusinessException ex)
         {
             TempData["ErrorMessage"] = ex.Message;
-            return RedirectToPage("/Admin/StaffAccounts");
+            return RedirectToPage("/Admin/Accounts");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while loading staff account for edit");
+            _logger.LogError(ex, "Error occurred while loading account for edit");
             TempData["ErrorMessage"] = "An error occurred while loading the account.";
-            return RedirectToPage("/Admin/StaffAccounts");
+            return RedirectToPage("/Admin/Accounts");
         }
     }
 
@@ -92,22 +86,22 @@ public class EditStaffAccountModel : PageModel
 
             var account = await _accountService.UpdateStaffAccountAsync(Id, dto);
             
-            TempData["SuccessMessage"] = $"Staff account updated successfully for {account.FullName}.";
-            _logger.LogInformation("Staff account {AccountId} updated by admin {AdminId}", 
+            TempData["SuccessMessage"] = $"Account updated successfully for {account.FullName}.";
+            _logger.LogInformation("Account {AccountId} updated by admin {AdminId}", 
                 Id, GetCurrentAccountId());
             
-            return RedirectToPage("/Admin/StaffAccounts");
+            return RedirectToPage("/Admin/Accounts");
         }
         catch (BusinessException ex)
         {
             ModelState.AddModelError(string.Empty, ex.Message);
-            _logger.LogWarning(ex, "Business error updating staff account");
+            _logger.LogWarning(ex, "Business error updating account");
             return Page();
         }
         catch (Exception ex)
         {
             ModelState.AddModelError(string.Empty, "An error occurred while updating the account. Please try again.");
-            _logger.LogError(ex, "Unexpected error updating staff account");
+            _logger.LogError(ex, "Unexpected error updating account");
             return Page();
         }
     }

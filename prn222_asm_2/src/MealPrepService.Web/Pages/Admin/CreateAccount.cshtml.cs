@@ -10,10 +10,10 @@ using MealPrepService.BusinessLogicLayer.Exceptions;
 namespace MealPrepService.Web.Pages.Admin;
 
 [Authorize(Roles = "Admin")]
-public class CreateStaffAccountModel : PageModel
+public class CreateAccountModel : PageModel
 {
     private readonly IAccountService _accountService;
-    private readonly ILogger<CreateStaffAccountModel> _logger;
+    private readonly ILogger<CreateAccountModel> _logger;
 
     [BindProperty]
     public string Email { get; set; } = string.Empty;
@@ -30,9 +30,9 @@ public class CreateStaffAccountModel : PageModel
     [BindProperty]
     public string Role { get; set; } = "Manager";
 
-    public CreateStaffAccountModel(
+    public CreateAccountModel(
         IAccountService accountService,
-        ILogger<CreateStaffAccountModel> logger)
+        ILogger<CreateAccountModel> logger)
     {
         _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -65,18 +65,18 @@ public class CreateStaffAccountModel : PageModel
             _logger.LogInformation("{Role} account created by admin {AdminId} for {Email}", 
                 Role, GetCurrentAccountId(), account.Email);
             
-            return RedirectToPage("/Admin/StaffAccounts");
+            return RedirectToPage("/Admin/Accounts");
         }
         catch (BusinessException ex)
         {
             ModelState.AddModelError(string.Empty, ex.Message);
-            _logger.LogWarning(ex, "Business error creating staff account");
+            _logger.LogWarning(ex, "Business error creating account");
             return Page();
         }
         catch (Exception ex)
         {
             ModelState.AddModelError(string.Empty, "An error occurred while creating the account. Please try again.");
-            _logger.LogError(ex, "Unexpected error creating staff account");
+            _logger.LogError(ex, "Unexpected error creating account");
             return Page();
         }
     }
