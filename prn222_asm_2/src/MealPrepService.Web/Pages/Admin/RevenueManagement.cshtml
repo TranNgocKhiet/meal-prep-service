@@ -14,7 +14,7 @@
         </div>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
+    <!-- @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-dismissible fade show" role="alert" style="background-color: white; color: black; border: 2px solid black;">
             @TempData["SuccessMessage"]
@@ -36,32 +36,34 @@
             @TempData["InfoMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    }
+    } -->
 
     <!-- Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card border-primary">
-                <div class="card-body text-center">
-                    <h6 class="text-muted mb-2">Total Reports</h6>
-                    <h3 class="text-primary mb-0">@Model.TotalReports</h3>
-                    <small class="text-muted">in database</small>
+    <div class="row g-3 mb-4 summary-stats-grid">
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card summary-stat-card border-primary">
+                <div class="card-body text-center summary-stat-content">
+                    <h6 class="summary-stat-title mb-2">Total Reports</h6>
+                    <h3 class="summary-stat-value text-primary mb-0">@Model.TotalReports</h3>
+                    <small class="summary-stat-meta">in database</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h6 class="text-muted mb-2">Total Revenue</h6>
-                    <h3 class="text-success mb-0">@Model.TotalRevenue.ToString("C")</h3>
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card summary-stat-card border-success">
+                <div class="card-body text-center summary-stat-content">
+                    <h6 class="summary-stat-title mb-2">Total Revenue</h6>
+                    <h3 class="summary-stat-value text-success mb-0">@Model.TotalRevenue.ToString("C")</h3>
+                    <small class="summary-stat-meta">&nbsp;</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <h6 class="text-muted mb-2">Total Orders</h6>
-                    <h3 class="text-info mb-0">@Model.TotalOrders</h3>
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="card summary-stat-card border-info">
+                <div class="card-body text-center summary-stat-content">
+                    <h6 class="summary-stat-title mb-2">Total Orders</h6>
+                    <h3 class="summary-stat-value text-info mb-0">@Model.TotalOrders</h3>
+                    <small class="summary-stat-meta">&nbsp;</small>
                 </div>
             </div>
         </div>
@@ -228,5 +230,37 @@
 
     .text-muted {
         color: #999 !important;
+    }
+
+    .summary-stats-grid {
+        align-items: stretch;
+    }
+
+    .summary-stat-card {
+        height: 100%;
+    }
+
+    .summary-stat-content {
+        min-height: 148px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .summary-stat-title {
+        color: #cbd5e1;
+        font-weight: 600;
+    }
+
+    .summary-stat-value {
+        line-height: 1.2;
+        font-weight: 700;
+    }
+
+    .summary-stat-meta {
+        color: #94a3b8;
+        min-height: 1.2rem;
+        margin-top: .5rem;
+        display: block;
     }
 </style>

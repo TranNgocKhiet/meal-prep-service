@@ -29,7 +29,7 @@ public class AccountsModel : PageModel
     public int TotalStaff => Accounts.Count(a => a.Role == "Staff");
     public int TotalManagers => Accounts.Count(a => a.Role == "Manager");
     public int TotalDeliveryMen => Accounts.Count(a => a.Role == "DeliveryMan");
-    public int TotalCustomers => Accounts.Count(a => a.Role == "Customer");
+    public int TotalCustomers { get; set; }
 
     public AccountsModel(
         IAccountService accountService,

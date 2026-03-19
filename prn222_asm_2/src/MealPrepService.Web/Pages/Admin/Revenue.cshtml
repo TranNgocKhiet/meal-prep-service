@@ -18,7 +18,7 @@
         </div>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
+    <!-- @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-dismissible fade show" role="alert" style="background-color: white; color: black; border: 2px solid black;">
             @TempData["SuccessMessage"]
@@ -32,7 +32,7 @@
             @TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    }
+    } -->
 
     <!-- Generate Report Section -->
     <div class="card mb-4" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
@@ -49,7 +49,7 @@
                 @Html.AntiForgeryToken()
                 <div class="col-md-3">
                     <label for="year" class="form-label text-white">Select Year</label>
-                    <select class="form-select" id="year" name="year" style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
+                    <select class="form-select no-select2" id="year" name="year" style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
                         @foreach (var year in Model.AvailableYears)
                         {
                             if (year == Model.SelectedYear)
@@ -65,7 +65,7 @@
                 </div>
                 <div class="col-md-3">
                     <label for="month" class="form-label text-white">Select Month</label>
-                    <select class="form-select" id="month" name="month" style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
+                    <select class="form-select no-select2" id="month" name="month" style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
                         @for (int m = 1; m <= 12; m++)
                         {
                             var monthName = new DateTime(2024, m, 1).ToString("MMMM");
@@ -89,40 +89,149 @@
         </div>
     </div>
 
-    <!-- Yearly Summary -->
-    <div class="card mb-4 border-primary">
-        <div class="card-header bg-success text-white">
-            <h4 class="mb-0"><i class="bi bi-calendar-check"></i> @Model.YearlySummary.Year Summary</h4>
+    <!-- Filter Reports Section -->
+    <div class="card mb-4" style="background-color: #0F172A; border-color: rgba(34,197,94,.25);">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-funnel"></i> Filter Reports by Date Range</h5>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
-                        <h6 class="text-muted mb-2">Total Revenue</h6>
-                        <h3 class="text-primary mb-0">@Model.YearlySummary.TotalRevenue.ToString("C")</h3>
-                    </div>
+            <form method="get" asp-page="Revenue" class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label for="filterStartMonth" class="form-label text-white">From Month</label>
+                    <select class="form-select no-select2" id="filterStartMonth" name="filterStartMonth" style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
+                        <option value="">-- Select --</option>
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            var monthName = new DateTime(2024, m, 1).ToString("MMMM");
+                            if (m == Model.FilterStartMonth)
+                            {
+                                <option value="@m" selected>@monthName</option>
+                            }
+                            else
+                            {
+                                <option value="@m">@monthName</option>
+                            }
+                        }
+                    </select>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
-                        <h6 class="text-muted mb-2">Order Revenue</h6>
-                        <h3 class="text-success mb-0">@Model.YearlySummary.TotalOrderRevenue.ToString("C")</h3>
-                        <small class="text-muted">@Model.YearlySummary.TotalOrders orders</small>
-                    </div>
+                <div class="col-md-2">
+                    <label for="filterStartYear" class="form-label text-white">From Year</label>
+                    <select class="form-select no-select2" id="filterStartYear" name="filterStartYear" style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
+                        <option value="">-- Select --</option>
+                        @foreach (var year in Model.AvailableYears)
+                        {
+                            if (year == Model.FilterStartYear)
+                            {
+                                <option value="@year" selected>@year</option>
+                            }
+                            else
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        }
+                    </select>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
-                        <h6 class="text-muted mb-2">Subscription Revenue</h6>
-                        <h3 class="text-info mb-0">@Model.YearlySummary.TotalSubscriptionRevenue.ToString("C")</h3>
-                        <small class="text-muted">Deferred to Checkpoint 2</small>
-                    </div>
+                <div class="col-md-2">
+                    <label for="filterEndMonth" class="form-label text-white">To Month</label>
+                    <select class="form-select no-select2" id="filterEndMonth" name="filterEndMonth" style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
+                        <option value="">-- Select --</option>
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            var monthName = new DateTime(2024, m, 1).ToString("MMMM");
+                            if (m == Model.FilterEndMonth)
+                            {
+                                <option value="@m" selected>@monthName</option>
+                            }
+                            else
+                            {
+                                <option value="@m">@monthName</option>
+                            }
+                        }
+                    </select>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
-                        <h6 class="text-muted mb-2">Avg Monthly Revenue</h6>
-                        <h3 class="text-secondary mb-0">@Model.YearlySummary.AverageMonthlyRevenue.ToString("C")</h3>
-                    </div>
+                <div class="col-md-2">
+                    <label for="filterEndYear" class="form-label text-white">To Year</label>
+                    <select class="form-select no-select2" id="filterEndYear" name="filterEndYear" style="background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff;">
+                        <option value="">-- Select --</option>
+                        @foreach (var year in Model.AvailableYears)
+                        {
+                            if (year == Model.FilterEndYear)
+                            {
+                                <option value="@year" selected>@year</option>
+                            }
+                            else
+                            {
+                                <option value="@year">@year</option>
+                            }
+                        }
+                    </select>
                 </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn w-100" style="background-color:#0D6EFD; border-color:#0D6EFD; color:#fff; height: 38px;">
+                        <i class="bi bi-search"></i> Apply Filter
+                    </button>
+                    @if (Model.IsFiltering)
+                    {
+                        <a asp-page="Revenue" class="btn btn-outline-secondary w-100" style="margin-top: 5px; height: 38px;">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear Filter
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Section -->
+    @if (Model.FilteredReports.Any())
+    {
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-calendar-check"></i> 
+                    @if (Model.IsFiltering)
+                    {
+                        <span>
+                            Report Summary 
+                            (@if (Model.FilterStartYear.HasValue)
+                            {
+                                <text>@Model.FilterStartMonth?.ToString("00")/@Model.FilterStartYear</text>
+                            }
+                            to 
+                            @if (Model.FilterEndYear.HasValue)
+                            {
+                                <text>@Model.FilterEndMonth?.ToString("00")/@Model.FilterEndYear</text>
+                            })
+                        </span>
+                    }
+                    else
+                    {
+                        <span>Report Summary (All Records)</span>
+                    }
+                </h4>
             </div>
+            <div class="card-body">
+                <div class="row g-3 summary-stats-grid">
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="summary-card summary-stat-card text-center rounded p-3">
+                            <h6 class="summary-card-title mb-2">Total Revenue</h6>
+                            <h3 class="summary-card-value text-success mb-0">@Model.YearlySummary.TotalRevenue.ToString("C")</h3>
+                            <small class="summary-card-meta">&nbsp;</small>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="summary-card summary-stat-card text-center rounded p-3">
+                            <h6 class="summary-card-title mb-2">Total Orders</h6>
+                            <h3 class="summary-card-value text-white mb-0">@Model.YearlySummary.TotalOrders</h3>
+                            <small class="summary-card-meta">@Model.FilteredReports.Count() months</small>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                        <div class="summary-card summary-stat-card text-center rounded p-3">
+                            <h6 class="summary-card-title mb-2">Avg Monthly Revenue</h6>
+                            <h3 class="summary-card-value text-white mb-0">@Model.YearlySummary.AverageMonthlyRevenue.ToString("C")</h3>
+                            <small class="summary-card-meta">&nbsp;</small>
+                        </div>
+                    </div>
+                </div>
 
                 @if (!string.IsNullOrEmpty(Model.YearlySummary.BestMonth))
                 {
@@ -147,49 +256,25 @@
                 <div class="table-responsive">
                     <table class="table table-hover revenue-breakdown-table mb-0">
                         <colgroup>
-                            <col class="col-month" />
-                            <col class="col-currency" />
-                            <col class="col-currency" />
-                            <col class="col-currency" />
+                            <col class="col-period" />
+                            <col class="col-revenue" />
                             <col class="col-orders" />
-                            <col class="col-currency" />
                         </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th class="text-white" style="background-color: transparent;">Month</th>
-                                <th class="text-end text-white" style="background-color: transparent;">Order Revenue</th>
-                                <th class="text-end text-white" style="background-color: transparent;">Subscription Revenue</th>
+                                <th class="text-center text-white" style="background-color: transparent;">Period</th>
                                 <th class="text-end text-white" style="background-color: transparent;">Total Revenue</th>
-                                <th class="text-end text-white" style="background-color: transparent;">Orders</th>
-                                <th class="text-end text-white" style="background-color: transparent;">Avg Order Value</th>
+                                <th class="text-center text-white" style="background-color: transparent;">Orders</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var report in Model.FilteredReports)
                             {
                                 <tr>
-                                    <td class="text-end text-white" style="background-color: transparent;"><strong>@report.MonthName</strong></td>
-                                    <td class="text-end text-white" style="background-color: transparent;">
-                                        @if (report.HasOrderRevenue)
-                                        {
-                                            <span class="text-success">@report.TotalOrderRevenue.ToString("C")</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">$0.00</span>
-                                        }
+                                    <td class="text-center text-white" style="background-color: transparent;">
+                                        <strong>@report.MonthName @report.Year</strong>
                                     </td>
-                                    <td class="text-end text-white" style="background-color: transparent;">
-                                        @if (report.HasSubscriptionRevenue)
-                                        {
-                                            <span class="text-info">@report.TotalSubscriptionRevenue.ToString("C")</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">$0.00</span>
-                                        }
-                                    </td>
-                                    <td class="text-white col-currency" style="background-color: transparent;">
+                                    <td class="text-end text-white col-revenue" style="background-color: transparent;">
                                         <strong class="text-primary">@report.TotalRevenue.ToString("C")</strong>
                                     </td>
                                     <td class="text-center text-white col-orders" style="background-color: transparent;">
@@ -202,27 +287,14 @@
                                             <span class="text-muted">0</span>
                                         }
                                     </td>
-                                    <td class="text-end text-white" style="background-color: transparent;">
-                                        @if (report.HasOrders)
-                                        {
-                                            <span>@report.AverageOrderValue.ToString("C")</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
-                                        }
-                                    </td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot class="table-light">
                             <tr>
-                                <th class="text-white text-success"style="background-color: transparent;">Total</th>
-                                <th class="text-end text-success" style="background-color: transparent;">@Model.YearlySummary.TotalOrderRevenue.ToString("C")</th>
-                                <th class="text-end text-info" style="background-color: transparent;">@Model.YearlySummary.TotalSubscriptionRevenue.ToString("C")</th>
-                                <th class="text-end text-primary" style="background-color: transparent;"><strong>@Model.YearlySummary.TotalRevenue.ToString("C")</strong></th>
-                                <th class="text-end text-white" style="background-color: transparent;">@Model.YearlySummary.TotalOrders</th>
-                                <th class="text-end text-white" style="background-color: transparent;">-</th>
+                                <th class="text-center text-success" style="background-color: transparent;">Total</th>
+                                <th class="text-center text-primary" style="background-color: transparent;"><strong>@Model.YearlySummary.TotalRevenue.ToString("C")</strong></th>
+                                <th class="text-center text-white" style="background-color: transparent;">@Model.YearlySummary.TotalOrders</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -274,19 +346,19 @@
         table-layout: fixed;
     }
 
-    .revenue-breakdown-table .col-month {
-        width: 140px;
+    .revenue-breakdown-table .col-period {
+        width: 33%;
         text-align: center;
     }
 
     .revenue-breakdown-table .col-orders {
-        width: 110px;
+        width: 20%;
         text-align: center;
     }
 
-    .revenue-breakdown-table .col-currency {
-        width: 200px;
-        text-align: center;
+    .revenue-breakdown-table .col-revenue {
+        width: 47%;
+        text-align: right;
     }
 
     .revenue-breakdown-table th,
@@ -308,15 +380,28 @@
     
     .summary-card {
         background-color: #1e293b;
-        min-height: 132px;
+        min-height: 140px;
         display: flex;
         flex-direction: column;
         justify-content: center;
     }
 
+    .summary-stats-grid {
+        align-items: stretch;
+    }
+
+    .summary-stat-card {
+        height: 100%;
+    }
+
     .summary-card-title {
         color: #cbd5e1;
         font-weight: 600;
+    }
+
+    .summary-card-value {
+        font-weight: 700;
+        line-height: 1.2;
     }
 
     .summary-card-meta {
