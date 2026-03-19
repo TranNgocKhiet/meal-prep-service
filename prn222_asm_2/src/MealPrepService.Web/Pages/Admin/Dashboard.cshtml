@@ -1,23 +1,22 @@
 @page
 @model MealPrepService.Web.Pages.Admin.DashboardModel
-﻿@{
+@{
     ViewData["Title"] = "Admin Dashboard";
 }
 
-
-<div class="container-fluid mt-4 bg-black text-white p-3">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
-        <div>
-            <span class="text-secondary">Last Updated: @Model.LastUpdated.ToString("MMM dd, yyyy hh:mm tt")</span>
-            <button type="button"
-                    class="btn btn-sm ms-2"
-                    style="background:#6c757d; color:#fff; border:1px solid #6c757d;"
-                    onmouseover="this.style.background='#adb5bd'; this.style.color='#000';"
-                    onmouseout="this.style.background='#6c757d'; this.style.color='#fff';"
-                    onclick="location.reload()">
-                <i class="bi bi-arrow-clockwise"></i> Refresh
-            </button>
+<div class="container-fluid mt-4 p-3 text-white">
+    <div class="admin-hero mb-4 p-4 rounded-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h2 class="mb-1"><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+                <p class="mb-0 text-light">System-wide overview and management center</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-light small">Last Updated: @Model.LastUpdated.ToString("MMM dd, yyyy hh:mm tt")</span>
+                <button type="button" class="btn btn-outline-light btn-sm" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
         </div>
     </div>
 
@@ -37,165 +36,163 @@
         </div>
     }
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
+    <div class="row g-3 mb-4">
         @foreach (var card in Model.DashboardCards)
         {
-            <div class="col-md-6 col-lg-3 mb-3">
-                <div class="card border-@card.CssClass h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="text-muted mb-2">@card.Title</h6>
-                                <h3 class="mb-0 text-@card.CssClass">@card.Value</h3>
-                                <small class="text-muted">@card.Description</small>
-                            </div>
-                            <div class="text-@card.CssClass" style="font-size: 2.5rem; opacity: 0.3;">
-                                <i class="@card.Icon"></i>
-                            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card admin-stat-card h-100 border-0">
+                    <div class="card-body d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-uppercase text-muted mb-2">@card.Title</h6>
+                            <h3 class="mb-1">@card.Value</h3>
+                            <small class="text-muted">@card.Description</small>
                         </div>
-                        @if (!string.IsNullOrEmpty(card.Trend))
-                        {
-                            <div class="mt-2">
-                                <small class="@card.TrendCssClass">
-                                    <i class="bi bi-arrow-up"></i> @card.Trend
-                                </small>
-                            </div>
-                        }
+                        <div class="admin-stat-icon text-@card.CssClass">
+                            <i class="@card.Icon"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         }
     </div>
 
- 
-
-    <div class="row">
-        <!-- Quick Actions -->
-        <div class="col-12 mb-4">
-            <div class="card h-100 text-white" style="min-height: 600px; background-color: #0F172A; border-color: rgba(34,197,94,.25);">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Quick Actions</h5>
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card admin-panel h-100 border-0">
+                <div class="card-header border-0 bg-transparent pt-4 pb-0 px-4">
+                    <h5 class="mb-1"><i class="bi bi-grid-1x2"></i> Administration Modules</h5>
+                    <small class="text-muted">Core areas for operating the platform</small>
                 </div>
-             
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="d-grid gap-2">
-                                    <a asp-page="SystemConfiguration" class="btn btn-outline-success">
-                                        <i class="bi bi-gear"></i> System Configuration
-                                    </a>
-
-                                    <a asp-page="StaffAccounts" class="btn btn-outline-success">
-                                        <i class="bi bi-people-gear"></i> Manage Staff Accounts
-                                    </a>
-
-                                    <a asp-page="Revenue" class="btn btn-outline-success">
-                                        <i class="bi bi-graph-up"></i> View Revenue Reports
-                                    </a>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a asp-page="Accounts" class="admin-module d-block text-decoration-none h-100">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">Accounts</h6>
+                                        <small>Manage all user accounts and roles</small>
+                                    </div>
+                                    <i class="bi bi-people"></i>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-grid gap-2">
-                                    <a asp-page="/Menu/Index" class="btn btn-outline-info">
-                                        <i class="bi bi-calendar-week"></i> Manage Menus
-                                    </a>
-
-                                    <a asp-page="/Recipe/Index" class="btn btn-outline-info">
-                                        <i class="bi bi-book"></i> Manage Recipes
-                                    </a>
-
-                                    <a asp-page="/Ingredient/Index" class="btn btn-outline-info">
-                                        <i class="bi bi-egg"></i> Manage Ingredients
-                                    </a>
-
-                                    <a asp-page="/Allergy/Index" class="btn btn-outline-info">
-                                        <i class="bi bi-exclamation-triangle"></i> Manage Allergies
-                                    </a>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a asp-page="Revenue" class="admin-module d-block text-decoration-none h-100">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">Revenue Reports</h6>
+                                        <small>Review financial metrics and trends</small>
+                                    </div>
+                                    <i class="bi bi-graph-up-arrow"></i>
                                 </div>
-                            </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a asp-page="SystemConfiguration" class="admin-module d-block text-decoration-none h-100">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">System Configuration</h6>
+                                        <small>Tune limits and operational settings</small>
+                                    </div>
+                                    <i class="bi bi-gear"></i>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a asp-page="/Menu/Index" class="admin-module d-block text-decoration-none h-100">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">Content Management</h6>
+                                        <small>Menus, recipes, ingredients, allergies</small>
+                                    </div>
+                                    <i class="bi bi-journals"></i>
+                                </div>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-    <!-- System Status -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card h-100 bg-light text-dark">
-                <div class="card-header bg-success text-white" style="background-color: #1e293b !important;">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> System Status</h5>
+        <div class="col-lg-4">
+            <div class="card admin-panel h-100 border-0">
+                <div class="card-header border-0 bg-transparent pt-4 pb-0 px-4">
+                    <h5 class="mb-1"><i class="bi bi-clipboard-data"></i> Snapshot</h5>
+                    <small class="text-muted">Current platform highlights</small>
                 </div>
-                <div class="card-body" style="background-color: #1e293b !important;">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="me-3">
-                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
-                                </div>
-                                <div style="background-color: #1e293b !important;">
-                                    <h6 class="mb-0">Database</h6>
-                                    <small class="text-success">Connected</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="me-3">
-                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
-                                </div>
-                                <div style="background-color: #1e293b !important;">
-                                    <h6 class="mb-0">Payment Gateway</h6>
-                                    <small class="text-success">Operational</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="me-3">
-                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
-                                </div>
-                                <div style="background-color: #1e293b !important;">
-                                    <h6 class="mb-0">AI Services</h6>
-                                    <small class="text-success">Active</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="card-body p-4">
+                    <ul class="list-group list-group-flush admin-snapshot-list">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Total Customers</span>
+                            <strong>@Model.TotalCustomers</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Active Subscriptions</span>
+                            <strong>@Model.ActiveSubscriptions</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Pending Orders</span>
+                            <strong>@Model.PendingOrders</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Month Revenue</span>
+                            <strong>@Model.CurrentMonthRevenue.ToString("C")</strong>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Note about deferred features -->
-    <div class="alert alert-info mt-4">
-        <i class="bi bi-info-circle"></i> 
-        <strong>Note:</strong> Subscription-related statistics and features are deferred to Checkpoint 2. 
-        Current dashboard shows order and customer data only.
     </div>
 </div>
 
 <style>
-    .card {
-        transition: transform 0.2s, box-shadow 0.2s;
+    .admin-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
+        border: 1px solid rgba(34, 177, 76, 0.25);
     }
-    
-    .card:hover {
+
+    .admin-stat-card,
+    .admin-panel {
+        background-color: #0f172a;
+        border: 1px solid rgba(34, 177, 76, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .admin-stat-card:hover,
+    .admin-panel:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 14px rgba(25, 135, 84, 0.25);
+        box-shadow: 0 8px 22px rgba(34, 177, 76, 0.18);
     }
-    
-    .list-group-item {
-        border-left: none;
-        border-right: none;
+
+    .admin-stat-icon {
+        font-size: 2rem;
+        opacity: 0.9;
     }
-    
-    .list-group-item:first-child {
-        border-top: none;
+
+    .admin-module {
+        padding: 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background-color: rgba(15, 23, 42, 0.65);
+        color: #e2e8f0;
+        transition: border-color 0.2s ease, transform 0.2s ease;
     }
-    
-    .list-group-item:last-child {
-        border-bottom: none;
+
+    .admin-module:hover {
+        border-color: rgba(34, 177, 76, 0.55);
+        transform: translateY(-1px);
+        color: #ffffff;
+    }
+
+    .admin-module i {
+        font-size: 1.15rem;
+    }
+
+    .admin-snapshot-list .list-group-item {
+        background: transparent;
+        color: #e2e8f0;
+        border-color: rgba(255, 255, 255, 0.08);
+        padding-left: 0;
+        padding-right: 0;
     }
 </style>
