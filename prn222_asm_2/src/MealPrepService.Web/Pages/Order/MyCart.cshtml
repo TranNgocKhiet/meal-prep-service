@@ -12,6 +12,53 @@
         </a>
     </div>
 
+@section Scripts {
+    <script>
+        // Submit quantity update forms automatically when user changes quantity
+        document.addEventListener('DOMContentLoaded', function () {
+            const inputs = document.querySelectorAll('input[name="quantity"]');
+            const timers = new WeakMap();
+
+            inputs.forEach(input => {
+                const form = input.closest('form');
+                if (!form) return;
+
+                const submitForm = () => {
+                    try {
+                        if (typeof form.requestSubmit === 'function') {
+                            form.requestSubmit();
+                        } else {
+                            form.submit();
+                        }
+                    } catch (e) {
+                        form.submit();
+                    }
+                };
+
+                const scheduleSubmit = () => {
+                    const existing = timers.get(input);
+                    if (existing) clearTimeout(existing);
+                    // debounce to avoid many requests while user types or uses spinner
+                    const t = setTimeout(() => {
+                        timers.delete(input);
+                        submitForm();
+                    }, 500);
+                    timers.set(input, t);
+                };
+
+                // Use input for immediate UX (arrow buttons and typing), change / blur as fallback
+                input.addEventListener('input', scheduleSubmit);
+                input.addEventListener('change', scheduleSubmit);
+                input.addEventListener('blur', () => {
+                    const existing = timers.get(input);
+                    if (existing) clearTimeout(existing);
+                    submitForm();
+                });
+            });
+        });
+    </script>
+}
+
     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
     @if (Model.CartItems.Any())

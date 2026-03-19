@@ -50,11 +50,15 @@ namespace MealPrepService.DataAccessLayer.Repositories
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1);
 
-            // SQLite doesn't support Sum on decimal, so we need to load into memory first
+            // Calculate revenue from orders EXCEPT those with non-revenue statuses
+            // Exclude: awaiting_online_payment, cancelled, pending, pending_confirmation
+            // Include: confirmed, delivering, customer_received, customer_reject, failed, preparing, prepared, etc.
+            var excludedStatuses = new[] { "awaiting_online_payment", "cancelled", "pending", "pending_confirmation" };
+            
             var orders = await _dbSet
                 .Where(o => o.OrderDate >= startDate 
                     && o.OrderDate < endDate 
-                    && o.Status == "confirmed")
+                    && !excludedStatuses.Contains(o.Status))
                 .ToListAsync();
 
             return orders.Sum(o => o.TotalAmount);

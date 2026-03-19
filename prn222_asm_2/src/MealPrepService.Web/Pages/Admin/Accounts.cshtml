@@ -139,7 +139,8 @@
                                     </td>
                                     <td class="text-white" style="background-color: transparent;">@account.Email</td>
                                     <td style="background-color: transparent;">
-                                        <span class="@account.RoleBadgeClass">@account.Role</span>
+                                        @* Render a badge based on role inline to avoid relying on view-model extensions *@
+                                        <span class="badge @(account.Role == "Manager" ? "bg-info" : account.Role == "DeliveryMan" ? "bg-success" : "bg-primary")">@account.Role</span>
                                     </td>
                                     <td class="text-end" style="background-color: transparent;">
                                         <a asp-page="EditAccount" asp-route-id="@account.Id"

@@ -43,6 +43,10 @@ public class AccountsModel : PageModel
     {
         try
         {
+            // Always get total customers count for the summary card
+            var customers = await _accountService.GetAccountsByRoleAsync("Customer");
+            TotalCustomers = customers?.Count() ?? 0;
+
             IEnumerable<AccountDto> accounts;
 
             if (!string.IsNullOrWhiteSpace(role) && AllowedRoles.Contains(role))
@@ -51,6 +55,7 @@ public class AccountsModel : PageModel
             }
             else
             {
+                // Default view: show staff accounts (Manager and DeliveryMan)
                 accounts = await _accountService.GetAllStaffAccountsAsync();
                 role = null;
             }
