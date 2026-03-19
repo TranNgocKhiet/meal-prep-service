@@ -7,7 +7,14 @@ $(document).ready(function() {
     function initializeSelect2(element) {
         var $element = $(element);
 
-        // Skip Select2 for controls that explicitly opt out.
+        // Global safeguard: only initialize Select2 for controls that explicitly opt in.
+        // Use class="use-select2" or data-use-select2="true" on fields that truly need searchable dropdowns.
+        var shouldUseSelect2 = $element.hasClass('use-select2') || $element.data('use-select2') === true;
+        if (!shouldUseSelect2) {
+            return;
+        }
+
+        // Backward-compatible opt-out in case a field has both flags.
         if ($element.hasClass('no-select2') || $element.data('no-select2') === true) {
             return;
         }
