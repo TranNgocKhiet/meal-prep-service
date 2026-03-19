@@ -77,31 +77,33 @@
             <h4 class="mb-0"><i class="bi bi-calendar-check"></i> @Model.YearlySummary.Year Summary</h4>
         </div>
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
-                        <h6 class="text-muted mb-2">Total Revenue</h6>
-                        <h3 class="text-primary mb-0">@Model.YearlySummary.TotalRevenue.ToString("C")</h3>
+            <div class="row g-3 align-items-stretch">
+                <div class="col-md-3 d-flex">
+                    <div class="summary-card text-center p-3 rounded w-100">
+                        <h6 class="summary-card-title mb-2">Total Revenue</h6>
+                        <h3 class="text-success mb-0">@Model.YearlySummary.TotalRevenue.ToString("C")</h3>
+                        <small class="summary-card-meta">&nbsp;</small>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
-                        <h6 class="text-muted mb-2">Order Revenue</h6>
+                <div class="col-md-3 d-flex">
+                    <div class="summary-card text-center p-3 rounded w-100">
+                        <h6 class="summary-card-title mb-2">Order Revenue</h6>
                         <h3 class="text-success mb-0">@Model.YearlySummary.TotalOrderRevenue.ToString("C")</h3>
-                        <small class="text-muted">@Model.YearlySummary.TotalOrders orders</small>
+                        <small class="summary-card-meta">@Model.YearlySummary.TotalOrders orders</small>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
-                        <h6 class="text-muted mb-2">Subscription Revenue</h6>
+                <div class="col-md-3 d-flex">
+                    <div class="summary-card text-center p-3 rounded w-100">
+                        <h6 class="summary-card-title mb-2">Subscription Revenue</h6>
                         <h3 class="text-info mb-0">@Model.YearlySummary.TotalSubscriptionRevenue.ToString("C")</h3>
-                        <small class="text-muted">Deferred to Checkpoint 2</small>
+                        <small class="summary-card-meta">Deferred to Checkpoint 2</small>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded" style="background-color: #1e293b !important;">
-                        <h6 class="text-muted mb-2">Avg Monthly Revenue</h6>
-                        <h3 class="text-secondary mb-0">@Model.YearlySummary.AverageMonthlyRevenue.ToString("C")</h3>
+                <div class="col-md-3 d-flex">
+                    <div class="summary-card text-center p-3 rounded w-100">
+                        <h6 class="summary-card-title mb-2">Avg Monthly Revenue</h6>
+                        <h3 class="text-white mb-0">@Model.YearlySummary.AverageMonthlyRevenue.ToString("C")</h3>
+                        <small class="summary-card-meta">&nbsp;</small>
                     </div>
                 </div>
             </div>
@@ -256,11 +258,35 @@
         background-color: #f8f9fa;
     }
     
-    .bg-light.rounded {
+    .summary-card {
+        background-color: #1e293b;
+        min-height: 132px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .summary-card-title {
+        color: #cbd5e1;
+        font-weight: 600;
+    }
+
+    .summary-card-meta {
+        color: #94a3b8;
+        min-height: 1.2rem;
+        margin-top: 0.5rem;
+        display: block;
+    }
+
+    .summary-card h3 {
+        line-height: 1.2;
+    }
+
+    .summary-card {
         transition: transform 0.2s, box-shadow 0.2s;
     }
-    
-    .bg-light.rounded:hover {
+
+    .summary-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
