@@ -128,23 +128,31 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover revenue-breakdown-table mb-0">
+                        <colgroup>
+                            <col class="col-month" />
+                            <col class="col-currency" />
+                            <col class="col-currency" />
+                            <col class="col-currency" />
+                            <col class="col-orders" />
+                            <col class="col-currency" />
+                        </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th class="text-white" style="background-color: transparent;">Month</th>
-                                <th class="text-end text-white" style="background-color: transparent;">Order Revenue</th>
-                                <th class="text-end text-white" style="background-color: transparent;">Subscription Revenue</th>
-                                <th class="text-end text-white" style="background-color: transparent;">Total Revenue</th>
-                                <th class="text-end text-white" style="background-color: transparent;">Orders</th>
-                                <th class="text-end text-white" style="background-color: transparent;">Avg Order Value</th>
+                                <th class="text-white col-month" style="background-color: transparent;">Month</th>
+                                <th class="text-white col-currency" style="background-color: transparent;">Order Revenue</th>
+                                <th class="text-white col-currency" style="background-color: transparent;">Subscription Revenue</th>
+                                <th class="text-white col-currency" style="background-color: transparent;">Total Revenue</th>
+                                <th class="text-center text-white col-orders" style="background-color: transparent;">Orders</th>
+                                <th class="text-white col-currency" style="background-color: transparent;">Avg Order Value</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var report in Model.MonthlyReports)
                             {
                                 <tr>
-                                    <td class="text-end text-white" style="background-color: transparent;"><strong>@report.MonthName</strong></td>
-                                    <td class="text-end text-white" style="background-color: transparent;">
+                                    <td class="text-white col-month" style="background-color: transparent;"><strong>@report.MonthName</strong></td>
+                                    <td class="text-white col-currency" style="background-color: transparent;">
                                         @if (report.HasOrderRevenue)
                                         {
                                             <span class="text-success">@report.TotalOrderRevenue.ToString("C")</span>
@@ -154,7 +162,7 @@
                                             <span class="text-muted">$0.00</span>
                                         }
                                     </td>
-                                    <td class="text-end text-white" style="background-color: transparent;">
+                                    <td class="text-white col-currency" style="background-color: transparent;">
                                         @if (report.HasSubscriptionRevenue)
                                         {
                                             <span class="text-info">@report.TotalSubscriptionRevenue.ToString("C")</span>
@@ -164,10 +172,10 @@
                                             <span class="text-muted">$0.00</span>
                                         }
                                     </td>
-                                    <td class="text-end text-white" style="background-color: transparent;">
+                                    <td class="text-white col-currency" style="background-color: transparent;">
                                         <strong class="text-primary">@report.TotalRevenue.ToString("C")</strong>
                                     </td>
-                                    <td class="text-end text-white" style="background-color: transparent;">
+                                    <td class="text-center text-white col-orders" style="background-color: transparent;">
                                         @if (report.HasOrders)
                                         {
                                             <span>@report.TotalOrdersCount</span>
@@ -177,7 +185,7 @@
                                             <span class="text-muted">0</span>
                                         }
                                     </td>
-                                    <td class="text-end text-white" style="background-color: transparent;">
+                                    <td class="text-white col-currency" style="background-color: transparent;">
                                         @if (report.HasOrders)
                                         {
                                             <span>@report.AverageOrderValue.ToString("C")</span>
@@ -191,13 +199,13 @@
                             }
                         </tbody>
                         <tfoot class="table-light">
-                            <tr>
-                                <th class="text-white text-success"style="background-color: transparent;">Total</th>
-                                <th class="text-end text-success" style="background-color: transparent;">@Model.YearlySummary.TotalOrderRevenue.ToString("C")</th>
-                                <th class="text-end text-info" style="background-color: transparent;">@Model.YearlySummary.TotalSubscriptionRevenue.ToString("C")</th>
-                                <th class="text-end text-primary" style="background-color: transparent;"><strong>@Model.YearlySummary.TotalRevenue.ToString("C")</strong></th>
-                                <th class="text-end text-white" style="background-color: transparent;">@Model.YearlySummary.TotalOrders</th>
-                                <th class="text-end text-white" style="background-color: transparent;">-</th>
+                            <tr class="revenue-total-row">
+                                <td class="text-white text-success col-month" style="background-color: transparent;"><strong>Total</strong></td>
+                                <td class="text-success col-currency" style="background-color: transparent;"><strong>@Model.YearlySummary.TotalOrderRevenue.ToString("C")</strong></td>
+                                <td class="text-info col-currency" style="background-color: transparent;"><strong>@Model.YearlySummary.TotalSubscriptionRevenue.ToString("C")</strong></td>
+                                <td class="text-primary col-currency" style="background-color: transparent;"><strong>@Model.YearlySummary.TotalRevenue.ToString("C")</strong></td>
+                                <td class="text-center text-white col-orders" style="background-color: transparent;"><strong>@Model.YearlySummary.TotalOrders</strong></td>
+                                <td class="text-white col-currency" style="background-color: transparent;"><strong>-</strong></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -256,6 +264,52 @@
     
     .table tbody tr:hover {
         background-color: #f8f9fa;
+    }
+
+    .revenue-breakdown-table .revenue-total-row td {
+        background: rgba(34, 177, 76, 0.16) !important;
+        border-top: 2px solid rgba(34, 177, 76, 0.55);
+        font-weight: 700;
+    }
+
+    .revenue-breakdown-table .revenue-total-row td strong {
+        letter-spacing: 0.2px;
+    }
+
+    .revenue-breakdown-table {
+        table-layout: fixed;
+    }
+
+    .revenue-breakdown-table .col-month {
+        width: 140px;
+        text-align: center;
+    }
+
+    .revenue-breakdown-table .col-orders {
+        width: 110px;
+        text-align: center;
+    }
+
+    .revenue-breakdown-table .col-currency {
+        width: 200px;
+        text-align: center;
+    }
+
+    .revenue-breakdown-table th,
+    .revenue-breakdown-table td {
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    @@media (max-width: 1200px) {
+        .revenue-breakdown-table {
+            table-layout: auto;
+        }
+
+        .revenue-breakdown-table th,
+        .revenue-breakdown-table td {
+            white-space: normal;
+        }
     }
     
     .summary-card {
