@@ -36,6 +36,7 @@
            asp-route-tab="completed"
            asp-route-completedStatus="@Model.CompletedStatus"
            asp-route-completedDate="@(Model.CompletedDate?.ToString("yyyy-MM-dd"))"
+           asp-route-pageNumber="@Model.PageNumber"
            class="btn @(Model.Tab == "completed" ? "btn-primary" : "btn-outline-primary")">
             Completed (@Model.CompletedCount)
         </a>
@@ -45,6 +46,7 @@
     {
         <form method="get" class="card card-body mb-3">
             <input type="hidden" name="tab" value="completed" />
+            <input type="hidden" name="pageNumber" value="1" />
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label mb-1" for="completedStatus">Status</label>
@@ -61,7 +63,7 @@
                 </div>
                 <div class="col-md-4 d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Apply Filter</button>
-                    <a asp-page="./AssignedDeliveries" asp-route-tab="completed" asp-route-completedStatus="all" class="btn btn-outline-secondary">Clear</a>
+                    <a asp-page="./AssignedDeliveries" asp-route-tab="completed" asp-route-completedStatus="all" asp-route-pageNumber="1" class="btn btn-outline-secondary">Clear</a>
                 </div>
             </div>
         </form>
@@ -125,10 +127,14 @@
                             <i class="bi bi-eye"></i> View Order Detail
                         </button>
 
-                        @if (delivery.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase) && delivery.DeliveryManId.HasValue)
+                        @if ((delivery.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase)
+                            || delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
+                            || delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
+                            || delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase))
+                            && delivery.DeliveryManId.HasValue)
                         {
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#completeDeliveryModal-@delivery.Id.ToString("N")">
-                                <i class="bi bi-check2-square"></i> Confirm Delivery Result
+                                <i class="bi bi-check2-square"></i> Update Delivery Result
                             </button>
                         }
                     </div>
@@ -189,14 +195,19 @@
             </div>
         }
 
-        @foreach (var delivery in Model.Deliveries.Where(d => d.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase) && d.DeliveryManId.HasValue))
+        @foreach (var delivery in Model.Deliveries.Where(d =>
+            (d.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase)
+            || d.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
+            || d.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
+            || d.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase))
+            && d.DeliveryManId.HasValue))
         {
             var modalSuffix = delivery.Id.ToString("N");
             <div class="modal fade" id="completeDeliveryModal-@modalSuffix" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">Confirm Delivery Result</h5>
+                            <h5 class="modal-title">Update Delivery Result</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <form method="post" asp-page-handler="Complete">
@@ -207,9 +218,9 @@
                                 <div class="mb-0">
                                     <label class="form-label" for="result-@modalSuffix">Delivery result</label>
                                     <select id="result-@modalSuffix" name="resultStatus" class="form-select" required>
-                                        <option value="customer_received">Customer Received</option>
-                                        <option value="customer_reject">Customer Reject</option>
-                                        <option value="failed">Failed</option>
+                                        <option value="customer_received" selected="@delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase)">Customer Received</option>
+                                        <option value="customer_reject" selected="@delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)">Customer Reject</option>
+                                        <option value="failed" selected="@delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase)">Failed</option>
                                     </select>
                                 </div>
                             </div>
@@ -220,6 +231,52 @@
                         </form>
                     </div>
                 </div>
+            </div>
+        }
+
+        @if (Model.Tab == "completed")
+        {
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 mt-3">
+                <small class="text-muted">
+                    Showing @((Model.PageNumber - 1) * Model.PageSize + 1)-@Math.Min(Model.PageNumber * Model.PageSize, Model.CompletedFilteredCount) of @Model.CompletedFilteredCount completed deliveries
+                </small>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Completed deliveries pagination">
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(Model.HasPreviousPage ? string.Empty : "disabled")">
+                                <a class="page-link"
+                                   asp-page="./AssignedDeliveries"
+                                   asp-route-tab="completed"
+                                   asp-route-completedStatus="@Model.CompletedStatus"
+                                   asp-route-completedDate="@(Model.CompletedDate?.ToString("yyyy-MM-dd"))"
+                                   asp-route-pageNumber="@(Model.PageNumber - 1)">Previous</a>
+                            </li>
+
+                            @for (var i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(Model.PageNumber == i ? "active" : string.Empty)">
+                                    <a class="page-link"
+                                       asp-page="./AssignedDeliveries"
+                                       asp-route-tab="completed"
+                                       asp-route-completedStatus="@Model.CompletedStatus"
+                                       asp-route-completedDate="@(Model.CompletedDate?.ToString("yyyy-MM-dd"))"
+                                       asp-route-pageNumber="@i">@i</a>
+                                </li>
+                            }
+
+                            <li class="page-item @(Model.HasNextPage ? string.Empty : "disabled")">
+                                <a class="page-link"
+                                   asp-page="./AssignedDeliveries"
+                                   asp-route-tab="completed"
+                                   asp-route-completedStatus="@Model.CompletedStatus"
+                                   asp-route-completedDate="@(Model.CompletedDate?.ToString("yyyy-MM-dd"))"
+                                   asp-route-pageNumber="@(Model.PageNumber + 1)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
             </div>
         }
     }

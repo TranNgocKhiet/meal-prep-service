@@ -12,6 +12,8 @@ namespace MealPrepService.Web.Pages.Delivery;
 [Authorize(Roles = "DeliveryMan")]
 public class AssignedDeliveriesModel : PageModel
 {
+    private const int CompletedPageSize = 8;
+
     private readonly IDeliveryService _deliveryService;
     private readonly ILogger<AssignedDeliveriesModel> _logger;
 
@@ -32,8 +34,16 @@ public class AssignedDeliveriesModel : PageModel
     [BindProperty(SupportsGet = true)]
     public DateTime? CompletedDate { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public int PageNumber { get; set; } = 1;
+
     public int DeliveringCount { get; set; }
     public int CompletedCount { get; set; }
+    public int CompletedFilteredCount { get; set; }
+    public int PageSize => CompletedPageSize;
+    public int TotalPages { get; set; }
+    public bool HasPreviousPage => PageNumber > 1;
+    public bool HasNextPage => PageNumber < TotalPages;
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -44,23 +54,48 @@ public class AssignedDeliveriesModel : PageModel
 
             Tab = NormalizeTab(Tab);
             CompletedStatus = NormalizeCompletedStatus(CompletedStatus);
+            PageNumber = PageNumber < 1 ? 1 : PageNumber;
 
             var allDeliveries = deliveries.OrderBy(d => d.DeliveryTime).ToList();
 
             DeliveringCount = allDeliveries.Count(IsDelivering);
             CompletedCount = allDeliveries.Count(IsCompleted);
 
-            Deliveries = Tab == "completed"
-                ? allDeliveries
+            if (Tab == "completed")
+            {
+                var completedQuery = allDeliveries
                     .Where(IsCompleted)
                     .Where(MatchesCompletedStatus)
                     .Where(MatchesCompletedDate)
                     .OrderByDescending(d => d.DeliveryTime)
-                    .ToList()
-                : allDeliveries
+                    .ToList();
+
+                CompletedFilteredCount = completedQuery.Count;
+                TotalPages = CompletedFilteredCount == 0
+                    ? 1
+                    : (int)Math.Ceiling(CompletedFilteredCount / (double)CompletedPageSize);
+
+                if (PageNumber > TotalPages)
+                {
+                    PageNumber = TotalPages;
+                }
+
+                Deliveries = completedQuery
+                    .Skip((PageNumber - 1) * CompletedPageSize)
+                    .Take(CompletedPageSize)
+                    .ToList();
+            }
+            else
+            {
+                TotalPages = 1;
+                PageNumber = 1;
+                CompletedFilteredCount = CompletedCount;
+
+                Deliveries = allDeliveries
                     .Where(IsDelivering)
                     .OrderBy(d => d.DeliveryTime)
                     .ToList();
+            }
             
             return Page();
         }
@@ -77,6 +112,33 @@ public class AssignedDeliveriesModel : PageModel
         try
         {
             var deliveryManId = GetCurrentAccountId();
+            var currentDeliveries = await _deliveryService.GetByDeliveryManAsync(deliveryManId);
+            var targetDelivery = currentDeliveries.FirstOrDefault(d => d.Id == deliveryId);
+
+            if (targetDelivery == null)
+            {
+                TempData["ErrorMessage"] = "Delivery not found or not assigned to your account.";
+                return RedirectToPage(new
+                {
+                    tab = "completed",
+                    completedStatus = CompletedStatus,
+                    completedDate = CompletedDate?.ToString("yyyy-MM-dd"),
+                    pageNumber = PageNumber
+                });
+            }
+
+            if (!CanEditDeliveryResult(targetDelivery))
+            {
+                TempData["ErrorMessage"] = "Delivery result cannot be changed for the current order status.";
+                return RedirectToPage(new
+                {
+                    tab = "completed",
+                    completedStatus = CompletedStatus,
+                    completedDate = CompletedDate?.ToString("yyyy-MM-dd"),
+                    pageNumber = PageNumber
+                });
+            }
+
             await _deliveryService.CompleteDeliveryAsync(deliveryId, deliveryManId, resultStatus);
             TempData["SuccessMessage"] = "Delivery result saved successfully.";
         }
@@ -86,7 +148,13 @@ public class AssignedDeliveriesModel : PageModel
             TempData["ErrorMessage"] = ex.Message;
         }
 
-        return RedirectToPage(new { tab = Tab });
+        return RedirectToPage(new
+        {
+            tab = Tab,
+            completedStatus = CompletedStatus,
+            completedDate = CompletedDate?.ToString("yyyy-MM-dd"),
+            pageNumber = PageNumber
+        });
     }
 
     private static string NormalizeTab(string? tab)
@@ -127,6 +195,11 @@ public class AssignedDeliveriesModel : PageModel
         return delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase)
                || delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)
                || delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool CanEditDeliveryResult(DeliveryScheduleDto delivery)
+    {
+        return IsDelivering(delivery) || IsCompleted(delivery);
     }
 
     private Guid GetCurrentAccountId()
