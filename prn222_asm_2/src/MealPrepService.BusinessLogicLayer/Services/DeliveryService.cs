@@ -339,11 +339,19 @@ namespace MealPrepService.BusinessLogicLayer.Services
             }
 
             var normalized = resultStatus.Trim().ToLowerInvariant();
-            var allowed = new[] { OrderStatuses.CustomerReceived, OrderStatuses.CustomerReject, OrderStatuses.Failed };
+            var allowed = new[] { OrderStatuses.Delivering, OrderStatuses.CustomerReceived, OrderStatuses.CustomerReject, OrderStatuses.Failed };
             if (!allowed.Contains(normalized))
             {
                 throw new BusinessException($"Invalid delivery result. Allowed values: {string.Join(", ", allowed)}");
             }
+
+            var editableStatuses = new[]
+            {
+                OrderStatuses.Delivering,
+                OrderStatuses.CustomerReceived,
+                OrderStatuses.CustomerReject,
+                OrderStatuses.Failed
+            };
 
             var deliverySchedule = await _unitOfWork.DeliverySchedules.GetByIdAsync(deliveryId);
             if (deliverySchedule == null)
@@ -362,9 +370,9 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 throw new BusinessException("You can only complete deliveries assigned to you");
             }
 
-            if (order.Status != OrderStatuses.Delivering)
+            if (!editableStatuses.Contains(order.Status))
             {
-                throw new BusinessException($"Order must be in delivering state before completion. Current status: {order.Status}");
+                throw new BusinessException($"Delivery result cannot be changed from current status: {order.Status}");
             }
 
             await _unitOfWork.ExecuteInTransactionAsync(async () =>

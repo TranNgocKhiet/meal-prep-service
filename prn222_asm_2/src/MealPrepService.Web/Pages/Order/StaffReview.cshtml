@@ -9,28 +9,44 @@
         <h2 class="text-white mb-0">Order List</h2>
     </div>
 
-    <div class="status-tabs">
-        <a asp-page="./StaffReview" asp-route-status="pending" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "pending" ? "active" : string.Empty)">
-            Pending <span class="tab-count">@Model.GetStatusCount("pending")</span>
-        </a>
-        <a asp-page="./StaffReview" asp-route-status="confirmed" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "confirmed" ? "active" : string.Empty)">
-            Confirmed <span class="tab-count">@Model.GetStatusCount("confirmed")</span>
-        </a>
-        <a asp-page="./StaffReview" asp-route-status="preparing" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "preparing" ? "active" : string.Empty)">
-            Preparing <span class="tab-count">@Model.GetStatusCount("preparing")</span>
-        </a>
-        <a asp-page="./StaffReview" asp-route-status="preparing_failed" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "preparing_failed" ? "active" : string.Empty)">
-            Preparing Failed <span class="tab-count">@Model.GetStatusCount("preparing_failed")</span>
-        </a>
-        <a asp-page="./StaffReview" asp-route-status="prepared" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "prepared" ? "active" : string.Empty)">
-            Prepared <span class="tab-count">@Model.GetStatusCount("prepared")</span>
-        </a>
-        <a asp-page="./StaffReview" asp-route-status="on_scheduled" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "on_scheduled" ? "active" : string.Empty)">
-            On Scheduled <span class="tab-count">@Model.GetStatusCount("on_scheduled")</span>
-        </a>
-        <a asp-page="./StaffReview" asp-route-status="cancelled" asp-route-period="@Model.Period" class="status-tab @(Model.Status == "cancelled" ? "active" : string.Empty)">
-            Canceled <span class="tab-count">@Model.GetStatusCount("cancelled")</span>
-        </a>
+    <div class="status-tree-wrapper">
+        <div class="status-tree-scroll">
+            <div class="status-tree">
+                <svg class="tree-svg" viewBox="0 0 1200 320" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M120,160 C210,160 210,60 300,60" />
+                    <path d="M120,160 C210,160 210,260 300,260" />
+                    <path d="M410,60 C500,60 500,160 560,160" />
+                    <path d="M410,260 C500,260 500,160 560,160" />
+                    <path d="M680,160 C740,160 740,50 810,50" />
+                    <path d="M680,160 C740,160 740,270 810,270" />
+                    <path d="M920,50 C990,50 990,160 1030,160" />
+                    <path d="M920,280 C990,280 990,160 1030,160" />
+                </svg>
+
+                <a asp-page="./StaffReview" asp-route-status="pending" asp-route-period="@Model.Period" class="tree-node node-pending @(Model.Status == "pending" ? "active" : string.Empty)">
+                    Pending <span class="tab-count">@Model.GetStatusCount("pending")</span>
+                </a>
+                <a asp-page="./StaffReview" asp-route-status="confirmed" asp-route-period="@Model.Period" class="tree-node node-confirmed @(Model.Status == "confirmed" ? "active" : string.Empty)">
+                    Confirmed <span class="tab-count">@Model.GetStatusCount("confirmed")</span>
+                </a>
+                <a asp-page="./StaffReview" asp-route-status="cancelled" asp-route-period="@Model.Period" class="tree-node node-cancelled @(Model.Status == "cancelled" ? "active" : string.Empty)">
+                    Canceled <span class="tab-count">@Model.GetStatusCount("cancelled")</span>
+                </a>
+                <a asp-page="./StaffReview" asp-route-status="preparing" asp-route-period="@Model.Period" class="tree-node node-preparing @(Model.Status == "preparing" ? "active" : string.Empty)">
+                    Preparing <span class="tab-count">@Model.GetStatusCount("preparing")</span>
+                </a>
+                <a asp-page="./StaffReview" asp-route-status="prepared" asp-route-period="@Model.Period" class="tree-node node-prepared @(Model.Status == "prepared" ? "active" : string.Empty)">
+                    Prepared <span class="tab-count">@Model.GetStatusCount("prepared")</span>
+                </a>
+                <a asp-page="./StaffReview" asp-route-status="preparing_failed" asp-route-period="@Model.Period" class="tree-node node-preparing-failed @(Model.Status == "preparing_failed" ? "active" : string.Empty)">
+                    Preparing Failed <span class="tab-count">@Model.GetStatusCount("preparing_failed")</span>
+                </a>
+                <a asp-page="./StaffReview" asp-route-status="on_scheduled" asp-route-period="@Model.Period" class="tree-node node-scheduled @(Model.Status == "on_scheduled" ? "active" : string.Empty)">
+                    On Scheduled <span class="tab-count">@Model.GetStatusCount("on_scheduled")</span>
+                </a>
+            </div>
+        </div>
+        <small class="status-tree-caption">Transitions follow the connector flow.</small>
     </div>
 
     <div class="period-filter mb-3">
@@ -44,6 +60,16 @@
     {
         <div class="table-responsive order-table-wrapper">
             <table class="table table-borderless align-middle order-table">
+                <colgroup>
+                    <col style="width: 10%" />
+                    <col style="width: 15%" />
+                    <col style="width: 15%" />
+                    <col style="width: 7%" />
+                    <col style="width: 8%" />
+                    <col style="width: 8%" />
+                    <col style="width: 12%" />
+                    <col style="width: 25%" />
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Order #</th>
@@ -75,65 +101,195 @@
                             <td>
                                 <span class="@Model.GetBadgeClass(order.Status)">@Model.GetDisplayStatus(order.Status)</span>
                             </td>
-                            <td>
-                                <div class="action-stack">
-                                    @if (tabStatus == "pending")
-                                    {
-                                        <form method="post" asp-page-handler="Confirm">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="orderId" value="@order.Id" />
-                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
-                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
-                                            <button type="submit" class="btn btn-action btn-confirm">Confirm</button>
-                                        </form>
-                                        <form method="post" asp-page-handler="Cancel">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="orderId" value="@order.Id" />
-                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
-                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
-                                            <button type="submit" class="btn btn-action btn-cancel" onclick="return confirm('Cancel this order?');">Cancel</button>
-                                        </form>
-                                    }
-                                    else if (tabStatus == "confirmed")
-                                    {
-                                        <form method="post" asp-page-handler="Prepare">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="orderId" value="@order.Id" />
-                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
-                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
-                                            <button type="submit" class="btn btn-action btn-confirm">Prepare</button>
-                                        </form>
-                                    }
-                                    else if (tabStatus == "preparing")
-                                    {
-                                        <form method="post" asp-page-handler="PrepareSuccess">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="orderId" value="@order.Id" />
-                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
-                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
-                                            <button type="submit" class="btn btn-action btn-confirm">Success</button>
-                                        </form>
-                                        <form method="post" asp-page-handler="PrepareFailed">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="orderId" value="@order.Id" />
-                                            <input type="hidden" name="statusFilter" value="@Model.Status" />
-                                            <input type="hidden" name="periodFilter" value="@Model.Period" />
-                                            <button type="submit" class="btn btn-action btn-cancel">Failed</button>
-                                        </form>
-                                    }
-                                    else if (tabStatus == "prepared")
-                                    {
-                                        if (order.DeliverySchedule != null)
-                                        {
-                                            <button type="button" class="btn btn-action btn-confirm" data-bs-toggle="modal" data-bs-target="#scheduleModal-@modalSuffix">Schedule</button>
-                                        }
-                                        else
-                                        {
-                                            <button type="button" class="btn btn-action btn-view" disabled>No Schedule</button>
-                                        }
-                                    }
-
-                                    <button type="button" class="btn btn-action btn-view" data-bs-toggle="modal" data-bs-target="#orderItemsModal-@modalSuffix">View</button>
+                            <td class="action-cell">
+                                <div class="action-inline">
+                                    <button type="button" class="btn btn-action btn-view" data-bs-toggle="modal" data-bs-target="#orderItemsModal-@modalSuffix">View Details</button>
+                                    <div id="statusMenuWrap-@modalSuffix" class="status-menu-wrap">
+                                        <button type="button"
+                                                class="btn btn-action btn-menu status-menu-toggle"
+                                                data-target="#statusMenu-@modalSuffix"
+                                                aria-controls="statusMenu-@modalSuffix"
+                                                aria-expanded="false">
+                                            Change Status
+                                        </button>
+                                        <ul id="statusMenu-@modalSuffix" class="status-dropdown-menu" role="menu" hidden>
+                                            @if (tabStatus == "pending")
+                                            {
+                                                <li>
+                                                    <form method="post" asp-page-handler="Confirm" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Confirmed</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="Cancel" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Canceled</button>
+                                                    </form>
+                                                </li>
+                                            }
+                                            else if (tabStatus == "confirmed")
+                                            {
+                                                <li>
+                                                    <form method="post" asp-page-handler="ToPending" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Pending</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="Prepare" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Preparing</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="Cancel" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Canceled</button>
+                                                    </form>
+                                                </li>
+                                            }
+                                            else if (tabStatus == "preparing")
+                                            {
+                                                <li>
+                                                    <form method="post" asp-page-handler="Confirm" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Confirmed</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="Cancel" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Canceled</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="PrepareSuccess" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Prepared</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="PrepareFailed" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Preparing Failed</button>
+                                                    </form>
+                                                </li>
+                                            }
+                                            else if (tabStatus == "preparing_failed")
+                                            {
+                                                <li>
+                                                    <form method="post" asp-page-handler="ToPreparing" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Preparing</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="PrepareSuccess" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Prepared</button>
+                                                    </form>
+                                                </li>
+                                            }
+                                            else if (tabStatus == "prepared")
+                                            {
+                                                <li>
+                                                    <form method="post" asp-page-handler="ToPreparing" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Preparing</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="PrepareFailed" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Preparing Failed</button>
+                                                    </form>
+                                                </li>
+                                                @if (order.DeliverySchedule != null)
+                                                {
+                                                    <li>
+                                                        <button type="button" class="dropdown-item dropdown-item-modal" data-bs-toggle="modal" data-bs-target="#scheduleModal-@modalSuffix">To On Scheduled</button>
+                                                    </li>
+                                                }
+                                            }
+                                            else if (tabStatus == "cancelled")
+                                            {
+                                                <li>
+                                                    <form method="post" asp-page-handler="Confirm" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Confirmed</button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form method="post" asp-page-handler="ToPending" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Pending</button>
+                                                    </form>
+                                                </li>
+                                            }
+                                            else if (tabStatus == "on_scheduled")
+                                            {
+                                                <li>
+                                                    <form method="post" asp-page-handler="RestorePrepared" class="dropdown-item-form">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.Status" />
+                                                        <input type="hidden" name="periodFilter" value="@Model.Period" />
+                                                        <button type="submit" class="dropdown-item">To Prepared</button>
+                                                    </form>
+                                                </li>
+                                            }
+                                            else
+                                            {
+                                                <li><span class="status-empty">No status actions available</span></li>
+                                            }
+                                        </ul>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -293,29 +449,104 @@
         padding: 1.5rem 0;
     }
 
-    .status-tabs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
+    .status-tree-wrapper {
         border-bottom: 1px solid #d1d5db;
         margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
+        padding-bottom: 0.9rem;
     }
 
-    .order-list-page .status-tab {
-        color: #d1d5db !important;
+    .status-tree-scroll {
+        overflow-x: auto;
+    }
+
+    .status-tree {
+        position: relative;
+        width: 100%;
+        min-width: 1020px;
+        height: 300px;
+    }
+
+    .tree-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .tree-svg path {
+        fill: none;
+        stroke: #2dde69;
+        stroke-width: 7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        shape-rendering: geometricPrecision;
+        filter: drop-shadow(0 0 2px rgba(45, 222, 105, 0.55));
+    }
+
+    .order-list-page .tree-node {
+        position: absolute;
+        z-index: 2;
+        transform: translate(-50%, -50%);
+        font-weight: 700;
+        color: #1f2937 !important;
         text-decoration: none;
-        padding: 0.7rem 1.4rem;
-        border-radius: 0.5rem;
-        background: transparent;
-        font-weight: 600;
+        padding: 0.8rem 1.2rem;
+        border-radius: 0.65rem;
+        background: #e5e7eb;
+        border: 2px solid #101010;
+        min-width: 12rem;
+        text-align: center;
         transition: all 0.2s ease;
+        box-shadow: 0 2px 0 rgba(16, 16, 16, 0.35);
     }
 
-    .order-list-page .status-tab.active,
-    .order-list-page .status-tab:hover {
+    .node-pending {
+        left: 8%;
+        top: 53%;
+    }
+
+    .node-confirmed {
+        left: 29%;
+        top: 21%;
+    }
+
+    .node-cancelled {
+        left: 29%;
+        top: 84%;
+    }
+
+    .node-preparing {
+        left: 50%;
+        top: 53%;
+    }
+
+    .node-prepared {
+        left: 72%;
+        top: 17%;
+    }
+
+    .node-preparing-failed {
+        left: 72%;
+        top: 87%;
+    }
+
+    .node-scheduled {
+        left: 92%;
+        top: 53%;
+    }
+
+    .order-list-page .tree-node.active,
+    .order-list-page .tree-node:hover {
         color: #ffffff !important;
         background: #2cad46;
+        border-color: #1f8f36;
+    }
+
+    .status-tree-caption {
+        display: block;
+        color: #6b7280;
+        margin-top: 0.45rem;
     }
 
     .order-list-page .tab-count {
@@ -354,30 +585,47 @@
     }
 
     .order-table-wrapper {
-        background: #f3f4f6;
-        border-radius: 0.5rem;
-        overflow: hidden;
+        background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+        border: 1px solid #d1d5db;
+        border-radius: 0.85rem;
+        overflow-x: auto;
+        overflow-y: visible;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        position: relative;
+        z-index: 1;
     }
 
     .order-list-page .order-table {
         margin-bottom: 0;
         background: #ffffff !important;
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: separate;
+        border-spacing: 0;
     }
 
     .order-list-page .order-table thead th {
-        background: #e5e7eb;
+        background: #d7ecdc;
         color: #111827 !important;
         font-weight: 700;
         padding: 1rem;
-        border-bottom: 1px solid #d1d5db;
+        border-bottom: 1px solid #badfc2;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        font-size: 0.82rem;
     }
 
     .order-list-page .order-table tbody tr {
         background: #ffffff !important;
+        transition: background-color 0.18s ease;
     }
 
     .order-list-page .order-table tbody tr:nth-child(even) {
         background: #f9fafb !important;
+    }
+
+    .order-list-page .order-table tbody tr:hover {
+        background: #eefbf1 !important;
     }
 
     .order-list-page .order-table tbody td {
@@ -385,11 +633,19 @@
         border-bottom: 1px solid #d1d5db;
         color: #111827 !important;
         background: transparent !important;
+        vertical-align: middle;
     }
 
     .order-list-page .order-code {
         color: #1f2937 !important;
         font-weight: 700;
+        text-decoration: none;
+    }
+
+    .order-list-page .order-code:hover,
+    .order-list-page .order-code:focus {
+        color: #0f766e !important;
+        text-decoration: underline;
     }
 
     .order-total {
@@ -411,9 +667,9 @@
     }
 
     .status-active {
-        background: #6ee7ff;
-        color: #004e64;
-        border-color: #31c5e8;
+        background: #60a5fa;
+        color: #0b2f6b;
+        border-color: #3b82f6;
     }
 
     .status-neutral {
@@ -433,20 +689,49 @@
         color: #374151;
     }
 
-    .action-stack {
+    .action-inline {
         display: flex;
-        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
         gap: 0.55rem;
-        min-width: 9.75rem;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .action-cell {
+        min-width: 18rem;
+        position: relative;
+        z-index: 5;
+        overflow: visible;
+    }
+
+    .action-inline .btn-view,
+    .action-inline .dropdown,
+    .action-inline .dropdown .btn {
+        width: auto;
+        min-width: 0;
+    }
+
+    .action-inline .status-menu-wrap {
+        flex: 1;
+        min-width: 9.5rem;
+    }
+
+    .status-menu-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 9.5rem;
     }
 
     .btn-action {
-        width: 100%;
+        width: auto;
         border: 0;
-        border-radius: 0.5rem;
+        border-radius: 0.6rem;
         font-weight: 700;
-        padding: 0.55rem 0.9rem;
+        padding: 0.6rem 0.9rem;
         text-align: center;
+        line-height: 1.1;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
     .order-list-page .btn-confirm {
@@ -460,8 +745,117 @@
     }
 
     .order-list-page .btn-view {
-        background: #c9d0db;
+        background: #2ea44f;
+        color: #ffffff !important;
+        min-width: 7.5rem;
+        box-shadow: 0 6px 14px rgba(46, 164, 79, 0.28);
+    }
+
+    .order-list-page .btn-view:hover,
+    .order-list-page .btn-view:focus {
+        background: #20863f;
+        color: #ffffff !important;
+        transform: translateY(-1px);
+    }
+
+    .order-list-page .btn-menu {
+        background: #1f2937;
+        color: #ffffff !important;
+        min-width: 0;
+        width: 100%;
+        box-shadow: 0 6px 14px rgba(31, 41, 55, 0.28);
+    }
+
+    .order-list-page .btn-menu:hover,
+    .order-list-page .btn-menu:focus {
+        background: #111827;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(75, 184, 121, 0.25);
+        transform: translateY(-1px);
+    }
+
+    .status-menu-toggle::after {
+        content: "";
+        display: inline-block;
+        margin-left: 0.55rem;
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 5px solid rgba(255, 255, 255, 0.9);
+        vertical-align: middle;
+        transition: transform 0.2s ease;
+    }
+
+    .status-menu-toggle[aria-expanded="true"]::after {
+        transform: rotate(180deg);
+    }
+
+    .status-dropdown-menu {
+        min-width: 13rem;
+        list-style: none;
+        margin: 0;
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        padding: 0.35rem;
+        border-radius: 0.7rem;
+        box-shadow: 0 16px 30px rgba(17, 24, 39, 0.16);
+        z-index: 120;
+    }
+
+    .status-dropdown-menu[hidden] {
+        display: none;
+    }
+
+    .status-dropdown-menu.portal-open {
+        position: absolute;
+        z-index: 5000;
+    }
+
+    .dropdown-item-form {
+        margin: 0;
+    }
+
+    .dropdown-item-form .dropdown-item {
+        width: 100%;
+        border: 0;
+        background: transparent;
         color: #1f2937 !important;
+        text-align: left;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .status-dropdown-menu .dropdown-item {
+        color: #1f2937 !important;
+    }
+
+    .status-dropdown-menu .dropdown-item-modal {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        color: #1f2937 !important;
+        text-align: left;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        padding: 0.5rem 0.75rem;
+        transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .status-dropdown-menu .dropdown-item:hover,
+    .status-dropdown-menu .dropdown-item:focus {
+        background: #d7f5df;
+        color: #0f5132;
+    }
+
+    .status-empty {
+        display: block;
+        padding: 0.55rem 0.65rem;
+        color: #6b7280;
+        font-weight: 600;
     }
 
     .empty-state {
@@ -485,13 +879,23 @@
     }
 
     @@media (max-width: 991px) {
-        .status-tabs {
-            gap: 0.5rem;
+        .status-tree {
+            min-width: 980px;
+            height: 290px;
         }
 
-        .status-tab {
-            padding: 0.55rem 1rem;
-            font-size: 0.9rem;
+        .order-list-page .order-table {
+            min-width: 980px;
+        }
+
+        .action-cell {
+            min-width: 15.5rem;
+        }
+
+        .order-list-page .tree-node {
+            min-width: 10rem;
+            padding: 0.55rem 0.8rem;
+            font-size: 0.85rem;
         }
 
         .period-filter {
@@ -500,30 +904,156 @@
     }
 </style>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const selectors = document.querySelectorAll('.schedule-option-select');
-        selectors.forEach(function (select) {
-            select.addEventListener('change', function () {
-                const targetSelector = select.getAttribute('data-target');
-                if (!targetSelector) {
-                    return;
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectors = document.querySelectorAll('.schedule-option-select');
+            selectors.forEach(function (select) {
+                select.addEventListener('change', function () {
+                    const targetSelector = select.getAttribute('data-target');
+                    if (!targetSelector) {
+                        return;
+                    }
+
+                    const dateInput = document.querySelector(targetSelector);
+                    if (!dateInput) {
+                        return;
+                    }
+
+                    const selected = select.value;
+                    if (selected === 'current') {
+                        dateInput.value = dateInput.getAttribute('data-current') || dateInput.value;
+                    } else if (selected === 'lunch') {
+                        dateInput.value = dateInput.getAttribute('data-lunch') || dateInput.value;
+                    } else if (selected === 'dinner') {
+                        dateInput.value = dateInput.getAttribute('data-dinner') || dateInput.value;
+                    }
+                });
+            });
+
+            let activeStatusMenu = null;
+
+            function positionPortalStatusMenu(menu, toggle) {
+                const toggleRect = toggle.getBoundingClientRect();
+                const menuRect = menu.getBoundingClientRect();
+                const viewportPadding = 8;
+                const gap = 8;
+
+                let top = window.scrollY + toggleRect.bottom + gap;
+                const viewportBottom = window.scrollY + window.innerHeight;
+                if (top + menuRect.height > viewportBottom - viewportPadding) {
+                    top = window.scrollY + toggleRect.top - menuRect.height - gap;
+                }
+                top = Math.max(window.scrollY + viewportPadding, top);
+
+                let left = window.scrollX + toggleRect.right - menuRect.width;
+                const viewportRight = window.scrollX + window.innerWidth;
+                if (left + menuRect.width > viewportRight - viewportPadding) {
+                    left = viewportRight - menuRect.width - viewportPadding;
+                }
+                left = Math.max(window.scrollX + viewportPadding, left);
+
+                menu.style.top = top + 'px';
+                menu.style.left = left + 'px';
+            }
+
+            function closeAllStatusMenus() {
+                if (activeStatusMenu && activeStatusMenu.repositionHandler) {
+                    window.removeEventListener('resize', activeStatusMenu.repositionHandler);
+                    window.removeEventListener('scroll', activeStatusMenu.repositionHandler, true);
                 }
 
-                const dateInput = document.querySelector(targetSelector);
-                if (!dateInput) {
-                    return;
-                }
+                const menus = document.querySelectorAll('.status-dropdown-menu');
+                const toggles = document.querySelectorAll('.status-menu-toggle');
 
-                const selected = select.value;
-                if (selected === 'current') {
-                    dateInput.value = dateInput.getAttribute('data-current') || dateInput.value;
-                } else if (selected === 'lunch') {
-                    dateInput.value = dateInput.getAttribute('data-lunch') || dateInput.value;
-                } else if (selected === 'dinner') {
-                    dateInput.value = dateInput.getAttribute('data-dinner') || dateInput.value;
+                menus.forEach(function (menu) {
+                    if (menu.dataset.originParent) {
+                        const parent = document.getElementById(menu.dataset.originParent);
+                        if (parent) {
+                            parent.appendChild(menu);
+                        }
+                        delete menu.dataset.originParent;
+                    }
+
+                    menu.classList.remove('portal-open');
+                    menu.style.top = '';
+                    menu.style.left = '';
+                    menu.setAttribute('hidden', 'hidden');
+                });
+
+                toggles.forEach(function (toggle) {
+                    toggle.setAttribute('aria-expanded', 'false');
+                });
+
+                activeStatusMenu = null;
+            }
+
+            const statusToggles = document.querySelectorAll('.status-menu-toggle');
+            statusToggles.forEach(function (toggle) {
+                toggle.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const targetSelector = toggle.getAttribute('data-target');
+                    if (!targetSelector) {
+                        return;
+                    }
+
+                    const menu = document.querySelector(targetSelector);
+                    if (!menu) {
+                        return;
+                    }
+
+                    const shouldOpen = menu.hasAttribute('hidden');
+                    closeAllStatusMenus();
+
+                    if (shouldOpen) {
+                        const owner = menu.closest('.status-menu-wrap');
+                        if (owner && owner.id) {
+                            menu.dataset.originParent = owner.id;
+                        }
+
+                        document.body.appendChild(menu);
+                        menu.classList.add('portal-open');
+                        menu.removeAttribute('hidden');
+                        toggle.setAttribute('aria-expanded', 'true');
+
+                        const repositionHandler = function () {
+                            positionPortalStatusMenu(menu, toggle);
+                        };
+
+                        positionPortalStatusMenu(menu, toggle);
+                        window.addEventListener('resize', repositionHandler);
+                        window.addEventListener('scroll', repositionHandler, true);
+
+                        activeStatusMenu = {
+                            menu: menu,
+                            toggle: toggle,
+                            repositionHandler: repositionHandler
+                        };
+                    }
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                const clickInsideMenu = event.target.closest('.status-menu-wrap');
+                if (!clickInsideMenu) {
+                    closeAllStatusMenus();
                 }
             });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    closeAllStatusMenus();
+                }
+            });
+
+            const statusMenuItems = document.querySelectorAll('.status-dropdown-menu .dropdown-item');
+            statusMenuItems.forEach(function (item) {
+                item.addEventListener('click', function () {
+                    closeAllStatusMenus();
+                });
+            });
         });
-    });
-</script>
+    </script>
+}

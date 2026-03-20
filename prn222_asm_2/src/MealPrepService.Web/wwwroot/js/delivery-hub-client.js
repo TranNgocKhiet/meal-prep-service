@@ -1,22 +1,33 @@
 // Delivery Hub Client
 (function () {
     let deliveryHub = null;
+    let initialized = false;
 
     function initializeDeliveryHub() {
-        deliveryHub = SignalRManager.getConnection('DeliveryHub');
-        if (!deliveryHub) {
-            console.error('DeliveryHub not initialized');
+        if (initialized) {
             return;
         }
 
+        if (typeof SignalRManager === 'undefined') {
+            return;
+        }
+
+        deliveryHub = SignalRManager.getConnection('DeliveryHub');
+        if (!deliveryHub) {
+            setTimeout(initializeDeliveryHub, 250);
+            return;
+        }
+
+        initialized = true;
+
         // Listen for delivery updates
-        deliveryHub.on('ReceiveDeliveryUpdate', (deliveryId, status, location, message) => {
+        deliveryHub.on('ReceiveDeliveryUpdate', (deliveryId, status, location, message, orderId) => {
             console.log(`Delivery ${deliveryId} updated: ${status} at ${location}`);
-            handleDeliveryUpdate(deliveryId, status, location, message);
+            handleDeliveryUpdate(deliveryId, status, location, message, orderId);
         });
     }
 
-    function handleDeliveryUpdate(deliveryId, status, location, message) {
+    function handleDeliveryUpdate(deliveryId, status, location, message, orderId) {
         // Update delivery status in UI
         const deliveryElement = document.querySelector(`[data-delivery-id="${deliveryId}"]`);
         if (deliveryElement) {
@@ -37,9 +48,20 @@
 
         // Trigger custom event
         const event = new CustomEvent('delivery-updated', {
-            detail: { deliveryId, status, location, message }
+            detail: { deliveryId, status, location, message, orderId }
         });
         document.dispatchEvent(event);
+
+        const statusEvent = new CustomEvent('delivery-status-updated', {
+            detail: {
+                deliveryId: (deliveryId || '').toString(),
+                status: (status || '').toString(),
+                location: (location || '').toString(),
+                message: (message || '').toString(),
+                orderId: (orderId || '').toString()
+            }
+        });
+        document.dispatchEvent(statusEvent);
     }
 
     function getStatusClass(status) {
@@ -81,7 +103,7 @@
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function () {
         if (document.body.dataset.authenticated === 'true') {
-            setTimeout(initializeDeliveryHub, 1000);
+            setTimeout(initializeDeliveryHub, 500);
         }
     });
 

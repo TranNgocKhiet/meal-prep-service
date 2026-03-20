@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
 using MealPrepService.BusinessLogicLayer.Interfaces;
 using MealPrepService.BusinessLogicLayer.Exceptions;
+using MealPrepService.Web.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace MealPrepService.Web.Pages.Delivery;
@@ -11,6 +13,8 @@ namespace MealPrepService.Web.Pages.Delivery;
 public class CompleteDeliveryModel : PageModel
 {
     private readonly IDeliveryService _deliveryService;
+    private readonly IHubContext<DeliveryHub> _deliveryHubContext;
+    private readonly IHubContext<OrderHub> _orderHubContext;
     private readonly ILogger<CompleteDeliveryModel> _logger;
 
     [BindProperty]
@@ -19,9 +23,15 @@ public class CompleteDeliveryModel : PageModel
     [BindProperty]
     public string DeliveryResult { get; set; } = "customer_received";
 
-    public CompleteDeliveryModel(IDeliveryService deliveryService, ILogger<CompleteDeliveryModel> logger)
+    public CompleteDeliveryModel(
+        IDeliveryService deliveryService,
+        IHubContext<DeliveryHub> deliveryHubContext,
+        IHubContext<OrderHub> orderHubContext,
+        ILogger<CompleteDeliveryModel> logger)
     {
         _deliveryService = deliveryService;
+        _deliveryHubContext = deliveryHubContext;
+        _orderHubContext = orderHubContext;
         _logger = logger;
     }
 
@@ -35,11 +45,33 @@ public class CompleteDeliveryModel : PageModel
     {
         try
         {
-            await _deliveryService.CompleteDeliveryAsync(DeliveryId, GetCurrentAccountId(), DeliveryResult);
+            var deliveryManId = GetCurrentAccountId();
+            await _deliveryService.CompleteDeliveryAsync(DeliveryId, deliveryManId, DeliveryResult);
+
+            var updatedDelivery = (await _deliveryService.GetByDeliveryManAsync(deliveryManId))
+                .FirstOrDefault(d => d.Id == DeliveryId);
+
+            if (updatedDelivery != null && updatedDelivery.OrderId != Guid.Empty)
+            {
+                var message = $"Delivery status updated to {DeliveryResult}.";
+                await _deliveryHubContext.Clients.All.SendAsync(
+                    "ReceiveDeliveryUpdate",
+                    DeliveryId.ToString(),
+                    DeliveryResult,
+                    string.Empty,
+                    message,
+                    updatedDelivery.OrderId.ToString());
+
+                await _orderHubContext.Clients.All.SendAsync(
+                    "ReceiveOrderStatusUpdate",
+                    updatedDelivery.OrderId.ToString(),
+                    DeliveryResult,
+                    message);
+            }
             
             TempData["SuccessMessage"] = "Delivery result saved successfully.";
             _logger.LogInformation("Delivery {DeliveryId} completed by delivery man {DeliveryManId}", 
-                DeliveryId, GetCurrentAccountId());
+                DeliveryId, deliveryManId);
             
             return RedirectToPage("/Delivery/AssignedDeliveries");
         }

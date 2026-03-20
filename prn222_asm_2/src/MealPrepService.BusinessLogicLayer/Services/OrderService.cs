@@ -409,9 +409,12 @@ namespace MealPrepService.BusinessLogicLayer.Services
             {
                 [OrderStatuses.Pending] = new[] { OrderStatuses.Confirmed, OrderStatuses.Cancelled },
                 [OrderStatuses.PendingConfirmation] = new[] { OrderStatuses.Confirmed, OrderStatuses.Cancelled },
-                [OrderStatuses.Confirmed] = new[] { OrderStatuses.Preparing },
-                [OrderStatuses.Preparing] = new[] { OrderStatuses.Prepared, OrderStatuses.PreparingFailed },
-                [OrderStatuses.Prepared] = new[] { OrderStatuses.Delivering }
+                [OrderStatuses.Confirmed] = new[] { OrderStatuses.Pending, OrderStatuses.Preparing, OrderStatuses.Cancelled },
+                [OrderStatuses.Cancelled] = new[] { OrderStatuses.Pending, OrderStatuses.Confirmed },
+                [OrderStatuses.Preparing] = new[] { OrderStatuses.Confirmed, OrderStatuses.Cancelled, OrderStatuses.Prepared, OrderStatuses.PreparingFailed },
+                [OrderStatuses.PreparingFailed] = new[] { OrderStatuses.Prepared, OrderStatuses.Preparing },
+                [OrderStatuses.Prepared] = new[] { OrderStatuses.Preparing, OrderStatuses.Delivering, OrderStatuses.PreparingFailed },
+                [OrderStatuses.Delivering] = new[] { OrderStatuses.Prepared }
             };
 
             if (!allowedTransitions.TryGetValue(currentStatus, out var allowedTargets) ||
