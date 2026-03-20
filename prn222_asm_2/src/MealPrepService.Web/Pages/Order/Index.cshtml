@@ -298,26 +298,7 @@
                                         <td>#@order.Id.ToString().Substring(0, 8)</td>
                                         <td>@(order.DeliveryTime?.ToString("MMM dd, yyyy hh:mm tt") ?? "-")</td>
                                         <td>
-                                            @if (order.Status.Equals("customer_received", StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                <span class="badge bg-success">Delivered</span>
-                                            }
-                                            else if (order.Status.Equals("customer_reject", StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                <span class="badge bg-danger">Rejected</span>
-                                            }
-                                            else if (order.Status.Equals("failed", StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                <span class="badge bg-danger">Failed</span>
-                                            }
-                                            else if (order.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                <span class="badge bg-danger">Cancelled</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary">@order.Status</span>
-                                            }
+                                            <partial name="~/Pages/Shared/_OrderStatusBadge.cshtml" model="order.Status" />
                                         </td>
                                         <td class="text-end">
                                             <a asp-page="Details" asp-route-id="@order.Id" class="btn btn-sm btn-outline-primary">

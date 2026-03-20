@@ -2,7 +2,7 @@
 
 @{
     var status = Model?.ToLower() ?? "unknown";
-    var badgeClass = "bg-secondary";
+    var badgeClass = "bg-primary";
     var icon = "bi-question-circle";
     var displayText = Model ?? "Unknown";
 
@@ -14,17 +14,17 @@
             displayText = "Pending";
             break;
         case "pending_payment":
-            badgeClass = "bg-info";
+            badgeClass = "bg-primary";
             icon = "bi-hourglass-split";
             displayText = "Pending Payment";
             break;
         case "awaiting_online_payment":
-            badgeClass = "bg-info";
+            badgeClass = "bg-primary";
             icon = "bi-credit-card";
             displayText = "Awaiting VNPay";
             break;
         case "pending_confirmation":
-            badgeClass = "bg-warning text-dark";
+            badgeClass = "bg-primary";
             icon = "bi-telephone";
             displayText = "Pending Confirmation";
             break;
@@ -34,12 +34,12 @@
             displayText = "Confirmed";
             break;
         case "preparing":
-            badgeClass = "bg-info text-dark";
+            badgeClass = "bg-warning text-dark";
             icon = "bi-fire";
             displayText = "Preparing";
             break;
         case "preparing_failed":
-            badgeClass = "bg-warning text-dark";
+            badgeClass = "bg-danger";
             icon = "bi-exclamation-triangle";
             displayText = "Preparing Failed";
             break;
@@ -56,7 +56,7 @@
         case "customer_received":
             badgeClass = "bg-success";
             icon = "bi-check2-circle";
-            displayText = "Customer Received";
+            displayText = "Completed";
             break;
         case "customer_reject":
             badgeClass = "bg-danger";
@@ -66,17 +66,17 @@
         case "failed":
             badgeClass = "bg-danger";
             icon = "bi-exclamation-octagon";
-            displayText = "Failed";
+            displayText = "Delivery Fail";
             break;
         case "delivered":
-            badgeClass = "bg-primary";
+            badgeClass = "bg-success";
             icon = "bi-box-seam";
-            displayText = "Delivered";
+            displayText = "Completed";
             break;
         case "payment_failed":
             badgeClass = "bg-danger";
             icon = "bi-x-circle";
-            displayText = "Payment Failed";
+            displayText = "Payment Fail";
             break;
         case "cancelled":
             badgeClass = "bg-danger";

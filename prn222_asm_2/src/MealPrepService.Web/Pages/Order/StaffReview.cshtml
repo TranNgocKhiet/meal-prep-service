@@ -668,9 +668,9 @@
     }
 
     .status-active {
-        background: #6ee7ff;
-        color: #004e64;
-        border-color: #31c5e8;
+        background: #60a5fa;
+        color: #0b2f6b;
+        border-color: #3b82f6;
     }
 
     .status-neutral {
@@ -906,11 +906,8 @@
 </style>
 
 @section Scripts {
-    <script src="~/js/order-hub-client.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            let reloadTimer = null;
-
             const selectors = document.querySelectorAll('.schedule-option-select');
             selectors.forEach(function (select) {
                 select.addEventListener('change', function () {
@@ -933,16 +930,6 @@
                         dateInput.value = dateInput.getAttribute('data-dinner') || dateInput.value;
                     }
                 });
-            });
-
-            document.addEventListener('order-status-updated', function () {
-                if (reloadTimer) {
-                    return;
-                }
-
-                reloadTimer = window.setTimeout(function () {
-                    window.location.reload();
-                }, 350);
             });
 
             let activeStatusMenu = null;

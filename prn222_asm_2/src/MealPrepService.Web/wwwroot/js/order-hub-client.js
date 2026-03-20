@@ -1,19 +1,46 @@
 // Order Hub Client
 (function () {
     let orderHub = null;
+    let initialized = false;
 
     function initializeOrderHub() {
-        orderHub = SignalRManager.getConnection('OrderHub');
-        if (!orderHub) {
-            console.error('OrderHub not initialized');
+        if (initialized) {
             return;
         }
+
+        if (typeof SignalRManager === 'undefined') {
+            return;
+        }
+
+        orderHub = SignalRManager.getConnection('OrderHub');
+        if (!orderHub) {
+            setTimeout(initializeOrderHub, 250);
+            return;
+        }
+
+        initialized = true;
 
         // Listen for order status updates
         orderHub.on('ReceiveOrderStatusUpdate', (orderId, status, message) => {
             console.log(`Order ${orderId} status updated to ${status}: ${message}`);
             handleOrderStatusUpdate(orderId, status, message);
         });
+
+        // If this is Order Details, auto-join the specific order group.
+        orderHub.onreconnected(() => {
+            const detailOrderId = (window.__orderPageOrderId || '').toString();
+            if (detailOrderId) {
+                joinOrderGroup(detailOrderId);
+            }
+        });
+
+        const detailOrderId = (window.__orderPageOrderId || '').toString();
+        if (detailOrderId) {
+            joinOrderGroup(detailOrderId);
+            window.addEventListener('beforeunload', () => {
+                leaveOrderGroup(detailOrderId);
+            });
+        }
     }
 
     function handleOrderStatusUpdate(orderId, status, message) {
@@ -41,11 +68,20 @@
     function updateStatusBadge(element, status) {
         const statusMap = {
             'pending': { class: 'bg-warning text-dark', icon: 'bi-clock', text: 'Pending' },
-            'pending_payment': { class: 'bg-info', icon: 'bi-hourglass-split', text: 'Pending Payment' },
+            'preparing': { class: 'bg-warning text-dark', icon: 'bi-fire', text: 'Preparing' },
             'confirmed': { class: 'bg-success', icon: 'bi-check-circle', text: 'Confirmed' },
-            'delivered': { class: 'bg-primary', icon: 'bi-box-seam', text: 'Delivered' },
-            'payment_failed': { class: 'bg-danger', icon: 'bi-x-circle', text: 'Payment Failed' },
-            'cancelled': { class: 'bg-dark', icon: 'bi-slash-circle', text: 'Cancelled' }
+            'prepared': { class: 'bg-success', icon: 'bi-check2-all', text: 'Prepared' },
+            'customer_received': { class: 'bg-success', icon: 'bi-check2-circle', text: 'Completed' },
+            'delivered': { class: 'bg-success', icon: 'bi-box-seam', text: 'Completed' },
+            'pending_payment': { class: 'bg-primary', icon: 'bi-hourglass-split', text: 'Pending Payment' },
+            'awaiting_online_payment': { class: 'bg-primary', icon: 'bi-credit-card', text: 'Awaiting VNPay' },
+            'pending_confirmation': { class: 'bg-primary', icon: 'bi-telephone', text: 'Pending Confirmation' },
+            'preparing_failed': { class: 'bg-danger', icon: 'bi-exclamation-triangle', text: 'Preparing Failed' },
+            'delivering': { class: 'bg-primary', icon: 'bi-truck', text: 'On Scheduled' },
+            'payment_failed': { class: 'bg-danger', icon: 'bi-x-circle', text: 'Payment Fail' },
+            'cancelled': { class: 'bg-danger', icon: 'bi-slash-circle', text: 'Cancelled' },
+            'failed': { class: 'bg-danger', icon: 'bi-exclamation-octagon', text: 'Delivery Fail' },
+            'customer_reject': { class: 'bg-danger', icon: 'bi-x-octagon', text: 'Customer Reject' }
         };
 
         const statusInfo = statusMap[status.toLowerCase()] || statusMap['pending'];
@@ -91,7 +127,7 @@
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function () {
         if (document.body.dataset.authenticated === 'true') {
-            setTimeout(initializeOrderHub, 1000);
+            setTimeout(initializeOrderHub, 500);
         }
     });
 

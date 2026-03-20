@@ -149,6 +149,10 @@ public class StaffReviewModel : PageModel
             "preparing_failed" => "PreparingFailed",
             "prepared" => "Prepared",
             "delivering" => "Delivering",
+            "customer_received" or "delivered" => "Completed",
+            "customer_reject" => "CustomerReject",
+            "failed" => "DeliveryFail",
+            "payment_failed" => "PaymentFail",
             "cancelled" => "OrderCancelled",
             _ => status ?? "Unknown"
         };
@@ -159,11 +163,10 @@ public class StaffReviewModel : PageModel
         var normalized = (status ?? string.Empty).Trim().ToLowerInvariant();
         return normalized switch
         {
-            "pending" or "pending_confirmation" => "status-badge status-pending",
-            "confirmed" or "preparing" or "preparing_failed" => "status-badge status-active",
-            "prepared" or "delivering" => "status-badge status-neutral",
-            "cancelled" => "status-badge status-cancelled",
-            _ => "status-badge status-default"
+            "pending" or "preparing" => "status-badge status-pending",
+            "confirmed" or "prepared" or "customer_received" or "delivered" => "status-badge status-neutral",
+            "cancelled" or "preparing_failed" or "failed" or "payment_failed" or "customer_reject" => "status-badge status-cancelled",
+            _ => "status-badge status-active"
         };
     }
 

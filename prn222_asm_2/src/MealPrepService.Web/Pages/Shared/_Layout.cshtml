@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body class="bg-black text-white d-flex flex-column min-vh-100">
+<body class="bg-black text-white d-flex flex-column min-vh-100" data-authenticated="@User.Identity?.IsAuthenticated.ToString().ToLowerInvariant()">
     <header>
         <nav class="navbar navbar-expand-lg app-navbar">
             <div class="container-fluid app-navbar-inner">
@@ -130,6 +130,32 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
     <script src="~/js/signalr-connection.js" asp-append-version="true"></script>
+    @if (Context.Request.Path.StartsWithSegments("/Order"))
+    {
+        <script src="~/js/order-hub-client.js" asp-append-version="true"></script>
+        <script>
+            (function () {
+                let orderPageReloadTimer = null;
+
+                document.addEventListener('order-status-updated', function (event) {
+                    const pageOrderId = (window.__orderPageOrderId || '').toString().toLowerCase();
+                    const updatedOrderId = (event.detail && event.detail.orderId ? event.detail.orderId : '').toString().toLowerCase();
+
+                    if (pageOrderId && pageOrderId !== updatedOrderId) {
+                        return;
+                    }
+
+                    if (orderPageReloadTimer) {
+                        return;
+                    }
+
+                    orderPageReloadTimer = window.setTimeout(function () {
+                        window.location.reload();
+                    }, 300);
+                });
+            })();
+        </script>
+    }
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
