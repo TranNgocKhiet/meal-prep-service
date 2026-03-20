@@ -1,9 +1,11 @@
 using MealPrepService.BusinessLogicLayer.DTOs;
 using MealPrepService.BusinessLogicLayer.Interfaces;
+using MealPrepService.Web.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace MealPrepService.Web.Pages.Order;
@@ -25,13 +27,20 @@ public class StaffReviewModel : PageModel
     private readonly IOrderService _orderService;
     private readonly IDeliveryService _deliveryService;
     private readonly IAccountService _accountService;
+    private readonly IHubContext<OrderHub> _orderHubContext;
     private readonly ILogger<StaffReviewModel> _logger;
 
-    public StaffReviewModel(IOrderService orderService, IDeliveryService deliveryService, IAccountService accountService, ILogger<StaffReviewModel> logger)
+    public StaffReviewModel(
+        IOrderService orderService,
+        IDeliveryService deliveryService,
+        IAccountService accountService,
+        IHubContext<OrderHub> orderHubContext,
+        ILogger<StaffReviewModel> logger)
     {
         _orderService = orderService;
         _deliveryService = deliveryService;
         _accountService = accountService;
+        _orderHubContext = orderHubContext;
         _logger = logger;
     }
 
@@ -53,36 +62,12 @@ public class StaffReviewModel : PageModel
 
     public async Task<IActionResult> OnPostConfirmAsync(Guid orderId, string? statusFilter, string? periodFilter)
     {
-        try
-        {
-            var staffId = GetCurrentAccountId();
-            await _orderService.TransitionOrderForOperationsAsync(orderId, "confirmed", staffId);
-            TempData["SuccessMessage"] = "Order confirmed successfully.";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error confirming order {OrderId}", orderId);
-            TempData["ErrorMessage"] = ex.Message;
-        }
-
-        return RedirectToPage(new { status = NormalizeTab(statusFilter), period = NormalizePeriod(periodFilter) });
+        return await TransitionOrderAsync(orderId, "confirmed", "Order confirmed successfully.", statusFilter, periodFilter);
     }
 
     public async Task<IActionResult> OnPostCancelAsync(Guid orderId, string? statusFilter, string? periodFilter)
     {
-        try
-        {
-            var staffId = GetCurrentAccountId();
-            await _orderService.TransitionOrderForOperationsAsync(orderId, "cancelled", staffId);
-            TempData["InfoMessage"] = "Order cancelled.";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error cancelling order {OrderId}", orderId);
-            TempData["ErrorMessage"] = ex.Message;
-        }
-
-        return RedirectToPage(new { status = NormalizeTab(statusFilter), period = NormalizePeriod(periodFilter) });
+        return await TransitionOrderAsync(orderId, "cancelled", "Order cancelled.", statusFilter, periodFilter);
     }
 
     public async Task<IActionResult> OnPostPrepareAsync(Guid orderId, string? statusFilter, string? periodFilter)
@@ -100,6 +85,21 @@ public class StaffReviewModel : PageModel
         return await TransitionOrderAsync(orderId, "preparing_failed", "Order marked as preparing failed.", statusFilter, periodFilter);
     }
 
+    public async Task<IActionResult> OnPostToPendingAsync(Guid orderId, string? statusFilter, string? periodFilter)
+    {
+        return await TransitionOrderAsync(orderId, "pending", "Order moved back to pending.", statusFilter, periodFilter);
+    }
+
+    public async Task<IActionResult> OnPostToPreparingAsync(Guid orderId, string? statusFilter, string? periodFilter)
+    {
+        return await TransitionOrderAsync(orderId, "preparing", "Order moved back to preparing.", statusFilter, periodFilter);
+    }
+
+    public async Task<IActionResult> OnPostRestorePreparedAsync(Guid orderId, string? statusFilter, string? periodFilter)
+    {
+        return await TransitionOrderAsync(orderId, "prepared", "Order moved back to prepared.", statusFilter, periodFilter);
+    }
+
     public async Task<IActionResult> OnPostScheduleAsync(Guid orderId, Guid deliveryScheduleId, DateTime selectedDeliveryTime, Guid deliveryManId, string? statusFilter, string? periodFilter)
     {
         try
@@ -111,6 +111,7 @@ public class StaffReviewModel : PageModel
             var staffId = GetCurrentAccountId();
             await _orderService.TransitionOrderForOperationsAsync(orderId, "delivering", staffId);
             TempData["SuccessMessage"] = "Order moved to on scheduled and assigned to delivery man.";
+            await BroadcastOrderStatusUpdateAsync(orderId, "delivering", "Order moved to on scheduled.");
         }
         catch (Exception ex)
         {
@@ -251,6 +252,7 @@ public class StaffReviewModel : PageModel
             var staffId = GetCurrentAccountId();
             await _orderService.TransitionOrderForOperationsAsync(orderId, targetStatus, staffId);
             TempData["SuccessMessage"] = successMessage;
+            await BroadcastOrderStatusUpdateAsync(orderId, targetStatus, successMessage);
         }
         catch (Exception ex)
         {
@@ -259,6 +261,11 @@ public class StaffReviewModel : PageModel
         }
 
         return RedirectToPage(new { status = NormalizeTab(statusFilter), period = NormalizePeriod(periodFilter) });
+    }
+
+    private async Task BroadcastOrderStatusUpdateAsync(Guid orderId, string status, string message)
+    {
+        await _orderHubContext.Clients.All.SendAsync("ReceiveOrderStatusUpdate", orderId.ToString(), status, message);
     }
 
     private Guid GetCurrentAccountId()
