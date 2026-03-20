@@ -1,144 +1,281 @@
 @page
+@using System.Text.Json
 @model MealPrepService.Web.Pages.Admin.DashboardModel
 @{
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="container-fluid mt-4 p-3 text-white">
-    <div class="admin-hero mb-4 p-4 rounded-3">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div>
-                <h2 class="mb-1"><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
-                <p class="mb-0 text-light">System-wide overview and management center</p>
+@functions {
+    public string GetPageUrl(int? mealPlanPage = null, int? nutritionPage = null, int? spendingPage = null, int? mealPage = null)
+    {
+        return $"?fromDate={Model.FromDate:yyyy-MM-dd}&toDate={Model.ToDate:yyyy-MM-dd}&topMonth={Model.TopMonth}&topYear={Model.TopYear}&mealPlanPage={mealPlanPage ?? Model.MealPlanPage}&nutritionPage={nutritionPage ?? Model.NutritionPage}&spendingPage={spendingPage ?? Model.SpendingPage}&mealPage={mealPage ?? Model.MealPage}";
+    }
+}
+
+<div class="container-fluid mt-4 text-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 p-4 rounded-3 dashboard-hero">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+            <p class="mb-0 text-light">Analytics center for orders, revenue, and AI feature usage</p>
+        </div>
+        <div class="text-end">
+            <small class="text-light d-block">Last Updated: @Model.LastUpdated.ToString("MMM dd, yyyy hh:mm tt")</small>
+            <button type="button" class="btn btn-outline-light btn-sm mt-2" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card dashboard-card h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Revenue compare to last month</h6>
+                    <h4 class="@(Model.RevenueChangeOverview.IsIncrease ? "text-success" : "text-danger")">
+                        <i class="bi @(Model.RevenueChangeOverview.IsIncrease ? "bi-arrow-up-right" : "bi-arrow-down-right")"></i>
+                        $@Math.Abs(Model.RevenueChangeOverview.Difference).ToString("N2")
+                    </h4>
+                </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-light small">Last Updated: @Model.LastUpdated.ToString("MMM dd, yyyy hh:mm tt")</span>
-                <button type="button" class="btn btn-outline-light btn-sm" onclick="location.reload()">
-                    <i class="bi bi-arrow-clockwise"></i> Refresh
-                </button>
+        </div>
+        <div class="col-md-6">
+            <div class="card dashboard-card h-100">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted">Total orders compare to last month</h6>
+                    <h4 class="@(Model.OrdersChangeOverview.IsIncrease ? "text-success" : "text-danger")">
+                        <i class="bi @(Model.OrdersChangeOverview.IsIncrease ? "bi-arrow-up-right" : "bi-arrow-down-right")"></i>
+                        @Math.Abs(Model.OrdersChangeOverview.Difference).ToString("N0")
+                    </h4>
+                </div>
             </div>
         </div>
     </div>
 
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-dismissible fade show" role="alert" style="background-color: white; color: black; border: 2px solid black;">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+    <div class="card mb-4 dashboard-card">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <input type="hidden" name="topMonth" value="@Model.TopMonth" />
+                <input type="hidden" name="topYear" value="@Model.TopYear" />
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
-    <div class="row g-3 mb-4">
-        @foreach (var card in Model.DashboardCards)
-        {
-            <div class="col-md-6 col-xl-3">
-                <div class="card admin-stat-card h-100 border-0">
-                    <div class="card-body d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="text-uppercase text-muted mb-2">@card.Title</h6>
-                            <h3 class="mb-1">@card.Value</h3>
-                            <small class="text-muted">@card.Description</small>
-                        </div>
-                        <div class="admin-stat-icon text-@card.CssClass">
-                            <i class="@card.Icon"></i>
-                        </div>
+                <div class="col-md-4">
+                    <label class="form-label text-white">From Date</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control dashboard-input" id="fromDate" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                        <button class="btn btn-outline-light" type="button" onclick="document.getElementById('fromDate').showPicker()">
+                            <i class="bi bi-calendar-event"></i>
+                        </button>
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label text-white">To Date</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control dashboard-input" id="toDate" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                        <button class="btn btn-outline-light" type="button" onclick="document.getElementById('toDate').showPicker()">
+                            <i class="bi bi-calendar-event"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-funnel"></i> Apply Interval</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="mb-0"><i class="bi bi-graph-up-arrow"></i> Orders & Revenue Trend</h5>
+                </div>
+                <div class="card-body"><canvas id="ordersRevenueChart" height="95"></canvas></div>
             </div>
-        }
+        </div>
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Order Status Count</h5>
+                </div>
+                <div class="card-body"><canvas id="orderStatusChart" height="95"></canvas></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="mb-0"><i class="bi bi-robot"></i> AI Meal Plan Usage Trend</h5>
+                </div>
+                <div class="card-body"><canvas id="aiMealPlanChart" height="120"></canvas></div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h5 class="mb-0"><i class="bi bi-cpu"></i> AI Nutrition Usage Trend</h5>
+                </div>
+                <div class="card-body"><canvas id="aiNutritionChart" height="120"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3 dashboard-card">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <input type="hidden" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+
+                <div class="col-md-4">
+                    <label class="form-label text-white">Top 100 - Month</label>
+                    <select name="topMonth" class="form-select dashboard-input">
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            if (m == Model.TopMonth)
+                            {
+                                <option value="@m" selected>@(new DateTime(2026, m, 1).ToString("MMMM"))</option>
+                            }
+                            else
+                            {
+                                <option value="@m">@(new DateTime(2026, m, 1).ToString("MMMM"))</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-white">Top 100 - Year</label>
+                    <select name="topYear" class="form-select dashboard-input">
+                        @foreach (var y in Model.AvailableTopYears)
+                        {
+                            if (y == Model.TopYear)
+                            {
+                                <option value="@y" selected>@y</option>
+                            }
+                            else
+                            {
+                                <option value="@y">@y</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-calendar-check"></i> Apply Top 100 Month/Year</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <div class="row g-3">
-        <div class="col-lg-8">
-            <div class="card admin-panel h-100 border-0">
-                <div class="card-header border-0 bg-transparent pt-4 pb-0 px-4">
-                    <h5 class="mb-1"><i class="bi bi-grid-1x2"></i> Administration Modules</h5>
-                    <small class="text-muted">Core areas for operating the platform</small>
+        <div class="col-xl-6">
+            <div class="card dashboard-card h-100 d-flex flex-column">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h6 class="mb-0">Top 100 Customers - AI Meal Plan Usage</h6>
                 </div>
-                <div class="card-body p-4">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <a asp-page="Accounts" class="admin-module d-block text-decoration-none h-100">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">Accounts</h6>
-                                        <small>Manage all user accounts and roles</small>
-                                    </div>
-                                    <i class="bi bi-people"></i>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <a asp-page="Revenue" class="admin-module d-block text-decoration-none h-100">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">Revenue Reports</h6>
-                                        <small>Review financial metrics and trends</small>
-                                    </div>
-                                    <i class="bi bi-graph-up-arrow"></i>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <a asp-page="SystemConfiguration" class="admin-module d-block text-decoration-none h-100">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">System Configuration</h6>
-                                        <small>Tune limits and operational settings</small>
-                                    </div>
-                                    <i class="bi bi-gear"></i>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <a asp-page="/Menu/Index" class="admin-module d-block text-decoration-none h-100">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">Content Management</h6>
-                                        <small>Menus, recipes, ingredients, allergies</small>
-                                    </div>
-                                    <i class="bi bi-journals"></i>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
+                <div class="card-body p-0 flex-grow-1">
+                    <div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Customer</th><th>Email</th><th class="text-end">Uses</th></tr></thead><tbody>
+                        @if (!Model.TopCustomersAiMealPlanUsage.Any()) { <tr><td colspan="3" class="text-center text-muted py-3">No data available</td></tr> }
+                        @foreach (var item in Model.TopCustomersAiMealPlanUsage)
+                        {
+                            <tr><td>@item.CustomerName</td><td>@item.Email</td><td class="text-end">@item.UsageCount</td></tr>
+                        }
+                    </tbody></table></div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-2 pb-3">
+                    <nav>
+                        <ul class="pagination pagination-sm justify-content-end mb-0" data-bs-theme="dark">
+                            <li class="page-item @(Model.MealPlanPage <= 1 ? "disabled" : "")">
+                                <a class="page-link" href="@GetPageUrl(mealPlanPage: Model.MealPlanPage - 1)">Previous</a>
+                            </li>
+                            <li class="page-item disabled"><span class="page-link text-white">@Model.MealPlanPage / @Model.MealPlanTotalPages</span></li>
+                            <li class="page-item @(Model.MealPlanPage >= Model.MealPlanTotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@GetPageUrl(mealPlanPage: Model.MealPlanPage + 1)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-4">
-            <div class="card admin-panel h-100 border-0">
-                <div class="card-header border-0 bg-transparent pt-4 pb-0 px-4">
-                    <h5 class="mb-1"><i class="bi bi-clipboard-data"></i> Snapshot</h5>
-                    <small class="text-muted">Current platform highlights</small>
+        <div class="col-xl-6">
+            <div class="card dashboard-card h-100 d-flex flex-column">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h6 class="mb-0">Top 100 Customers - AI Nutrition Usage</h6>
                 </div>
-                <div class="card-body p-4">
-                    <ul class="list-group list-group-flush admin-snapshot-list">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>Total Customers</span>
-                            <strong>@Model.TotalCustomers</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>Active Subscriptions</span>
-                            <strong>@Model.ActiveSubscriptions</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>Pending Orders</span>
-                            <strong>@Model.PendingOrders</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>Month Revenue</span>
-                            <strong>@Model.CurrentMonthRevenue.ToString("C")</strong>
-                        </li>
-                    </ul>
+                <div class="card-body p-0 flex-grow-1">
+                    <div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Customer</th><th>Email</th><th class="text-end">Uses</th></tr></thead><tbody>
+                        @if (!Model.TopCustomersAiNutritionUsage.Any()) { <tr><td colspan="3" class="text-center text-muted py-3">No data available</td></tr> }
+                        @foreach (var item in Model.TopCustomersAiNutritionUsage)
+                        {
+                            <tr><td>@item.CustomerName</td><td>@item.Email</td><td class="text-end">@item.UsageCount</td></tr>
+                        }
+                    </tbody></table></div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-2 pb-3">
+                    <nav>
+                        <ul class="pagination pagination-sm justify-content-end mb-0" data-bs-theme="dark">
+                            <li class="page-item @(Model.NutritionPage <= 1 ? "disabled" : "")">
+                                <a class="page-link" href="@GetPageUrl(nutritionPage: Model.NutritionPage - 1)">Previous</a>
+                            </li>
+                            <li class="page-item disabled"><span class="page-link text-white">@Model.NutritionPage / @Model.NutritionTotalPages</span></li>
+                            <li class="page-item @(Model.NutritionPage >= Model.NutritionTotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@GetPageUrl(nutritionPage: Model.NutritionPage + 1)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card dashboard-card h-100 d-flex flex-column">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h6 class="mb-0">Top 100 Customers - Order Spending (@(new DateTime(Model.TopYear, Model.TopMonth, 1).ToString("MMM yyyy")))</h6>
+                </div>
+                <div class="card-body p-0 flex-grow-1">
+                    <div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Customer</th><th>Email</th><th class="text-end">Spent</th></tr></thead><tbody>
+                        @if (!Model.TopCustomerOrderSpending.Any()) { <tr><td colspan="3" class="text-center text-muted py-3">No data available</td></tr> }
+                        @foreach (var item in Model.TopCustomerOrderSpending)
+                        {
+                            <tr><td>@item.CustomerName</td><td>@item.Email</td><td class="text-end">@item.TotalSpent.ToString("C")</td></tr>
+                        }
+                    </tbody></table></div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-2 pb-3">
+                    <nav>
+                        <ul class="pagination pagination-sm justify-content-end mb-0" data-bs-theme="dark">
+                            <li class="page-item @(Model.SpendingPage <= 1 ? "disabled" : "")">
+                                <a class="page-link" href="@GetPageUrl(spendingPage: Model.SpendingPage - 1)">Previous</a>
+                            </li>
+                            <li class="page-item disabled"><span class="page-link text-white">@Model.SpendingPage / @Model.SpendingTotalPages</span></li>
+                            <li class="page-item @(Model.SpendingPage >= Model.SpendingTotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@GetPageUrl(spendingPage: Model.SpendingPage + 1)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card dashboard-card h-100 d-flex flex-column">
+                <div class="card-header bg-transparent border-0 pt-3">
+                    <h6 class="mb-0">Top 100 Meals Ordered (@(new DateTime(Model.TopYear, Model.TopMonth, 1).ToString("MMM yyyy")))</h6>
+                </div>
+                <div class="card-body p-0 flex-grow-1">
+                    <div class="table-responsive"><table class="table table-dark table-hover mb-0"><thead><tr><th>Meal</th><th class="text-end">Quantity</th></tr></thead><tbody>
+                        @if (!Model.TopMealsOrdered.Any()) { <tr><td colspan="2" class="text-center text-muted py-3">No data available</td></tr> }
+                        @foreach (var item in Model.TopMealsOrdered)
+                        {
+                            <tr><td>@item.MealName</td><td class="text-end">@item.TotalQuantity</td></tr>
+                        }
+                    </tbody></table></div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-2 pb-3">
+                    <nav>
+                        <ul class="pagination pagination-sm justify-content-end mb-0" data-bs-theme="dark">
+                            <li class="page-item @(Model.MealPage <= 1 ? "disabled" : "")">
+                                <a class="page-link" href="@GetPageUrl(mealPage: Model.MealPage - 1)">Previous</a>
+                            </li>
+                            <li class="page-item disabled"><span class="page-link text-white">@Model.MealPage / @Model.MealTotalPages</span></li>
+                            <li class="page-item @(Model.MealPage >= Model.MealTotalPages ? "disabled" : "")">
+                                <a class="page-link" href="@GetPageUrl(mealPage: Model.MealPage + 1)">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -146,53 +283,107 @@
 </div>
 
 <style>
-    .admin-hero {
-        background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%);
-        border: 1px solid rgba(34, 177, 76, 0.25);
-    }
-
-    .admin-stat-card,
-    .admin-panel {
-        background-color: #0f172a;
-        border: 1px solid rgba(34, 177, 76, 0.2);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .admin-stat-card:hover,
-    .admin-panel:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 22px rgba(34, 177, 76, 0.18);
-    }
-
-    .admin-stat-icon {
-        font-size: 2rem;
-        opacity: 0.9;
-    }
-
-    .admin-module {
-        padding: 1rem;
-        border-radius: 0.75rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background-color: rgba(15, 23, 42, 0.65);
-        color: #e2e8f0;
-        transition: border-color 0.2s ease, transform 0.2s ease;
-    }
-
-    .admin-module:hover {
-        border-color: rgba(34, 177, 76, 0.55);
-        transform: translateY(-1px);
-        color: #ffffff;
-    }
-
-    .admin-module i {
-        font-size: 1.15rem;
-    }
-
-    .admin-snapshot-list .list-group-item {
-        background: transparent;
-        color: #e2e8f0;
-        border-color: rgba(255, 255, 255, 0.08);
-        padding-left: 0;
-        padding-right: 0;
-    }
+    .dashboard-hero { background: linear-gradient(135deg, #0f172a 0%, #1f2937 100%); border: 1px solid rgba(34,177,76,.25); }
+    .dashboard-card { background-color: #0f172a; border: 1px solid rgba(34,177,76,.2); }
+    .dashboard-input { background-color: #020617; border-color: rgba(34,197,94,.35); color: #fff; }
+    .table-dark { --bs-table-bg: transparent; --bs-table-border-color: rgba(255,255,255,.08); }
 </style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const orderRevenueLabels = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyOrderRevenue.Select(x => x.Label)));
+        const orderRevenueData = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyOrderRevenue.Select(x => x.Revenue)));
+        const ordersData = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyOrderRevenue.Select(x => x.Orders)));
+
+        const orderStatusLabels = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyOrderStatusCounts.Select(x => x.Label)));
+        const failedStatusData = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyOrderStatusCounts.Select(x => x.FailedCount)));
+        const canceledStatusData = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyOrderStatusCounts.Select(x => x.CanceledCount)));
+        const customerReceivedStatusData = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyOrderStatusCounts.Select(x => x.CustomerReceivedCount)));
+        const customerRejectedStatusData = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyOrderStatusCounts.Select(x => x.CustomerRejectedCount)));
+
+        const aiMealPlanLabels = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyAiMealPlanUsage.Select(x => x.Label)));
+        const aiMealPlanData = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyAiMealPlanUsage.Select(x => x.Count)));
+
+        const aiNutritionLabels = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyAiNutritionUsage.Select(x => x.Label)));
+        const aiNutritionData = @Html.Raw(JsonSerializer.Serialize(Model.MonthlyAiNutritionUsage.Select(x => x.Count)));
+
+        new Chart(document.getElementById('ordersRevenueChart'), {
+            type: 'line',
+            data: {
+                labels: orderRevenueLabels,
+                datasets: [
+                    { label: 'Revenue', data: orderRevenueData, borderColor: '#22B14C', backgroundColor: 'rgba(34,177,76,.15)', tension: 0.35, yAxisID: 'y' },
+                    { label: 'Orders', data: ordersData, borderColor: '#0D6EFD', backgroundColor: 'rgba(13,110,253,.15)', tension: 0.35, yAxisID: 'y1' }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#fff' } } },
+                scales: {
+                    x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,.08)' } },
+                    y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,.08)' } },
+                    y1: { position: 'right', ticks: { color: '#cbd5e1' }, grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('orderStatusChart'), {
+            type: 'bar',
+            data: {
+                labels: orderStatusLabels,
+                datasets: [
+                    {
+                        label: 'Failed',
+                        data: failedStatusData,
+                        backgroundColor: 'rgba(220,53,69,.7)',
+                        borderColor: 'rgba(220,53,69,1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Canceled',
+                        data: canceledStatusData,
+                        backgroundColor: 'rgba(255,193,7,.7)',
+                        borderColor: 'rgba(255,193,7,1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Customer Received',
+                        data: customerReceivedStatusData,
+                        backgroundColor: 'rgba(34,177,76,.7)',
+                        borderColor: 'rgba(34,177,76,1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Customer Rejected',
+                        data: customerRejectedStatusData,
+                        backgroundColor: 'rgba(13,110,253,.7)',
+                        borderColor: 'rgba(13,110,253,1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#fff' } } },
+                scales: {
+                    x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,.08)' } },
+                    y: { beginAtZero: true, ticks: { color: '#cbd5e1', precision: 0 }, grid: { color: 'rgba(255,255,255,.08)' } }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('aiMealPlanChart'), {
+            type: 'line',
+            data: { labels: aiMealPlanLabels, datasets: [{ label: 'Meal Plan Uses', data: aiMealPlanData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.15)', tension: 0.35 }] },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,.08)' } }, y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,.08)' } } } }
+        });
+
+        new Chart(document.getElementById('aiNutritionChart'), {
+            type: 'line',
+            data: { labels: aiNutritionLabels, datasets: [{ label: 'Nutrition Uses', data: aiNutritionData, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,.15)', tension: 0.35 }] },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,.08)' } }, y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,.08)' } } } }
+        });
+    </script>
+}
+

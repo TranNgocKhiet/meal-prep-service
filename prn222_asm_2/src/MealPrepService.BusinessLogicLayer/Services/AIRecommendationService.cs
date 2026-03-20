@@ -130,12 +130,29 @@ namespace MealPrepService.BusinessLogicLayer.Services
             _logger.LogInformation("Generating AI meal plan recommendations for customer {CustomerId} from {StartDate} to {EndDate}", 
                 customerId, startDate, endDate);
 
+            var stopwatch = Stopwatch.StartNew();
+            var inputParams = JsonSerializer.Serialize(new { customerId, startDate, endDate });
+            
+            // Start operation logging
+            var operationLog = await _operationLogger.StartOperationAsync(
+                "MealPlan Generation AI", 
+                inputParams, 
+                customerId);
+
             try
             {
                 // Check if AI is enabled
                 if (!await IsAIEnabledAsync())
                 {
                     _logger.LogWarning("AI is disabled, returning empty recommendations");
+
+                    stopwatch.Stop();
+                    await _operationLogger.CompleteOperationAsync(
+                        operationLog.Id, 
+                        "Warning", 
+                        "AI disabled", 
+                        (int)stopwatch.ElapsedMilliseconds);
+
                     return Enumerable.Empty<MealRecommendation>();
                 }
 
@@ -189,10 +206,29 @@ namespace MealPrepService.BusinessLogicLayer.Services
                 _logger.LogInformation("Generated {Count} meal recommendations for customer {CustomerId}", 
                     recommendations.Count, customerId);
 
+                stopwatch.Stop();
+                var outputSummary = JsonSerializer.Serialize(new 
+                { 
+                    recommendationCount = recommendations.Count,
+                    hasCompleteProfile = customerContext.HasCompleteProfile
+                });
+
+                await _operationLogger.CompleteOperationAsync(
+                    operationLog.Id,
+                    "Success",
+                    outputSummary,
+                    (int)stopwatch.ElapsedMilliseconds);
+
                 return recommendations;
             }
             catch (Exception ex)
             {
+                stopwatch.Stop();
+                await _operationLogger.FailOperationAsync(
+                    operationLog.Id,
+                    ex,
+                    (int)stopwatch.ElapsedMilliseconds);
+
                 _logger.LogError(ex, "Failed to generate meal plan recommendations for customer {CustomerId}", customerId);
                 return Enumerable.Empty<MealRecommendation>();
             }
