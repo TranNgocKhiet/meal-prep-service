@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using MealPrepService.BusinessLogicLayer.Interfaces;
 using MealPrepService.BusinessLogicLayer.DTOs;
 using MealPrepService.BusinessLogicLayer.Exceptions;
+using MealPrepService.Web.Hubs;
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
 
 namespace MealPrepService.Web.Pages.Delivery;
 
@@ -15,11 +17,19 @@ public class AssignedDeliveriesModel : PageModel
     private const int CompletedPageSize = 8;
 
     private readonly IDeliveryService _deliveryService;
+    private readonly IHubContext<DeliveryHub> _deliveryHubContext;
+    private readonly IHubContext<OrderHub> _orderHubContext;
     private readonly ILogger<AssignedDeliveriesModel> _logger;
 
-    public AssignedDeliveriesModel(IDeliveryService deliveryService, ILogger<AssignedDeliveriesModel> logger)
+    public AssignedDeliveriesModel(
+        IDeliveryService deliveryService,
+        IHubContext<DeliveryHub> deliveryHubContext,
+        IHubContext<OrderHub> orderHubContext,
+        ILogger<AssignedDeliveriesModel> logger)
     {
         _deliveryService = deliveryService;
+        _deliveryHubContext = deliveryHubContext;
+        _orderHubContext = orderHubContext;
         _logger = logger;
     }
 
@@ -140,6 +150,23 @@ public class AssignedDeliveriesModel : PageModel
             }
 
             await _deliveryService.CompleteDeliveryAsync(deliveryId, deliveryManId, resultStatus);
+            if (targetDelivery.OrderId != Guid.Empty)
+            {
+                var message = $"Delivery status updated to {resultStatus}.";
+                await _deliveryHubContext.Clients.All.SendAsync(
+                    "ReceiveDeliveryUpdate",
+                    deliveryId.ToString(),
+                    resultStatus,
+                    string.Empty,
+                    message,
+                    targetDelivery.OrderId.ToString());
+
+                await _orderHubContext.Clients.All.SendAsync(
+                    "ReceiveOrderStatusUpdate",
+                    targetDelivery.OrderId.ToString(),
+                    resultStatus,
+                    message);
+            }
             TempData["SuccessMessage"] = "Delivery result saved successfully.";
         }
         catch (Exception ex)

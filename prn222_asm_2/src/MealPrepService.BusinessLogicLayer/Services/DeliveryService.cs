@@ -339,7 +339,7 @@ namespace MealPrepService.BusinessLogicLayer.Services
             }
 
             var normalized = resultStatus.Trim().ToLowerInvariant();
-            var allowed = new[] { OrderStatuses.CustomerReceived, OrderStatuses.CustomerReject, OrderStatuses.Failed };
+            var allowed = new[] { OrderStatuses.Delivering, OrderStatuses.CustomerReceived, OrderStatuses.CustomerReject, OrderStatuses.Failed };
             if (!allowed.Contains(normalized))
             {
                 throw new BusinessException($"Invalid delivery result. Allowed values: {string.Join(", ", allowed)}");

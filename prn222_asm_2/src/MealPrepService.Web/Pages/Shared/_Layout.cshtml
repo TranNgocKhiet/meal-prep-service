@@ -156,6 +156,25 @@
             })();
         </script>
     }
+    @if (Context.Request.Path.StartsWithSegments("/Delivery"))
+    {
+        <script src="~/js/delivery-hub-client.js" asp-append-version="true"></script>
+        <script>
+            (function () {
+                let deliveryPageReloadTimer = null;
+
+                document.addEventListener('delivery-status-updated', function () {
+                    if (deliveryPageReloadTimer) {
+                        return;
+                    }
+
+                    deliveryPageReloadTimer = window.setTimeout(function () {
+                        window.location.reload();
+                    }, 300);
+                });
+            })();
+        </script>
+    }
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

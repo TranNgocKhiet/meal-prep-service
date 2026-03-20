@@ -218,6 +218,7 @@
                                 <div class="mb-0">
                                     <label class="form-label" for="result-@modalSuffix">Delivery result</label>
                                     <select id="result-@modalSuffix" name="resultStatus" class="form-select" required>
+                                        <option value="delivering" selected="@delivery.OrderStatus.Equals("delivering", StringComparison.OrdinalIgnoreCase)">Delivering</option>
                                         <option value="customer_received" selected="@delivery.OrderStatus.Equals("customer_received", StringComparison.OrdinalIgnoreCase)">Customer Received</option>
                                         <option value="customer_reject" selected="@delivery.OrderStatus.Equals("customer_reject", StringComparison.OrdinalIgnoreCase)">Customer Reject</option>
                                         <option value="failed" selected="@delivery.OrderStatus.Equals("failed", StringComparison.OrdinalIgnoreCase)">Failed</option>
