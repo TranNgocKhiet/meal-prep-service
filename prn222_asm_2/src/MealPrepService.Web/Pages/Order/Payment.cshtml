@@ -16,7 +16,6 @@
                     <form asp-page="Payment" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="OrderId" />
-                        <input type="hidden" asp-for="OrderTotal" />
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
                         <h5 class="mb-3">Order Summary</h5>
@@ -53,19 +52,30 @@
                         <h5 class="mb-3">Delivery Information</h5>
                         <div class="card bg-light mb-4">
                             <div class="card-body">
-                                <p class="mb-1"><strong>Address:</strong> @Model.DeliveryAddress</p>
-                                <p class="mb-1"><strong>Phone:</strong> @Model.DeliveryPhone</p>
-                                @if (Model.PreferredDeliveryTime.HasValue)
-                                {
-                                    <p class="mb-0"><strong>Preferred Time:</strong> @Model.PreferredDeliveryTime.Value.ToString("MMM dd, yyyy hh:mm tt")</p>
-                                }
+                                <div class="mb-3">
+                                    <label asp-for="DeliveryAddress" class="form-label">Delivery Address</label>
+                                    <textarea asp-for="DeliveryAddress" class="form-control" rows="3" placeholder="Enter your delivery address"></textarea>
+                                    <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="DeliveryPhone" class="form-label">Delivery Phone</label>
+                                    <input asp-for="DeliveryPhone" class="form-control" placeholder="Enter your phone number" />
+                                    <span asp-validation-for="DeliveryPhone" class="text-danger"></span>
+                                </div>
+
+                                <div>
+                                    <label asp-for="PreferredDeliveryTime" class="form-label">Preferred Delivery Time</label>
+                                    <input asp-for="PreferredDeliveryTime" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="PreferredDeliveryTime" class="text-danger"></span>
+                                </div>
                             </div>
                         </div>
 
                         <h5 class="mb-3">Payment Method</h5>
                         <div class="mb-4">
                             <div class="form-check mb-3">
-                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="COD" id="paymentCOD" checked />
+                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="COD" id="paymentCOD" />
                                 <label class="form-check-label" for="paymentCOD">
                                     <i class="bi bi-cash-coin"></i> <strong>Cash on Delivery (COD)</strong>
                                     <br />
