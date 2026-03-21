@@ -142,6 +142,51 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpPost("google-register")]
+    public async Task<ActionResult<ApiResponse<AuthenticationResult>>> GoogleRegister([FromBody] GoogleLoginDto dto)
+    {
+        try
+        {
+            var result = await _authenticationService.RegisterWithGoogleAsync(dto.GoogleToken);
+
+            if (!result.Success)
+            {
+                var message = result.ErrorMessage ?? "Google registration failed";
+                if (message.Contains("already", StringComparison.OrdinalIgnoreCase) ||
+                    message.Contains("exists", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Conflict(ApiResponse<AuthenticationResult>.ErrorResponse(message));
+                }
+
+                return BadRequest(ApiResponse<AuthenticationResult>.ErrorResponse(message));
+            }
+
+            var authResult = new AuthenticationResult
+            {
+                Success = true,
+                Token = result.AccessToken!,
+                RefreshToken = result.RefreshToken!,
+                ExpiresAt = result.ExpiresAt!.Value,
+                User = new UserDto
+                {
+                    Id = result.User!.Id,
+                    Email = result.User.Email,
+                    FullName = result.User.FullName,
+                    PhoneNumber = result.User.PhoneNumber,
+                    RoleName = result.User.Role.Name,
+                    CurrentCredits = result.User.CurrentCredits
+                }
+            };
+
+            return Ok(ApiResponse<AuthenticationResult>.SuccessResponse(authResult, "Google registration successful"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during Google registration");
+            return StatusCode(500, ApiResponse<AuthenticationResult>.ErrorResponse("An error occurred during Google registration"));
+        }
+    }
+
     [HttpPost("refresh")]
     public async Task<ActionResult<ApiResponse<TokenDto>>> RefreshToken([FromBody] RefreshTokenRequest request)
     {

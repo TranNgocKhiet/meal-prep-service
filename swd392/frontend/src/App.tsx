@@ -266,7 +266,18 @@ function AppRoutes() {
 }
 
 function App() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '171729143176-34pb94dona5efs8j7n5ibgilsghp4i2e.apps.googleusercontent.com';
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  if (!clientId) {
+    return (
+      <Router>
+        <div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
+          <h1>Google OAuth is not configured</h1>
+          <p>Set VITE_GOOGLE_CLIENT_ID in your frontend .env file to enable Google sign in.</p>
+        </div>
+      </Router>
+    );
+  }
   
   return (
     <GoogleOAuthProvider clientId={clientId}>

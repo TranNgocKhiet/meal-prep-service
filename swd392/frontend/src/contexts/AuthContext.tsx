@@ -15,8 +15,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, fullName: string, phoneNumber: string) => Promise<void>;
+  register: (email: string, password: string, fullName: string) => Promise<void>;
   loginWithGoogle: (googleToken: string) => Promise<void>;
+  registerWithGoogle: (googleToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -80,13 +81,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const register = async (email: string, password: string, fullName: string, phoneNumber: string) => {
+  const register = async (email: string, password: string, fullName: string) => {
     try {
       const response = await apiClient.post('/auth/register', {
         email,
         password,
         fullName,
-        phoneNumber,
+        phoneNumber: '',
         roleName: 'Customer'
       });
       
@@ -124,6 +125,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const registerWithGoogle = async (googleToken: string) => {
+    try {
+      const response = await apiClient.post('/auth/google-register', { googleToken });
+
+      if (response.data.success) {
+        const { token, refreshToken, user: userData } = response.data.data;
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('refreshToken', refreshToken);
+        setUser(userData);
+      } else {
+        throw new Error(response.data.message || 'Google signup failed');
+      }
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      const message = err.response?.data?.message || err.message || 'Google signup failed';
+      throw new Error(message);
+    }
+  };
+
   const logout = async () => {
     try {
       await apiClient.post('/auth/logout');
@@ -143,6 +163,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     login,
     register,
     loginWithGoogle,
+    registerWithGoogle,
     logout,
     refreshUser
   };

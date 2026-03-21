@@ -272,6 +272,108 @@ public class AuthenticationService : IAuthenticationService
         };
     }
 
+    public async Task<AuthenticationServiceResult> RegisterWithGoogleAsync(string googleToken)
+    {
+        var googleUserInfo = await _googleOAuthService.ValidateGoogleTokenAsync(googleToken);
+        if (googleUserInfo == null)
+        {
+            return new AuthenticationServiceResult
+            {
+                Success = false,
+                ErrorMessage = "Invalid Google token"
+            };
+        }
+
+        var existingGoogleUser = await _unitOfWork.Accounts.GetByGoogleIdAsync(googleUserInfo.GoogleAuthId);
+        if (existingGoogleUser != null)
+        {
+            return new AuthenticationServiceResult
+            {
+                Success = false,
+                ErrorMessage = "This Google account is already registered. Please sign in instead."
+            };
+        }
+
+        var existingEmailUser = await _unitOfWork.Accounts.GetByEmailAsync(googleUserInfo.Email);
+        if (existingEmailUser != null)
+        {
+            return new AuthenticationServiceResult
+            {
+                Success = false,
+                ErrorMessage = "An account with this email already exists. Please sign in instead."
+            };
+        }
+
+        var roles = await _unitOfWork.Roles.GetAllAsync();
+        var customerRole = roles.FirstOrDefault(r => r.Name.Equals("Customer", StringComparison.OrdinalIgnoreCase));
+
+        if (customerRole == null)
+        {
+            return new AuthenticationServiceResult
+            {
+                Success = false,
+                ErrorMessage = "Customer role not found"
+            };
+        }
+
+        var googleAuth = new GoogleAuth
+        {
+            Id = googleUserInfo.GoogleAuthId,
+            ProviderKey = googleUserInfo.GoogleAuthId,
+            AccessToken = string.Empty,
+            RefreshToken = string.Empty,
+            ExpiresAt = _dateTimeService.Now.AddDays(30),
+            IsVerified = true
+        };
+        await _unitOfWork.GoogleAuths.AddAsync(googleAuth);
+        await _unitOfWork.SaveChangesAsync();
+
+        var user = new Account
+        {
+            Id = Guid.NewGuid().ToString(),
+            Email = googleUserInfo.Email,
+            PasswordHash = string.Empty,
+            FullName = googleUserInfo.FullName,
+            PhoneNumber = string.Empty,
+            RoleId = customerRole.Id,
+            GoogleAuthId = googleUserInfo.GoogleAuthId,
+            CurrentCredits = 0,
+            CreatedAt = _dateTimeService.Now,
+            UpdatedAt = _dateTimeService.Now,
+            IsActive = true
+        };
+
+        await _unitOfWork.Accounts.AddAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        user = await _unitOfWork.Accounts.GetByIdAsync(user.Id);
+        if (user == null)
+        {
+            return new AuthenticationServiceResult
+            {
+                Success = false,
+                ErrorMessage = "Failed to create user"
+            };
+        }
+
+        user.LastLoginAt = _dateTimeService.Now;
+        await _unitOfWork.Accounts.UpdateAsync(user);
+        await _unitOfWork.SaveChangesAsync();
+
+        var accessToken = _tokenService.GenerateAccessToken(user);
+        var refreshToken = _tokenService.GenerateRefreshToken(user);
+        var expiresAt = _dateTimeService.Now.AddHours(int.Parse(_configuration["JwtSettings:ExpirationHours"] ?? "24"));
+
+        return new AuthenticationServiceResult
+        {
+            Success = true,
+            User = user,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            ExpiresAt = expiresAt
+        };
+    }
+
     public async Task<bool> ValidateTokenAsync(string token)
     {
         return await _tokenService.ValidateTokenAsync(token);
