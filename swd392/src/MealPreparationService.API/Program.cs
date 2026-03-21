@@ -160,7 +160,7 @@ builder.Services.AddSingleton<IDateTimeService, DateTimeService>();
 // TODO: Implement these services
 // builder.Services.AddScoped<IGroceryListService, GroceryListService>();
 // builder.Services.AddScoped<IAllergyCheckService, AllergyCheckService>();
-// builder.Services.AddScoped<INutrientCalculatorService, NutrientCalculatorService>();
+builder.Services.AddScoped<INutrientCalculatorService, NutrientCalculatorService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IDeliveryScheduleService, DeliveryScheduleService>();
 // builder.Services.AddScoped<IDeliveryService, DeliveryService>();

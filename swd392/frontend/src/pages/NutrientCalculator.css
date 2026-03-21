@@ -1,76 +1,219 @@
-.coming-soon-page {
-  min-height: 60vh;
+.nutrition-analyzer-page {
+  position: relative;
+  padding: 2rem 0 3rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.nutrition-header h1 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.nutrition-header p {
+  margin-top: 0.5rem;
+  color: #334155;
+}
+
+.nutrition-input-card,
+.nutrition-result-card {
+  background: #ffffff;
+  border: 1px solid #dbe4ee;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.nutrition-input-card h2,
+.nutrition-result-card h2 {
+  margin-top: 0;
+  color: #0f172a;
+}
+
+.input-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.meal-description {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.75rem;
+  resize: vertical;
+  min-height: 90px;
+}
+
+.ingredients-header {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xl);
+  gap: 1rem;
 }
 
-.coming-soon-content {
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto;
+.ingredients-header h3 {
+  margin: 0;
+  color: #1e293b;
 }
 
-.coming-soon-icon {
-  margin-bottom: var(--spacing-xl);
-  color: var(--primary-color);
-  animation: pulse 2s ease-in-out infinite;
+.add-row-btn,
+.analyze-btn,
+.remove-row-btn {
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
 }
 
-.coming-soon-icon svg {
-  width: 120px;
-  height: 120px;
+.add-row-btn {
+  background: #e2e8f0;
+  color: #0f172a;
+  padding: 0.5rem 0.8rem;
 }
 
-.coming-soon-content h1 {
-  font-size: 2.5rem;
-  color: #000;
-  margin-bottom: var(--spacing-md);
-  font-weight: 700;
+.ingredients-table-wrapper {
+  overflow-x: auto;
 }
 
-.coming-soon-content h2 {
-  font-size: 2rem;
-  color: var(--primary-color);
-  margin-bottom: var(--spacing-lg);
+.ingredients-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.ingredients-table th,
+.ingredients-table td {
+  border: 1px solid #dbe4ee;
+  padding: 0.55rem;
+}
+
+.ingredients-table th {
+  background: #f8fafc;
+  text-align: left;
+  color: #334155;
+}
+
+.ingredients-table input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.remove-row-btn {
+  background: #fee2e2;
+  color: #7f1d1d;
+  padding: 0.45rem 0.65rem;
+}
+
+.remove-row-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.analyzer-error {
+  margin-top: 0.8rem;
+  color: #b91c1c;
+}
+
+.analyze-btn {
+  margin-top: 1rem;
+  background: #16a34a;
+  color: #fff;
+  padding: 0.75rem 1.2rem;
   font-weight: 600;
 }
 
-.coming-soon-content p {
-  font-size: 1.125rem;
-  color: #666;
-  margin-bottom: var(--spacing-sm);
-  line-height: 1.6;
+.analyze-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.05);
+.meal-summary {
+  margin-top: 0;
+  color: #334155;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.nutrition-item {
+  border: 1px solid #dbe4ee;
+  border-radius: 10px;
+  padding: 0.7rem;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.nutrition-item span {
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.nutrition-item strong {
+  color: #0f172a;
+}
+
+.result-section {
+  margin-top: 1rem;
+}
+
+.result-section h3 {
+  margin-bottom: 0.4rem;
+}
+
+.analyzer-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.analyzer-loading-content {
+  text-align: center;
+  color: #fff;
+  padding: 1.2rem;
+}
+
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  border: 6px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #22c55e;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
 @media (max-width: 768px) {
-  .coming-soon-content h1 {
-    font-size: 2rem;
+  .nutrition-analyzer-page {
+    padding-top: 1rem;
   }
 
-  .coming-soon-content h2 {
-    font-size: 1.5rem;
+  .nutrition-input-card,
+  .nutrition-result-card {
+    padding: 1rem;
   }
 
-  .coming-soon-content p {
-    font-size: 1rem;
-  }
-
-  .coming-soon-icon svg {
-    width: 80px;
-    height: 80px;
+  .ingredients-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
