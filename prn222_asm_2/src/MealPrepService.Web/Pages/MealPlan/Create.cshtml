@@ -467,6 +467,15 @@
         
         // Change form action based on checkbox state and show loading screen
         form.addEventListener('submit', function(e) {
+            // Validate name not to be null
+            const planNameInput = document.getElementById('PlanName');
+            if (!planNameInput.value.trim()) {
+                e.preventDefault();
+                // Trigger form validation to show default span error
+                $(form).validate().element(planNameInput);
+                return false;
+            }
+        
             if (!validateDateRange()) {
                 e.preventDefault();
                 return false;
@@ -479,14 +488,14 @@
                 // Show loading screen
                 document.getElementById('aiLoadingScreen').classList.add('show');
                 
-                // Hide loading screen if form submission fails (after 30 seconds timeout)
+                // Hide loading screen if form submission fails (after 60 seconds timeout)
                 setTimeout(function() {
                     const loadingScreen = document.getElementById('aiLoadingScreen');
                     if (loadingScreen.classList.contains('show')) {
                         loadingScreen.classList.remove('show');
                         alert('The AI generation is taking longer than expected. Please check your meal plan list or try again.');
                     }
-                }, 30000);
+                }, 60000);
             } else {
                 // Keep default Create handler
                 form.action = '@Url.Page("/MealPlan/Create")';

@@ -5,6 +5,7 @@ using System.Security.Claims;
 using MealPrepService.BusinessLogicLayer.Interfaces;
 using MealPrepService.BusinessLogicLayer.DTOs;
 using MealPrepService.BusinessLogicLayer.Exceptions;
+using System.ComponentModel.DataAnnotations;
 
 
 namespace MealPrepService.Web.Pages.MealPlan;
@@ -24,6 +25,7 @@ public class CreateModel : PageModel
     }
 
     [BindProperty]
+    [Required(ErrorMessage = "Plan name is required")]
     public string PlanName { get; set; } = string.Empty;
 
     [BindProperty]

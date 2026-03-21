@@ -33,6 +33,8 @@ public class DashboardModel : PageModel
     public List<TopCustomerSpending> TopCustomerOrderSpending { get; set; } = new();
     public List<TopMealOrder> TopMealsOrdered { get; set; } = new();
 
+    public string ActiveTab { get; set; } = "charts";
+
     public int MealPlanPage { get; set; }
     public int NutritionPage { get; set; }
     public int SpendingPage { get; set; }
@@ -74,6 +76,7 @@ public class DashboardModel : PageModel
         public int CanceledCount { get; set; }
         public int CustomerReceivedCount { get; set; }
         public int CustomerRejectedCount { get; set; }
+        public int PreparingFailedCount { get; set; }
     }
 
     public class MonthChangeOverview
@@ -113,10 +116,11 @@ public class DashboardModel : PageModel
     }
 
     public async Task<IActionResult> OnGetAsync(DateTime? fromDate, DateTime? toDate, int? topMonth, int? topYear,
-        int mealPlanPage = 1, int nutritionPage = 1, int spendingPage = 1, int mealPage = 1)
+        int mealPlanPage = 1, int nutritionPage = 1, int spendingPage = 1, int mealPage = 1, string tab = "charts")
     {
         try
         {
+            ActiveTab = tab;
             MealPlanPage = Math.Max(1, mealPlanPage);
             NutritionPage = Math.Max(1, nutritionPage);
             SpendingPage = Math.Max(1, spendingPage);
@@ -247,7 +251,8 @@ public class DashboardModel : PageModel
                 FailedCount = g.Count(x => Matches(x.Status, "failed", "payment_failed")),
                 CanceledCount = g.Count(x => Matches(x.Status, "cancelled", "canceled")),
                 CustomerReceivedCount = g.Count(x => Matches(x.Status, "customer_received")),
-                CustomerRejectedCount = g.Count(x => Matches(x.Status, "customer_reject", "customer_rejected"))
+                CustomerRejectedCount = g.Count(x => Matches(x.Status, "customer_reject", "customer_rejected")),
+                PreparingFailedCount = g.Count(x => Matches(x.Status, "preparing_failed", "preparingfailed"))
             });
 
         MonthlyOrderStatusCounts = monthSeries
@@ -258,13 +263,16 @@ public class DashboardModel : PageModel
                 FailedCount = grouped.TryGetValue(month, out var value) ? value.FailedCount : 0,
                 CanceledCount = grouped.TryGetValue(month, out value) ? value.CanceledCount : 0,
                 CustomerReceivedCount = grouped.TryGetValue(month, out value) ? value.CustomerReceivedCount : 0,
-                CustomerRejectedCount = grouped.TryGetValue(month, out value) ? value.CustomerRejectedCount : 0
+                CustomerRejectedCount = grouped.TryGetValue(month, out value) ? value.CustomerRejectedCount : 0,
+                PreparingFailedCount = grouped.TryGetValue(month, out value) ? value.PreparingFailedCount : 0
             })
             .ToList();
     }
 
     private async Task LoadTop100DashboardsAsync(int year, int month)
     {
+        if (ActiveTab != "top100") return;
+
         var monthStart = new DateTime(year, month, 1);
         var monthEndExclusive = monthStart.AddMonths(1);
 
@@ -276,7 +284,7 @@ public class DashboardModel : PageModel
 
         var aiLogs = await _dbContext.AIOperationLogs
             .AsNoTracking()
-            .Where(l => l.CustomerId != null)
+            .Where(l => l.CustomerId != null && l.Timestamp >= monthStart && l.Timestamp < monthEndExclusive)
             .Select(l => new { l.CustomerId, l.OperationType })
             .ToListAsync();
 
