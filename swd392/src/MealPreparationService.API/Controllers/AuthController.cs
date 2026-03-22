@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
                 dto.Email,
                 dto.Password,
                 dto.FullName,
-                dto.PhoneNumber,
+                dto.PhoneNumber ?? string.Empty,
                 dto.RoleName);
 
             if (!result.Success)
