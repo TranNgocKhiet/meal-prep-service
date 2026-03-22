@@ -31,6 +31,13 @@ interface Order {
   cancellationReason?: string;
   address?: string;
   phoneNumber?: string;
+  deliveryTime?: string;
+}
+
+interface DeliverySchedule {
+  id: string;
+  orderId: string;
+  deliveryTime: string;
 }
 
 const OrderDetail = () => {
@@ -44,6 +51,7 @@ const OrderDetail = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [scheduledDeliveryTime, setScheduledDeliveryTime] = useState<string | null>(null);
 
   const isNewOrder = searchParams.get('created') === 'true';
   const isStaff = user?.roleName === 'Admin' || user?.roleName === 'Staff';
@@ -67,7 +75,21 @@ const OrderDetail = () => {
       setLoading(true);
       const response = await apiClient.get(`/orders/${id}`);
       if (response.data.success) {
-        setOrder(response.data.data);
+        const orderData = response.data.data;
+        setOrder(orderData);
+
+        if (isStaff) {
+          try {
+            const schedulesResponse = await apiClient.get('/delivery-schedules');
+            if (schedulesResponse.data.success) {
+              const schedules: DeliverySchedule[] = schedulesResponse.data.data;
+              const matchedSchedule = schedules.find((schedule) => schedule.orderId === orderData.id);
+              setScheduledDeliveryTime(matchedSchedule?.deliveryTime ?? null);
+            }
+          } catch {
+            setScheduledDeliveryTime(null);
+          }
+        }
       }
     } catch (err: unknown) {
       setError(getErrorMessage(err) || 'Failed to load order');
@@ -125,6 +147,7 @@ const OrderDetail = () => {
     if (statusLower.includes('ready')) return 'status-ready';
     if (statusLower.includes('delivered')) return 'status-delivered';
     if (statusLower.includes('cancel')) return 'status-cancelled';
+    if (statusLower.includes('delivering')) return 'status-delivering';
     return '';
   };
 
@@ -249,6 +272,20 @@ const OrderDetail = () => {
                     })}
                   </span>
                 </div>
+                <div className="info-item">
+                  <span className="info-label">Delivery Time:</span>
+                  <span className="info-value">
+                    {(scheduledDeliveryTime || order.deliveryTime)
+                      ? new Date(scheduledDeliveryTime || order.deliveryTime || '').toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
+                      : 'N/A'}
+                  </span>
+                </div>
                 {order.confirmedAt && (
                   <div className="info-item">
                     <span className="info-label">Confirmed At:</span>
@@ -273,7 +310,7 @@ const OrderDetail = () => {
                   <span className="info-label">Phone Number:</span>
                   <span className="info-value">{order.phoneNumber || 'N/A'}</span>
                 </div>
-                <div className="info-item full-width">
+                <div className="info-item">
                   <span className="info-label">Delivery Address:</span>
                   <span className="info-value">{order.address || 'N/A'}</span>
                 </div>

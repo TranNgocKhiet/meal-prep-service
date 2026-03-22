@@ -262,6 +262,14 @@
   resize: vertical;
 }
 
+.recipe-instructions-textarea {
+  color: #000000;
+}
+
+.recipe-instructions-textarea::placeholder {
+  color: #718096;
+}
+
 .form-group-checkbox {
   margin-bottom: 1.5rem;
 }
@@ -600,4 +608,122 @@
 
 .btn-show-all:hover {
   background: #3182ce;
+}
+
+/* Menu Management Tabs and Filters */
+.menu-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.tab-btn {
+  padding: 0.75rem 1.5rem;
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #718096;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: #2d3748;
+}
+
+.tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.menu-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+  background: #f7fafc;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.date-range-filter {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.date-range-filter label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.date-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.show-all-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.show-all-section .btn-primary,
+.show-all-section .btn-secondary {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .menu-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-range-filter {
+    flex-direction: column;
+  }
+
+  .date-range-filter label {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .date-input {
+    width: 100%;
+  }
+
+  .show-all-section {
+    width: 100%;
+  }
+
+  .menu-tabs {
+    flex-direction: column;
+  }
+
+  .tab-btn {
+    width: 100%;
+    text-align: left;
+    border-bottom: none;
+    border-left: 3px solid transparent;
+  }
+
+  .tab-btn.active {
+    border-bottom: none;
+    border-left-color: var(--color-primary);
+  }
 }

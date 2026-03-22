@@ -193,6 +193,7 @@ const AdminRecipes = () => {
               <div className="form-group">
                 <label>Instructions *</label>
                 <textarea 
+                  className="recipe-instructions-textarea"
                   value={formData.instructions || ''} 
                   onChange={(e) => setFormData({ ...formData, instructions: e.target.value })} 
                   required 

@@ -12,11 +12,12 @@ const Home = () => {
         <section className="hero">
           {isAuthenticated ? (
             <>
-              <h1>Welcome back, {user?.fullName}!</h1>
-              <p>Ready to plan your next meal?</p>
+              <h1>Hello, {user?.fullName}!</h1>
+              <p>Ready to have your next meal?</p>
               <div className="hero-actions">
-                <Link to="/todays-menu" className="btn-primary">Today's Menu</Link>
-                <Link to="/weekly-menu" className="btn-secondary">Weekly Menu</Link>
+                <Link to="/meal-plans" className="btn btn-secondary">My Meal Plans</Link>
+                <Link to="/todays-menu" className="btn btn-secondary">Today's Menu</Link>
+                <Link to="/weekly-menu" className="btn btn-secondary">Weekly Menu</Link>
               </div>
             </>
           ) : (

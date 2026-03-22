@@ -27,7 +27,11 @@ const MyOrders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
+  const ITEMS_PER_PAGE = 30;
 
   useEffect(() => {
     fetchOrders();
@@ -58,6 +62,63 @@ const MyOrders = () => {
     return 'status-badge';
   };
 
+  const filteredOrders = orders.filter((order) => {
+    const createdDate = new Date(order.createdAt);
+    const orderDateOnly = new Date(createdDate.getFullYear(), createdDate.getMonth(), createdDate.getDate());
+
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      if (orderDateOnly < fromDate) {
+        return false;
+      }
+    }
+
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      toDate.setHours(0, 0, 0, 0);
+      if (orderDateOnly > toDate) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ITEMS_PER_PAGE));
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  const handleApplyDateFilter = () => {
+    if (dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)) {
+      setError('From date cannot be later than To date.');
+      return;
+    }
+
+    setError('');
+    setCurrentPage(1);
+  };
+
+  const handleClearDateFilter = () => {
+    setDateFrom('');
+    setDateTo('');
+    setError('');
+    setCurrentPage(1);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+  };
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   if (loading) {
     return (
       <Container>
@@ -85,9 +146,32 @@ const MyOrders = () => {
       <div className="orders-page">
         <div className="orders-header">
           <h1>My Orders</h1>
-          <button className="btn btn-primary" onClick={() => navigate('/weekly-menu')}>
+          <button className="btn" onClick={() => navigate('/weekly-menu')}>
             Browse Menu
           </button>
+        </div>
+
+        <div className="orders-filters">
+          <div className="date-filter-group">
+            <label htmlFor="orders-from-date">From:</label>
+            <input
+              id="orders-from-date"
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+          </div>
+          <div className="date-filter-group">
+            <label htmlFor="orders-to-date">To:</label>
+            <input
+              id="orders-to-date"
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
+          <button className="btn btn-primary" onClick={handleApplyDateFilter}>Apply Filter</button>
+          <button className="btn btn-secondary" onClick={handleClearDateFilter}>Clear</button>
         </div>
 
         {orders.length === 0 ? (
@@ -97,9 +181,17 @@ const MyOrders = () => {
               Order Now
             </button>
           </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="empty-orders">
+            <p>No orders found in the selected date range</p>
+            <button className="btn btn-secondary" onClick={handleClearDateFilter}>
+              Clear Filter
+            </button>
+          </div>
         ) : (
-          <div className="orders-list">
-            {orders.map((order) => (
+          <>
+            <div className="orders-list">
+            {paginatedOrders.map((order) => (
               <div key={order.id} className="order-card" onClick={() => navigate(`/orders/${order.id}`)}>
                 <div className="order-header">
                   <div>
@@ -130,7 +222,25 @@ const MyOrders = () => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+            <div className="pagination-controls">
+              <button
+                className="btn btn-secondary"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span className="pagination-info">Page {currentPage} of {totalPages}</span>
+              <button
+                className="btn btn-secondary"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
+          </>
         )}
       </div>
     </Container>

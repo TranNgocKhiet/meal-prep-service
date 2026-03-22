@@ -68,6 +68,8 @@ const Orders = () => {
         return 'status-cancelled';
       case 'delivered':
         return 'status-delivered';
+      case 'delivering':
+        return 'status-delivering';
       default:
         return '';
     }

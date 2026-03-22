@@ -28,12 +28,21 @@ const MyDeliverySchedule = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 30;
 
   useEffect(() => {
     if (user?.id) {
       fetchMySchedules();
     }
   }, [user]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, dateFrom, dateTo]);
 
   const fetchMySchedules = async () => {
     if (!user?.id) return;
@@ -95,6 +104,41 @@ const MyDeliverySchedule = () => {
     return statusMap[statusName] || 9;
   };
 
+  const getFilteredSchedules = (): DeliverySchedule[] => {
+    return schedules.filter(schedule => {
+      const lowerSearchQuery = searchQuery.toLowerCase();
+      const matchesSearch = !searchQuery || 
+        schedule.customerName.toLowerCase().includes(lowerSearchQuery) ||
+        schedule.address.toLowerCase().includes(lowerSearchQuery);
+
+      const scheduleDate = new Date(schedule.deliveryTime).toISOString().split('T')[0];
+      const matchesDateFrom = !dateFrom || scheduleDate >= dateFrom;
+      const matchesDateTo = !dateTo || scheduleDate <= dateTo;
+
+      return matchesSearch && matchesDateFrom && matchesDateTo;
+    });
+  };
+
+  const getPaginatedSchedules = (): DeliverySchedule[] => {
+    const filtered = getFilteredSchedules();
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filtered.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = (): number => {
+    return Math.ceil(getFilteredSchedules().length / ITEMS_PER_PAGE);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    const maxPages = getTotalPages();
+    setCurrentPage(prev => Math.min(maxPages, prev + 1));
+  };
+
   if (loading) {
     return (
       <Container>
@@ -115,9 +159,51 @@ const MyDeliverySchedule = () => {
 
         {error && <div className="error-message">{error}</div>}
 
-        {schedules.length === 0 ? (
+        {/* Search and Filter Controls */}
+        <div className="schedule-controls">
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search by customer name or address..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          <div className="date-filters">
+            <input
+              type="date"
+              placeholder="From"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="date-input"
+            />
+            <span className="date-separator">to</span>
+            <input
+              type="date"
+              placeholder="To"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="date-input"
+            />
+            {(searchQuery || dateFrom || dateTo) && (
+              <button
+                className="btn btn-sm btn-secondary"
+                onClick={() => {
+                  setSearchQuery('');
+                  setDateFrom('');
+                  setDateTo('');
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {getFilteredSchedules().length === 0 ? (
           <div className="empty-state">
-            <p>No delivery schedules assigned to you yet</p>
+            <p>{schedules.length === 0 ? 'No delivery schedules assigned to you yet' : 'No schedules match your filters'}</p>
           </div>
         ) : (
           <div className="schedules-table">
@@ -135,7 +221,7 @@ const MyDeliverySchedule = () => {
                 </tr>
               </thead>
               <tbody>
-                {schedules.map((schedule) => (
+                {getPaginatedSchedules().map((schedule) => (
                   <tr key={schedule.id}>
                     <td>{schedule.orderNumber}</td>
                     <td>
@@ -177,6 +263,27 @@ const MyDeliverySchedule = () => {
                 ))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            <div className="pagination-controls">
+              <button
+                className="btn btn-sm btn-secondary"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span className="pagination-info">
+                Page {currentPage} of {getTotalPages()}
+              </span>
+              <button
+                className="btn btn-sm btn-secondary"
+                onClick={handleNextPage}
+                disabled={currentPage >= getTotalPages()}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

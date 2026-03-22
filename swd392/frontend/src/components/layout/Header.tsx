@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import './Header.css';
@@ -11,6 +11,7 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isManagementDropdownOpen, setIsManagementDropdownOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const managementDropdownRef = useRef<HTMLLIElement | null>(null);
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -28,19 +29,43 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
     setIsManagementDropdownOpen(!isManagementDropdownOpen);
   };
 
+  const closeManagementDropdown = () => {
+    setIsManagementDropdownOpen(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!managementDropdownRef.current) {
+        return;
+      }
+
+      if (!managementDropdownRef.current.contains(event.target as Node)) {
+        setIsManagementDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const toggleUserMenu = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
   };
 
-  const isAdmin = user?.roleName === 'Admin';
-  const isManager = user?.roleName === 'Manager';
-  const isStaff = user?.roleName === 'Staff';
-  const isDeliveryman = user?.roleName === 'Deliveryman' || user?.roleName === 'DeliveryMan' || user?.roleName === 'Delivery_Personnel';
-  const isCustomer = user?.roleName === 'Customer';
+  const normalizedRole = (user?.roleName || '').trim().toLowerCase();
+  const isAdmin = normalizedRole === 'admin';
+  const isManager = normalizedRole === 'manager';
+  const isStaff = normalizedRole === 'staff';
+  const isDeliveryman = normalizedRole === 'deliveryman' || normalizedRole === 'delivery_personnel';
+  const isCustomer = normalizedRole === 'customer';
 
   // Debug logging
   console.log('User role:', user?.roleName);
-  console.log('Is Deliveryman:', isDeliveryman);
+  console.log('Normalized role:', normalizedRole);
+  console.log('Is Customer:', isCustomer);
 
   return (
     <header className="header">
@@ -87,7 +112,7 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
                   {isManager && (
                     <>
                       <li><Link to="/admin/menu">Menu</Link></li>
-                      <li className="dropdown">
+                      <li className="dropdown" ref={managementDropdownRef}>
                         <button 
                           className="dropdown-toggle"
                           onClick={toggleManagementDropdown}
@@ -97,10 +122,10 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
                           <span className={`dropdown-arrow ${isManagementDropdownOpen ? 'open' : ''}`}>▼</span>
                         </button>
                         <ul className={`dropdown-menu ${isManagementDropdownOpen ? 'open' : ''}`}>
-                          <li><Link to="/admin/ingredients">Ingredients</Link></li>
-                          <li><Link to="/admin/allergies">Allergies</Link></li>
-                          <li><Link to="/admin/recipes">Recipes</Link></li>
-                          <li><Link to="/admin/nutrients">Nutrients</Link></li>
+                          <li><Link to="/admin/ingredients" onClick={closeManagementDropdown}>Ingredients</Link></li>
+                          <li><Link to="/admin/allergies" onClick={closeManagementDropdown}>Allergies</Link></li>
+                          <li><Link to="/admin/recipes" onClick={closeManagementDropdown}>Recipes</Link></li>
+                          <li><Link to="/admin/nutrients" onClick={closeManagementDropdown}>Nutrients</Link></li>
                         </ul>
                       </li>
                     </>
@@ -126,7 +151,7 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
                     <>
                       <li><Link to="/admin/menu">Menu</Link></li>
                       <li><Link to="/admin/accounts">Accounts</Link></li>
-                      <li className="dropdown">
+                      <li className="dropdown" ref={managementDropdownRef}>
                         <button 
                           className="dropdown-toggle"
                           onClick={toggleManagementDropdown}
@@ -136,12 +161,12 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
                           <span className={`dropdown-arrow ${isManagementDropdownOpen ? 'open' : ''}`}>▼</span>
                         </button>
                         <ul className={`dropdown-menu ${isManagementDropdownOpen ? 'open' : ''}`}>
-                          <li><Link to="/admin/ingredients">Ingredients</Link></li>
-                          <li><Link to="/admin/allergies">Allergies</Link></li>
-                          <li><Link to="/admin/recipes">Recipes</Link></li>
-                          <li><Link to="/admin/nutrients">Nutrients</Link></li>
-                          <li><Link to="/admin/ai-credit-packages">AI Credit Packages</Link></li>
-                          <li><Link to="/admin/subscription-packages">Subscription Packages</Link></li>
+                          <li><Link to="/admin/ingredients" onClick={closeManagementDropdown}>Ingredients</Link></li>
+                          <li><Link to="/admin/allergies" onClick={closeManagementDropdown}>Allergies</Link></li>
+                          <li><Link to="/admin/recipes" onClick={closeManagementDropdown}>Recipes</Link></li>
+                          <li><Link to="/admin/nutrients" onClick={closeManagementDropdown}>Nutrients</Link></li>
+                          <li><Link to="/admin/ai-credit-packages" onClick={closeManagementDropdown}>AI Credit Packages</Link></li>
+                          <li><Link to="/admin/subscription-packages" onClick={closeManagementDropdown}>Subscription Packages</Link></li>
                         </ul>
                       </li>
                       <li><Link to="/admin/system-config">System Configuration</Link></li>

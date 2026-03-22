@@ -60,6 +60,32 @@
   color: var(--color-primary);
 }
 
+.meal-recipes-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+}
+
+.recipe-chip {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: #e6f4ea;
+  color: #1f6b3f;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-recipe-chip {
+  font-size: 0.82rem;
+  color: #718096;
+  font-style: italic;
+}
+
 .meal-nutrition {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -91,6 +117,19 @@
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #e2e8f0;
+}
+
+.meal-footer .todays-add-cart-btn {
+  background: var(--primary-color);
+  color: #fff;
+  border: 1px solid var(--primary-color);
+}
+
+.meal-footer .todays-add-cart-btn:hover:not(:disabled) {
+  background-color: var(--color-primary-dark) !important;
+  border-color: var(--color-primary-dark) !important;
+  color: #fff !important;
+  filter: none;
 }
 
 .availability {
@@ -126,4 +165,35 @@
   .meals-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.cart-success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.cart-success-modal {
+  width: 100%;
+  max-width: 380px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.cart-success-modal h3 {
+  margin: 0 0 0.5rem 0;
+  color: #166534;
+}
+
+.cart-success-modal p {
+  margin: 0 0 1rem 0;
+  color: #374151;
 }

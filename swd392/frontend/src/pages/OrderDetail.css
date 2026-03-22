@@ -2,6 +2,22 @@
   padding: var(--spacing-lg) 0;
 }
 
+.page-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.btn-back {
+  background-color: #6b7280 !important;
+  color: #fff !important;
+  border: 1px solid #6b7280;
+}
+
+.btn-back:hover:not(:disabled) {
+  background-color: #4b5563;
+  border-color: #4b5563;
+  color: #fff;
+}
+
 .success-banner {
   display: flex;
   align-items: center;

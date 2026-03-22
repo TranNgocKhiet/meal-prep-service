@@ -126,7 +126,7 @@
 
 .dropdown-toggle:hover {
   background-color: #d3d3d3;
-  color: var(--color-primary);
+  color: #000000;
 }
 
 .dropdown-arrow {

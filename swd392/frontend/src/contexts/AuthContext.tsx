@@ -32,6 +32,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const getRoleFromToken = () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) return '';
+
+      const tokenParts = token.split('.');
+      if (tokenParts.length < 2) return '';
+
+      const base64 = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(base64));
+
+      const role =
+        payload?.role ||
+        payload?.roles?.[0] ||
+        payload?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+        payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'] ||
+        '';
+
+      return String(role);
+    } catch {
+      return '';
+    }
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('authToken');
@@ -54,7 +78,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const response = await apiClient.get('/auth/me');
       if (response.data.success) {
-        setUser(response.data.data);
+        const userData = response.data.data as User;
+        if (!userData.roleName || !userData.roleName.trim()) {
+          userData.roleName = getRoleFromToken();
+        }
+        setUser(userData);
       }
     } catch (error) {
       console.error('Failed to fetch user:', error);

@@ -18,7 +18,8 @@ const RevenueReport = () => {
   const [reports, setReports] = useState<RevenueReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [filterMonth, setFilterMonth] = useState('');
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear().toString());
   const [showCalculateModal, setShowCalculateModal] = useState(false);
   const [calculateMonth, setCalculateMonth] = useState(new Date().getMonth() + 1);
   const [calculateYear, setCalculateYear] = useState(new Date().getFullYear());
@@ -28,13 +29,24 @@ const RevenueReport = () => {
     'July', 'August', 'September', 'October', 'November', 'December'];
 
   useEffect(() => {
-    fetchReports();
-  }, [selectedYear]);
+    fetchReports(undefined, new Date().getFullYear());
+  }, []);
 
-  const fetchReports = async () => {
+  const fetchReports = async (month?: number, year?: number) => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`/revenuereports?year=${selectedYear}`);
+      setError('');
+
+      const params = new URLSearchParams();
+      if (typeof year === 'number') {
+        params.append('year', year.toString());
+      }
+      if (typeof month === 'number') {
+        params.append('month', month.toString());
+      }
+
+      const queryString = params.toString();
+      const response = await apiClient.get(`/revenuereports${queryString ? `?${queryString}` : ''}`);
       
       if (response.data.success) {
         setReports(response.data.data.sort((a: RevenueReport, b: RevenueReport) => a.month - b.month));
@@ -46,6 +58,30 @@ const RevenueReport = () => {
     }
   };
 
+  const handleApplyFilter = async () => {
+    const parsedYear = parseInt(filterYear, 10);
+    const parsedMonth = filterMonth ? parseInt(filterMonth, 10) : undefined;
+
+    if (Number.isNaN(parsedYear) || parsedYear < 2000 || parsedYear > 2100) {
+      setError('Please enter a valid year between 2000 and 2100.');
+      return;
+    }
+
+    if (parsedMonth !== undefined && (Number.isNaN(parsedMonth) || parsedMonth < 1 || parsedMonth > 12)) {
+      setError('Please enter a valid month from 1 to 12.');
+      return;
+    }
+
+    await fetchReports(parsedMonth, parsedYear);
+  };
+
+  const handleClearFilter = async () => {
+    const currentYear = new Date().getFullYear();
+    setFilterMonth('');
+    setFilterYear(currentYear.toString());
+    await fetchReports(undefined, currentYear);
+  };
+
   const handleCalculateRevenue = async () => {
     try {
       setCalculating(true);
@@ -55,9 +91,10 @@ const RevenueReport = () => {
       
       if (response.data.success) {
         setShowCalculateModal(false);
-        // Refresh reports if the calculated month is in the selected year
-        if (calculateYear === selectedYear) {
-          await fetchReports();
+        const parsedYear = parseInt(filterYear, 10);
+        const parsedMonth = filterMonth ? parseInt(filterMonth, 10) : undefined;
+        if (!Number.isNaN(parsedYear)) {
+          await fetchReports(parsedMonth, parsedYear);
         }
         alert('Revenue calculated and saved successfully!');
       }
@@ -97,8 +134,6 @@ const RevenueReport = () => {
   const totals = calculateTotals();
   const grandTotal = totals.subscription + totals.order + totals.aiCredit;
 
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
-
   if (loading) {
     return <div className="container"><div className="loading">Loading...</div></div>;
   }
@@ -108,20 +143,38 @@ const RevenueReport = () => {
       <div className="revenue-header">
         <h1 style={{ color: '#fff' }}>Revenue Report</h1>
         <div className="header-controls">
+          <div className="filter-group">
+            <label>Month:</label>
+            <select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+              className="filter-input"
+            >
+              <option value="">All</option>
+              {monthNames.map((name, index) => (
+                <option key={index + 1} value={index + 1}>{name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-group">
+            <label>Year:</label>
+            <input
+              type="number"
+              min="2000"
+              max="2100"
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+              className="filter-input"
+            />
+          </div>
+          <button className="btn btn-sm" onClick={handleApplyFilter}>Apply Filter</button>
+          <button className="btn btn-secondary" onClick={handleClearFilter}>Clear</button>
           <button 
-            className="btn btn-primary"
+            className="btn btn-sm"
             onClick={() => setShowCalculateModal(true)}
           >
             Calculate Revenue
           </button>
-          <div className="year-selector">
-            <label>Year:</label>
-            <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))}>
-              {years.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 
@@ -151,15 +204,14 @@ const RevenueReport = () => {
               </div>
               <div className="form-group">
                 <label>Year:</label>
-                <select 
+                <input
+                  type="number"
+                  min="2000"
+                  max="2100"
                   value={calculateYear} 
-                  onChange={(e) => setCalculateYear(parseInt(e.target.value))}
+                  onChange={(e) => setCalculateYear(parseInt(e.target.value, 10) || new Date().getFullYear())}
                   className="form-control"
-                >
-                  {years.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
             <div className="modal-footer">
@@ -171,7 +223,7 @@ const RevenueReport = () => {
                 Cancel
               </button>
               <button 
-                className="btn btn-primary" 
+                className="btn btn-sm" 
                 onClick={handleCalculateRevenue}
                 disabled={calculating}
               >
@@ -222,7 +274,7 @@ const RevenueReport = () => {
             {reports.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#718096' }}>
-                  No revenue data available for {selectedYear}
+                  No revenue data available for selected filter
                 </td>
               </tr>
             ) : (

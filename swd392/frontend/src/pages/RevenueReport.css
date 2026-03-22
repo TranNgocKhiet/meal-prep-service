@@ -19,6 +19,33 @@
   flex-wrap: wrap;
 }
 
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-weight: 500;
+  color: #fff;
+}
+
+.filter-input {
+  width: 100px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: #000;
+  background-color: white;
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
 .year-selector {
   display: flex;
   align-items: center;
@@ -237,6 +264,14 @@
   .revenue-header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .filter-group {
+    justify-content: space-between;
+  }
+
+  .filter-input {
+    width: 120px;
   }
 
   .year-selector {

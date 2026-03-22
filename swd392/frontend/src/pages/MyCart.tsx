@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import Container from '../components/layout/Container';
 import apiClient from '../config/api';
 import { formatVND } from '../utils/currency';
@@ -34,6 +35,9 @@ const MyCart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showRemoveConfirmModal, setShowRemoveConfirmModal] = useState(false);
+  const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
+  const [pendingRemoveItemId, setPendingRemoveItemId] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [address, setAddress] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -78,23 +82,34 @@ const MyCart = () => {
     }
   };
 
-  const handleRemoveItem = async (cartItemId: string) => {
-    if (!window.confirm('Remove this item from cart?')) return;
+  const handleRemoveItem = (cartItemId: string) => {
+    setPendingRemoveItemId(cartItemId);
+    setShowRemoveConfirmModal(true);
+  };
+
+  const confirmRemoveItem = async () => {
+    if (!pendingRemoveItemId) return;
 
     try {
-      await apiClient.delete(`/cart/items/${cartItemId}`);
+      await apiClient.delete(`/cart/items/${pendingRemoveItemId}`);
       await fetchCart();
+      setShowRemoveConfirmModal(false);
+      setPendingRemoveItemId(null);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to remove item');
     }
   };
 
-  const handleClearCart = async () => {
-    if (!window.confirm('Clear all items from cart?')) return;
+  const handleClearCart = () => {
+    setShowClearConfirmModal(true);
+  };
+
+  const confirmClearCart = async () => {
 
     try {
       await apiClient.delete('/cart');
       await fetchCart();
+      setShowClearConfirmModal(false);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to clear cart');
     }
@@ -109,6 +124,11 @@ const MyCart = () => {
 
   const handleCheckout = () => {
     setShowCheckoutModal(true);
+  };
+
+  const renderModal = (modal: ReactNode) => {
+    if (typeof document === 'undefined') return null;
+    return createPortal(modal, document.body);
   };
 
   const validatePhoneNumber = (phone: string) => {
@@ -198,7 +218,7 @@ const MyCart = () => {
         {!cart || cart.cartItems.length === 0 ? (
           <div className="empty-cart">
             <p>Your cart is empty</p>
-            <button className="btn btn-primary" onClick={() => navigate('/weekly-menu')}>
+            <button className="btn" onClick={() => navigate('/weekly-menu')}>
               Browse Menu
             </button>
           </div>
@@ -260,7 +280,7 @@ const MyCart = () => {
                 <span>Total:</span>
                 <span>{formatVND(calculateTotal())}</span>
               </div>
-              <button className="btn btn-primary btn-checkout" onClick={handleCheckout}>
+              <button className="btn btn-checkout" onClick={handleCheckout}>
                 Proceed to Checkout
               </button>
             </div>
@@ -268,8 +288,8 @@ const MyCart = () => {
         )}
 
         {/* Checkout Modal */}
-        {showCheckoutModal && (
-          <div className="modal-overlay" onClick={() => setShowCheckoutModal(false)}>
+        {showCheckoutModal && renderModal(
+          <div className="modal-overlay checkout-modal-overlay" onClick={() => setShowCheckoutModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Checkout</h2>
               <div className="checkout-form">
@@ -299,8 +319,8 @@ const MyCart = () => {
 
                 <div className="form-group">
                   <label>Payment Method</label>
-                  <select 
-                    value={paymentMethod} 
+                  <select
+                    value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     className="form-control"
                   >
@@ -308,7 +328,7 @@ const MyCart = () => {
                     <option value="VNPay">VNPay</option>
                   </select>
                 </div>
-                
+
                 <div className="order-summary">
                   <h3>Order Summary</h3>
                   <p>{cart?.cartItems.length} items</p>
@@ -316,21 +336,67 @@ const MyCart = () => {
                 </div>
 
                 <div className="modal-actions">
-                  <button 
-                    className="btn btn-secondary" 
+                  <button
+                    className="btn btn-secondary"
                     onClick={() => setShowCheckoutModal(false)}
                     disabled={isCreatingOrder}
                   >
                     Cancel
                   </button>
-                  <button 
-                    className="btn btn-primary" 
+                  <button
+                    className="btn"
                     onClick={handleConfirmOrder}
                     disabled={isCreatingOrder}
                   >
                     {isCreatingOrder ? 'Creating Order...' : 'Confirm Order'}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showRemoveConfirmModal && renderModal(
+          <div
+            className="modal-overlay"
+            onClick={() => {
+              setShowRemoveConfirmModal(false);
+              setPendingRemoveItemId(null);
+            }}
+          >
+            <div className="modal-content confirm-modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Remove Item</h2>
+              <p className="confirm-modal-message">Are you sure you want to remove this item from your cart?</p>
+              <div className="modal-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setShowRemoveConfirmModal(false);
+                    setPendingRemoveItemId(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button className="btn btn-danger" onClick={confirmRemoveItem}>
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showClearConfirmModal && renderModal(
+          <div className="modal-overlay" onClick={() => setShowClearConfirmModal(false)}>
+            <div className="modal-content confirm-modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Clear Cart</h2>
+              <p className="confirm-modal-message">Are you sure you want to remove all items from your cart?</p>
+              <div className="modal-actions">
+                <button className="btn btn-secondary" onClick={() => setShowClearConfirmModal(false)}>
+                  Cancel
+                </button>
+                <button className="btn btn-danger" onClick={confirmClearCart}>
+                  Clear Cart
+                </button>
               </div>
             </div>
           </div>

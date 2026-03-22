@@ -117,7 +117,7 @@ const AdminSubscriptionPackages = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
-          <button onClick={handleCreate} className="btn-primary">Add Package</button>
+          <button onClick={handleCreate} className="btn">Add Package</button>
         </div>
       </div>
 

@@ -7,11 +7,17 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-xl);
+  gap: var(--spacing-md);
 }
 
 .page-header h1 {
   margin: 0;
   color: #000;
+  flex: 1;
+}
+
+.page-header .btn {
+  flex-shrink: 0;
 }
 
 .schedules-table {
@@ -55,10 +61,10 @@
 }
 
 .address-cell {
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 320px;
+  max-width: 520px;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .empty-state {
@@ -227,8 +233,8 @@
 }
 
 .status-delivering {
-  background: #cce5ff;
-  color: #004085;
+  background: #ffffff !important;
+  color: #1e3a8a;
 }
 
 .status-delivered {
@@ -281,4 +287,153 @@
 
 .status-dropdown:hover:not(:disabled) {
   border-color: var(--color-primary);
+}
+
+/* Search and Filter Controls */
+.schedule-controls {
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.search-box {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.search-input {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  color: #000;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.date-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.date-input {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  color: #000;
+}
+
+.date-separator {
+  color: #666;
+  font-weight: 500;
+}
+
+/* Action Buttons in Table */
+.action-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+  white-space: nowrap;
+}
+
+/* View Details */
+.view-details {
+  margin: var(--spacing-lg) 0;
+  padding: var(--spacing-lg);
+  background-color: #f9f9f9;
+  border-radius: var(--border-radius-md);
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  align-items: start;
+}
+
+.detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-row label {
+  font-weight: 600;
+  color: #000;
+}
+
+.detail-row span {
+  color: #333;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .schedule-controls {
+    flex-direction: column;
+  }
+
+  .date-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-input {
+    width: 100%;
+  }
+
+  .date-separator {
+    display: none;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons .btn {
+    width: 100%;
+  }
+
+  .detail-row {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-row label {
+    margin-bottom: 4px;
+  }
+}
+
+/* Pagination Controls */
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: #f9f9f9;
+  border-top: 1px solid var(--color-border);
+}
+
+.pagination-info {
+  font-weight: 500;
+  color: #333;
+  min-width: 150px;
+  text-align: center;
+}
+
+.pagination-controls .btn {
+  min-width: 100px;
+}
+
+.pagination-controls .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

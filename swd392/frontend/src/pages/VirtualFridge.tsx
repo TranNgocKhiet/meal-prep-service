@@ -23,6 +23,8 @@ interface FridgeItem {
   addedAt: string;
 }
 
+type ItemStatusFilter = 'all' | 'expired' | 'today' | 'tomorrow' | 'soon' | 'fresh';
+
 const VirtualFridge = () => {
   const navigate = useNavigate();
   const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
@@ -34,6 +36,7 @@ const VirtualFridge = () => {
   const [ingredientSearch, setIngredientSearch] = useState('');
   const [searchResults, setSearchResults] = useState<Ingredient[]>([]);
   const [searchingIngredients, setSearchingIngredients] = useState(false);
+  const [activeStatusFilter, setActiveStatusFilter] = useState<ItemStatusFilter>('all');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -43,6 +46,8 @@ const VirtualFridge = () => {
     quantity: '',
     expiryDate: '',
   });
+
+  const getTodayDateString = () => new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     fetchFridgeItems();
@@ -98,6 +103,11 @@ const VirtualFridge = () => {
       return;
     }
 
+    if (formData.expiryDate < getTodayDateString()) {
+      alert('Expiry date cannot be before today');
+      return;
+    }
+
     try {
       const response = await apiClient.post('/fridge', {
         ingredientId: formData.ingredientId,
@@ -121,6 +131,11 @@ const VirtualFridge = () => {
 
     if (!editingItem || !formData.quantity || !formData.expiryDate) {
       alert('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.expiryDate < getTodayDateString()) {
+      alert('Expiry date cannot be before today');
       return;
     }
 
@@ -162,7 +177,8 @@ const VirtualFridge = () => {
       ingredientName: ingredient.name,
       unit: ingredient.unit,
     });
-    setIngredientSearch(ingredient.name);
+    // Keep selected ingredient only in "Selected" area and stop search dropdown from reopening.
+    setIngredientSearch('');
     setSearchResults([]);
   };
 
@@ -214,12 +230,40 @@ const VirtualFridge = () => {
     return `${item.daysUntilExpiry} days left`;
   };
 
+  const getStatusFilterKey = (item: FridgeItem): Exclude<ItemStatusFilter, 'all'> => {
+    if (item.isExpired) return 'expired';
+    if (item.daysUntilExpiry === 0) return 'today';
+    if (item.daysUntilExpiry === 1) return 'tomorrow';
+    if (item.daysUntilExpiry <= 3) return 'soon';
+    return 'fresh';
+  };
+
   const filteredItems = fridgeItems.filter(item =>
     item.ingredient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.ingredient.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sortedItems = [...filteredItems].sort((a, b) => {
+  const statusCounts = filteredItems.reduce(
+    (acc, item) => {
+      const status = getStatusFilterKey(item);
+      acc[status] += 1;
+      return acc;
+    },
+    {
+      expired: 0,
+      today: 0,
+      tomorrow: 0,
+      soon: 0,
+      fresh: 0,
+    }
+  );
+
+  const statusFilteredItems =
+    activeStatusFilter === 'all'
+      ? filteredItems
+      : filteredItems.filter((item) => getStatusFilterKey(item) === activeStatusFilter);
+
+  const sortedItems = [...statusFilteredItems].sort((a, b) => {
     const dateA = new Date(a.expiryDate).getTime();
     const dateB = new Date(b.expiryDate).getTime();
     return dateA - dateB;
@@ -245,13 +289,13 @@ const VirtualFridge = () => {
           <h1>Virtual Fridge</h1>
           <div className="header-actions">
             <button
-              className="btn btn-secondary"
+              className="btn btn-warning"
               onClick={() => navigate('/grocery-list')}
             >
               Create Grocery List
             </button>
             <button
-              className="btn btn-primary"
+              className="btn"
               onClick={() => {
                 setShowAddForm(true);
                 setEditingItem(null);
@@ -335,7 +379,7 @@ const VirtualFridge = () => {
                         ))}
                       </div>
                     )}
-                    {ingredientSearch.length >= 2 && !searchingIngredients && searchResults.length === 0 && (
+                    {ingredientSearch.length >= 2 && !searchingIngredients && searchResults.length === 0 && !formData.ingredientId && (
                       <div className="search-results">
                         <div className="search-result-item no-results">
                           No ingredients found
@@ -383,12 +427,13 @@ const VirtualFridge = () => {
                   id="expiryDate"
                   value={formData.expiryDate}
                   onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                  min={getTodayDateString()}
                   required
                 />
               </div>
 
               <div className="form-actions">
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn">
                   {editingItem ? 'Update Item' : 'Add Item'}
                 </button>
                 <button
@@ -416,13 +461,68 @@ const VirtualFridge = () => {
           />
         </div>
 
+        <div className="status-summary-grid">
+          <button
+            type="button"
+            className={`status-summary-card ${activeStatusFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('all')}
+          >
+            <span className="status-summary-title">All</span>
+            <span className="status-summary-value">{filteredItems.length}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card expired ${activeStatusFilter === 'expired' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('expired')}
+          >
+            <span className="status-summary-title">Expired</span>
+            <span className="status-summary-value">{statusCounts.expired}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card today ${activeStatusFilter === 'today' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('today')}
+          >
+            <span className="status-summary-title">Today</span>
+            <span className="status-summary-value">{statusCounts.today}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card tomorrow ${activeStatusFilter === 'tomorrow' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('tomorrow')}
+          >
+            <span className="status-summary-title">Tomorrow</span>
+            <span className="status-summary-value">{statusCounts.tomorrow}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card soon ${activeStatusFilter === 'soon' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('soon')}
+          >
+            <span className="status-summary-title">Expiring Soon</span>
+            <span className="status-summary-value">{statusCounts.soon}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card fresh ${activeStatusFilter === 'fresh' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('fresh')}
+          >
+            <span className="status-summary-title">Fresh</span>
+            <span className="status-summary-value">{statusCounts.fresh}</span>
+          </button>
+        </div>
+
         {sortedItems.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🥗</div>
-            <h2>Your Fridge is Empty</h2>
-            <p>Start adding ingredients to track your inventory</p>
+            <h2>{fridgeItems.length === 0 ? 'Your Fridge is Empty' : 'No Items Match This Filter'}</h2>
+            <p>
+              {fridgeItems.length === 0
+                ? 'Start adding ingredients to track your inventory'
+                : 'Try another status card or clear your search keywords.'}
+            </p>
             <button
-              className="btn btn-primary"
+              className="btn"
               onClick={() => {
                 setShowAddForm(true);
                 resetForm();
