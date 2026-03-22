@@ -13,6 +13,10 @@ interface Recipe {
   hasAllergyWarning: boolean;
   allergens: string[];
   isFavorite: boolean;
+  totalCalories: number;
+  proteinG: number;
+  fatG: number;
+  carbsG: number;
 }
 
 interface ApiError {
@@ -40,12 +44,51 @@ const RecipeSelector = ({ maxSelection, selectedRecipeIds, onConfirm, onCancel }
   const [showAllergyWarning, setShowAllergyWarning] = useState(false);
   const [allergyRecipe, setAllergyRecipe] = useState<Recipe | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Don't fetch recipes on mount
-    // Only fetch when user searches
-  }, []);
+    // Load selected recipes on mount if any exist
+    const loadSelectedRecipes = async () => {
+      if (selectedRecipeIds.length === 0) {
+        // No recipes selected yet, show empty state
+        setRecipes([]);
+        setHasSearched(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError('');
+        
+        // Fetch all recipes and filter to show only selected ones
+        const payload = {
+          excludeAllergens: true
+        };
+        
+        const response = await apiClient.post('/recipes/search', payload);
+        
+        if (response.data.success) {
+          const allRecipes = response.data.data || [];
+          // Filter to show only selected recipes
+          const selectedRecipes = allRecipes.filter((r: Recipe) => selectedRecipeIds.includes(r.id));
+          setRecipes(selectedRecipes);
+          setHasSearched(true);
+        } else {
+          setRecipes([]);
+          setError(response.data.message || 'Failed to load recipes');
+        }
+      } catch (err) {
+        console.error('Recipe search error:', err);
+        const error = err as ApiError;
+        setRecipes([]);
+        setError(error.response?.data?.message || 'Failed to load recipes. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadSelectedRecipes();
+  }, [selectedRecipeIds]);
 
   useEffect(() => {
     // Pre-select recipes based on selectedRecipeIds
@@ -233,7 +276,7 @@ const RecipeSelector = ({ maxSelection, selectedRecipeIds, onConfirm, onCancel }
           </div>
         ) : !hasSearched ? (
           <div className="empty-state" style={{ backgroundColor: '#fff' }}>
-            <p style={{ color: '#000' }}>Search for recipes to add to your meal plan</p>
+            <p style={{ color: '#000' }}>No recipes selected yet. Click "Show All" or search to add recipes.</p>
           </div>
         ) : (
           <div className="recipes-grid">
@@ -256,6 +299,24 @@ const RecipeSelector = ({ maxSelection, selectedRecipeIds, onConfirm, onCancel }
                     {recipe.isFavorite && (
                       <div className="favorite-badge">⭐ Favorite</div>
                     )}
+                    <div className="nutrition-info">
+                      <div className="nutrition-item">
+                        <span className="nutrition-label">Calories:</span>
+                        <span className="nutrition-value">{recipe.totalCalories}</span>
+                      </div>
+                      <div className="nutrition-item">
+                        <span className="nutrition-label">Protein:</span>
+                        <span className="nutrition-value">{recipe.proteinG}g</span>
+                      </div>
+                      <div className="nutrition-item">
+                        <span className="nutrition-label">Fat:</span>
+                        <span className="nutrition-value">{recipe.fatG}g</span>
+                      </div>
+                      <div className="nutrition-item">
+                        <span className="nutrition-label">Carbs:</span>
+                        <span className="nutrition-value">{recipe.carbsG}g</span>
+                      </div>
+                    </div>
                   </div>
                   {isRecipeSelected(recipe.id) && (
                     <div className="selected-indicator">✓</div>
@@ -263,26 +324,6 @@ const RecipeSelector = ({ maxSelection, selectedRecipeIds, onConfirm, onCancel }
                 </div>
               ))
             )}
-          </div>
-        )}
-
-        {selectedRecipes.length > 0 && (
-          <div className="selected-recipes-section">
-            <h3>Selected Recipes ({selectedRecipes.length}/{maxSelection})</h3>
-            <div className="selected-recipes-list">
-              {selectedRecipes.map((recipe) => (
-                <div key={recipe.id} className="selected-recipe-item">
-                  <span className="recipe-name">{recipe.recipeName}</span>
-                  <button
-                    className="btn-remove-recipe"
-                    onClick={() => toggleRecipeSelection(recipe)}
-                    title="Remove from selection"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
           </div>
         )}
 

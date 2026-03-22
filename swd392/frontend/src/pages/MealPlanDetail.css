@@ -154,6 +154,48 @@
   color: #721c24;
 }
 
+.meal-nutrition {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: #f9f9f9;
+  border-top: 1px solid #e0e0e0;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10vw;
+}
+
+.nutrition-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 10vw;
+}
+
+.nutrition-label {
+  color: #6b7280;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.nutrition-value {
+  color: #111827;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.nutrition-value small {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
 .meal-recipes {
   padding: var(--spacing-lg);
   display: flex;
@@ -217,6 +259,67 @@
 
 .recipe-section {
   margin-bottom: var(--spacing-lg);
+}
+
+.remove-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+  padding: var(--spacing-md);
+}
+
+.remove-confirm-modal {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.remove-confirm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  background: #fff5f5;
+}
+
+.remove-confirm-header h3 {
+  margin: 0;
+  color: #8b1e2d;
+}
+
+.remove-confirm-close {
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+}
+
+.remove-confirm-body {
+  padding: var(--spacing-lg);
+  color: var(--color-text-primary);
+}
+
+.remove-confirm-body p {
+  margin: 0;
+}
+
+.remove-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--color-border);
+  background: #fff;
 }
 
 .recipe-section:last-child {
@@ -298,6 +401,10 @@
 
   .ingredients-list {
     grid-template-columns: 1fr;
+  }
+
+  .nutrition-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

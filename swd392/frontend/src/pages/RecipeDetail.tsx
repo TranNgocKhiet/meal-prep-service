@@ -7,6 +7,7 @@ import './RecipeDetail.css';
 interface RecipeIngredient {
   ingredientId: string;
   ingredientName: string;
+  amount: number;
   quantity: number;
   unit: string;
   isOptional: boolean;
@@ -14,6 +15,7 @@ interface RecipeIngredient {
 
 interface Recipe {
   id: string;
+  recipeName: string;
   name: string;
   description: string;
   instructions: string;

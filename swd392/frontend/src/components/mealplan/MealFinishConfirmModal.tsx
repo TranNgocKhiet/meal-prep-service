@@ -115,7 +115,7 @@ const MealFinishConfirmModal = ({ isOpen, onClose, onConfirm, checkData, loading
             Cancel
           </button>
           <button 
-            className="btn btn-primary" 
+            className="btn" 
             onClick={onConfirm}
             disabled={loading || !checkData}
           >

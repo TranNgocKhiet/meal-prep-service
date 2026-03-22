@@ -8,6 +8,7 @@ import './ActiveMeals.css';
 
 interface Recipe {
   id: string;
+  recipeName: string;
   name: string;
   description: string;
   instructions: string;
