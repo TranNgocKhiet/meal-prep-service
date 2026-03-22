@@ -27,7 +27,14 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = (error.config?.url || '').toString();
+    const isAuthEndpoint =
+      requestUrl.includes('/auth/login') ||
+      requestUrl.includes('/auth/register') ||
+      requestUrl.includes('/auth/google-login') ||
+      requestUrl.includes('/auth/google-register');
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('authToken');
       window.location.href = '/login';
     }

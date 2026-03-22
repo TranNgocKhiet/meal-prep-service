@@ -108,12 +108,21 @@ public class AuthenticationService : IAuthenticationService
     public async Task<AuthenticationServiceResult> LoginAsync(string email, string password)
     {
         var user = await _unitOfWork.Accounts.GetByEmailAsync(email);
-        if (user == null || !user.IsActive)
+        if (user == null)
         {
             return new AuthenticationServiceResult
             {
                 Success = false,
-                ErrorMessage = "Invalid email or password"
+                ErrorMessage = "Wrong email"
+            };
+        }
+
+        if (!user.IsActive)
+        {
+            return new AuthenticationServiceResult
+            {
+                Success = false,
+                ErrorMessage = "Account is inactive"
             };
         }
 
@@ -122,7 +131,7 @@ public class AuthenticationService : IAuthenticationService
             return new AuthenticationServiceResult
             {
                 Success = false,
-                ErrorMessage = "Invalid email or password"
+                ErrorMessage = "Wrong password"
             };
         }
 
