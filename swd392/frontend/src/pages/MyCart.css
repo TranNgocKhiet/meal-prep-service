@@ -234,6 +234,25 @@
   gap: var(--spacing-md);
 }
 
+.checkout-notice {
+  margin-bottom: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.checkout-notice.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.checkout-notice.success {
+  background: #ecfdf5;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;

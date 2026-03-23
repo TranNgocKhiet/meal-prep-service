@@ -112,9 +112,9 @@ public class DeliveryScheduleService : IDeliveryScheduleService
                 throw new KeyNotFoundException($"Driver with ID {dto.DriverId} not found");
             }
 
-            if (driver.Role.Name != "Staff" && driver.Role.Name != "Admin")
+            if (driver.RoleId != 5)
             {
-                throw new InvalidOperationException("Selected user is not a staff member or admin");
+                throw new InvalidOperationException("Selected user is not a deliveryman");
             }
 
             schedule.DriverId = dto.DriverId;

@@ -98,6 +98,8 @@ const StaffOrderList = () => {
   const [actionFeedback, setActionFeedback] = useState<ActionFeedback | null>(null);
   const [statusConfirmAction, setStatusConfirmAction] = useState<StatusConfirmAction | null>(null);
   const [confirmingStatusAction, setConfirmingStatusAction] = useState(false);
+  const [showScheduleSaveConfirm, setShowScheduleSaveConfirm] = useState(false);
+  const [confirmingScheduleSave, setConfirmingScheduleSave] = useState(false);
   const navigate = useNavigate();
 
   const getPaginatedOrders = (): Order[] => {
@@ -340,6 +342,9 @@ const StaffOrderList = () => {
   };
 
   const toDateTimeLocalValue = (value: string) => {
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+    if (match) return `${match[1]}T${match[2]}`;
+
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '';
     const year = date.getFullYear();
@@ -349,6 +354,8 @@ const StaffOrderList = () => {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
+
+  const toApiDateTimeValue = (dateTimeLocal: string) => `${dateTimeLocal}:00`;
 
   const handleOpenEditScheduleModal = (orderId: string) => {
     const schedule = deliverySchedules.find((s) => s.orderId === orderId);
@@ -400,12 +407,22 @@ const StaffOrderList = () => {
       return;
     }
 
+    if (scheduleModalMode === 'edit') {
+      setShowScheduleSaveConfirm(true);
+      return;
+    }
+
+    await executeScheduleSave();
+  };
+
+  const executeScheduleSave = async () => {
+
     setScheduling(true);
     try {
       const selectedDriverInfo = drivers.find(d => d.id === selectedDriver);
       const schedulePayload = {
         driverId: selectedDriver,
-        deliveryTime: new Date(deliveryTime).toISOString(),
+        deliveryTime: toApiDateTimeValue(deliveryTime),
         address: deliverySchedules.find(s => s.id === selectedScheduleId)?.address,
         driverContact: selectedDriverInfo?.phoneNumber || deliverySchedules.find(s => s.id === selectedScheduleId)?.driverContact || ''
       };
@@ -432,6 +449,7 @@ const StaffOrderList = () => {
       await fetchOrders();
       await fetchDeliverySchedules();
       setShowScheduleModal(false);
+      setShowScheduleSaveConfirm(false);
       setSelectedScheduleId('');
       setSelectedDriver('');
       setDeliveryTime('');
@@ -444,6 +462,17 @@ const StaffOrderList = () => {
       setActionFeedback({ type: 'error', message: err.response?.data?.message || 'Failed to save delivery schedule.' });
     } finally {
       setScheduling(false);
+    }
+  };
+
+  const handleConfirmScheduleSave = async () => {
+    if (confirmingScheduleSave) return;
+
+    setConfirmingScheduleSave(true);
+    try {
+      await executeScheduleSave();
+    } finally {
+      setConfirmingScheduleSave(false);
     }
   };
 
@@ -853,10 +882,43 @@ const StaffOrderList = () => {
           </div>
         )}
 
+        {showScheduleSaveConfirm && (
+          <div
+            className="status-confirm-overlay"
+            onClick={() => {
+              if (!confirmingScheduleSave) {
+                setShowScheduleSaveConfirm(false);
+              }
+            }}
+          >
+            <div className="status-confirm-modal" onClick={(e) => e.stopPropagation()}>
+              <h3>Confirm Schedule Update</h3>
+              <p>Are you sure you want to save changes to this delivery schedule?</p>
+              <div className="status-confirm-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowScheduleSaveConfirm(false)}
+                  disabled={confirmingScheduleSave}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn"
+                  onClick={handleConfirmScheduleSave}
+                  disabled={confirmingScheduleSave}
+                >
+                  {confirmingScheduleSave ? 'Saving...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Schedule Delivery Modal */}
         {showScheduleModal && (
           <div className="modal-overlay" onClick={() => {
             setShowScheduleModal(false);
+            setShowScheduleSaveConfirm(false);
             setScheduleModalMode('create');
             setSelectedScheduleId('');
             setDriverSearchQuery('');
@@ -931,6 +993,7 @@ const StaffOrderList = () => {
                     className="btn btn-secondary"
                     onClick={() => {
                       setShowScheduleModal(false);
+                      setShowScheduleSaveConfirm(false);
                       setScheduleModalMode('create');
                       setSelectedScheduleId('');
                       setSelectedDriver('');
@@ -944,7 +1007,7 @@ const StaffOrderList = () => {
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-primary"
+                    className="btn"
                     disabled={scheduling}
                   >
                     {scheduling ? 'Saving...' : scheduleModalMode === 'edit' ? 'Save Changes' : 'Schedule Delivery'}
