@@ -170,7 +170,7 @@ const TodaysMenu = () => {
       </div>
 
       <div className="meals-grid">
-        {menu.menuMeals.map((meal) => (
+        {menu.menuMeals.sort((a, b) => a.mealTypeId - b.mealTypeId).map((meal) => (
           <div key={meal.id} className="meal-card">
             <div className="meal-header">
               <h3 style={{ color: '#000' }}>{getMealTypeName(meal.mealTypeId)}</h3>

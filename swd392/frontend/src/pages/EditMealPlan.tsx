@@ -240,7 +240,7 @@ const EditMealPlan = () => {
                     {day.meals.map((meal, mealIndex) => (
                       <div key={meal.id} className="meal-slot">
                         <div className="meal-header">
-                          <h4>{getMealTypeName(meal.mealTypeId)}</h4>
+                          <h4 style={{color: '#2c2c2c'}}>{getMealTypeName(meal.mealTypeId)}</h4>
                           <span className="recipe-count">
                             {getRecipeCount(dayIndex, mealIndex)}/10 recipes
                           </span>
