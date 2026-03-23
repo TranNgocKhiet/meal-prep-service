@@ -10,6 +10,20 @@ interface Recipe {
   updatedAt?: string;
 }
 
+interface Ingredient {
+  id: string;
+  name: string;
+  unit: string;
+}
+
+interface RecipeIngredient {
+  id: string;
+  ingredientId: string;
+  ingredientName: string;
+  ingredientUnit: string;
+  amount: number;
+}
+
 const AdminRecipes = () => {
   const [items, setItems] = useState<Recipe[]>([]);
   const [filtered, setFiltered] = useState<Recipe[]>([]);
@@ -18,6 +32,12 @@ const AdminRecipes = () => {
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Recipe | null>(null);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [recipeIngredients, setRecipeIngredients] = useState<RecipeIngredient[]>([]);
+  const [ingredientsLoading, setIngredientsLoading] = useState(false);
+  const [ingredientsError, setIngredientsError] = useState('');
+  const [newIngredientId, setNewIngredientId] = useState('');
+  const [newIngredientAmount, setNewIngredientAmount] = useState<string>('');
   const [formData, setFormData] = useState<Partial<Recipe>>({
     recipeName: '',
     instructions: ''
@@ -60,6 +80,7 @@ const AdminRecipes = () => {
       recipeName: '',
       instructions: ''
     });
+    setRecipeIngredients([]);
     setShowModal(true);
   };
 
@@ -69,7 +90,45 @@ const AdminRecipes = () => {
       recipeName: item.recipeName,
       instructions: item.instructions
     });
+    fetchIngredients();
+    fetchRecipeIngredients(item.id);
     setShowModal(true);
+  };
+
+  const fetchIngredients = async () => {
+    try {
+      setIngredientsLoading(true);
+      setIngredientsError('');
+      const response = await apiClient.get('/admin/ingredients');
+      if (response.data.success) {
+        setIngredients(response.data.data);
+      } else {
+        setIngredientsError(response.data.message || 'Failed to load ingredients');
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setIngredientsError(error.response?.data?.message || 'Failed to load ingredients');
+    } finally {
+      setIngredientsLoading(false);
+    }
+  };
+
+  const fetchRecipeIngredients = async (recipeId: string) => {
+    try {
+      setIngredientsLoading(true);
+      setIngredientsError('');
+      const response = await apiClient.get(`/admin/recipes/${recipeId}/ingredients`);
+      if (response.data.success) {
+        setRecipeIngredients(response.data.data);
+      } else {
+        setIngredientsError(response.data.message || 'Failed to load recipe ingredients');
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setIngredientsError(error.response?.data?.message || 'Failed to load recipe ingredients');
+    } finally {
+      setIngredientsLoading(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -118,6 +177,83 @@ const AdminRecipes = () => {
       const error = err as { response?: { data?: { message?: string } } };
       alert(error.response?.data?.message || 'Failed to save recipe');
       console.error('Error saving recipe:', err);
+    }
+  };
+
+  const handleIngredientAmountChange = (id: string, amount: string) => {
+    const numericAmount = parseFloat(amount);
+    setRecipeIngredients(prev =>
+      prev.map(ri => ri.id === id ? { ...ri, amount: isNaN(numericAmount) ? 0 : numericAmount } : ri)
+    );
+  };
+
+  const handleSaveIngredient = async (ingredient: RecipeIngredient) => {
+    if (!editingItem) return;
+    if (!ingredient.amount || ingredient.amount <= 0) {
+      alert('Amount must be greater than 0');
+      return;
+    }
+
+    try {
+      const response = await apiClient.put(`/admin/recipes/${editingItem.id}/ingredients/${ingredient.id}`, {
+        amount: ingredient.amount
+      });
+      if (!response.data.success) {
+        alert(response.data.message || 'Failed to update ingredient');
+        return;
+      }
+      fetchRecipeIngredients(editingItem.id);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      alert(error.response?.data?.message || 'Failed to update ingredient');
+    }
+  };
+
+  const handleDeleteIngredient = async (id: string) => {
+    if (!editingItem) return;
+    if (!confirm('Are you sure you want to remove this ingredient from the recipe?')) return;
+
+    try {
+      const response = await apiClient.delete(`/admin/recipes/${editingItem.id}/ingredients/${id}`);
+      if (!response.data.success) {
+        alert(response.data.message || 'Failed to delete ingredient from recipe');
+        return;
+      }
+      fetchRecipeIngredients(editingItem.id);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      alert(error.response?.data?.message || 'Failed to delete ingredient from recipe');
+    }
+  };
+
+  const handleAddIngredient = async () => {
+    if (!editingItem) return;
+    if (!newIngredientId || !newIngredientAmount) {
+      alert('Please select an ingredient and enter an amount');
+      return;
+    }
+
+    const amountValue = parseFloat(newIngredientAmount);
+    if (isNaN(amountValue) || amountValue <= 0) {
+      alert('Amount must be greater than 0');
+      return;
+    }
+
+    try {
+      const response = await apiClient.post(`/admin/recipes/${editingItem.id}/ingredients`, {
+        ingredientId: newIngredientId,
+        amount: amountValue
+      });
+      if (!response.data.success) {
+        alert(response.data.message || 'Failed to add ingredient to recipe');
+        return;
+      }
+      setNewIngredientId('');
+      setNewIngredientAmount('');
+      fetchRecipeIngredients(editingItem.id);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      alert(error.response?.data?.message || 'Failed to add ingredient to recipe');
     }
   };
 
@@ -203,6 +339,111 @@ const AdminRecipes = () => {
                   placeholder="Enter cooking instructions"
                 />
               </div>
+              {editingItem && (
+                <div className="form-group">
+                  <label>Recipe Ingredients</label>
+                  {ingredientsError && <div className="error-message">{ingredientsError}</div>}
+                  {ingredientsLoading && <div className="loading">Loading ingredients...</div>}
+                  {!ingredientsLoading && (
+                    <div className="crud-table-container">
+                      <table className="crud-table">
+                        <thead>
+                          <tr>
+                            <th>Ingredient</th>
+                            <th>Unit</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {recipeIngredients.length === 0 && (
+                            <tr>
+                              <td colSpan={4} style={{ textAlign: 'center', padding: '10px' }}>
+                                No ingredients for this recipe yet.
+                              </td>
+                            </tr>
+                          )}
+                          {recipeIngredients.map((ri) => (
+                            <tr key={ri.id}>
+                              <td>{ri.ingredientName}</td>
+                              <td>{ri.ingredientUnit}</td>
+                              <td>
+                                <input
+                                  type="number"
+                                  min={0.01}
+                                  step={0.01}
+                                  value={ri.amount}
+                                  onChange={(e) => handleIngredientAmountChange(ri.id, e.target.value)}
+                                  style={{ width: '100%' }}
+                                />
+                              </td>
+                              <td>
+                                <button
+                                  type="button"
+                                  className="btn-edit"
+                                  onClick={() => handleSaveIngredient(ri)}
+                                >
+                                  Save
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-delete"
+                                  onClick={() => handleDeleteIngredient(ri.id)}
+                                  style={{ marginLeft: '8px' }}
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          <tr>
+                            <td>
+                              <select
+                                value={newIngredientId}
+                                onChange={(e) => setNewIngredientId(e.target.value)}
+                                style={{ width: '100%' }}
+                              >
+                                <option value="">Select ingredient...</option>
+                                {ingredients
+                                  .filter(i => !recipeIngredients.some(ri => ri.ingredientId === i.id))
+                                  .map(i => (
+                                    <option key={i.id} value={i.id}>
+                                      {i.name}
+                                    </option>
+                                  ))}
+                              </select>
+                            </td>
+                            <td>
+                              {newIngredientId && (
+                                ingredients.find(i => i.id === newIngredientId)?.unit || ''
+                              )}
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                min={0.01}
+                                step={0.01}
+                                value={newIngredientAmount}
+                                onChange={(e) => setNewIngredientAmount(e.target.value)}
+                                style={{ width: '100%' }}
+                              />
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                className="btn-primary"
+                                onClick={handleAddIngredient}
+                              >
+                                Add
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="modal-actions">
                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">Cancel</button>
                 <button type="submit" className="btn-primary">Save</button>

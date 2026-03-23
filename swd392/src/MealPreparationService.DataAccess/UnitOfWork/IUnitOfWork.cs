@@ -25,6 +25,7 @@ public interface IUnitOfWork : IDisposable
     IMenuMealRepository MenuMeals { get; }
     IDailyMenuRepository DailyMenus { get; }
     IMenuMealRecipeRepository MenuMealRecipes { get; }
+    IRecipeIngredientRepository RecipeIngredients { get; }
     IOrderDetailRepository OrderDetails { get; }
     IDeliveryScheduleRepository DeliverySchedules { get; }
     IPaymentGatewayRepository PaymentGateways { get; }

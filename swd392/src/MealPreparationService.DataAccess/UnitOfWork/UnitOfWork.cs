@@ -32,6 +32,7 @@ public class UnitOfWork : IUnitOfWork
     private IMenuMealRepository? _menuMealRepository;
     private IDailyMenuRepository? _dailyMenuRepository;
     private IMenuMealRecipeRepository? _menuMealRecipeRepository;
+    private IRecipeIngredientRepository? _recipeIngredientRepository;
     private IOrderDetailRepository? _orderDetailRepository;
     private IDeliveryScheduleRepository? _deliveryScheduleRepository;
     private IPaymentGatewayRepository? _paymentGatewayRepository;
@@ -69,6 +70,7 @@ public class UnitOfWork : IUnitOfWork
     public IMenuMealRepository MenuMeals => _menuMealRepository ??= new MenuMealRepository(_context);
     public IDailyMenuRepository DailyMenus => _dailyMenuRepository ??= new DailyMenuRepository(_context);
     public IMenuMealRecipeRepository MenuMealRecipes => _menuMealRecipeRepository ??= new MenuMealRecipeRepository(_context);
+    public IRecipeIngredientRepository RecipeIngredients => _recipeIngredientRepository ??= new RecipeIngredientRepository(_context);
     public IOrderDetailRepository OrderDetails => _orderDetailRepository ??= new OrderDetailRepository(_context);
     public IDeliveryScheduleRepository DeliverySchedules => _deliveryScheduleRepository ??= new DeliveryScheduleRepository(_context, _dateTimeService);
     public IPaymentGatewayRepository PaymentGateways => _paymentGatewayRepository ??= new PaymentGatewayRepository(_context);
