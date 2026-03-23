@@ -177,7 +177,7 @@ const GroceryList = () => {
       <Container>
         <div className="loading-container">
           <div className="spinner"></div>
-          <p>Loading grocery list...</p>
+          <p className="loading-message">Loading grocery list...</p>
         </div>
       </Container>
     );
