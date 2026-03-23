@@ -21,7 +21,7 @@ interface RecipeIngredient {
   ingredientId: string;
   ingredientName: string;
   ingredientUnit: string;
-  amount: number;
+  amount: string;
 }
 
 const AdminRecipes = () => {
@@ -37,7 +37,10 @@ const AdminRecipes = () => {
   const [ingredientsLoading, setIngredientsLoading] = useState(false);
   const [ingredientsError, setIngredientsError] = useState('');
   const [newIngredientId, setNewIngredientId] = useState('');
+  const [newIngredientQuery, setNewIngredientQuery] = useState('');
   const [newIngredientAmount, setNewIngredientAmount] = useState<string>('');
+  const [ingredientToDeleteId, setIngredientToDeleteId] = useState<string | null>(null);
+  const [ingredientDeleteLoading, setIngredientDeleteLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<Recipe>>({
     recipeName: '',
     instructions: ''
@@ -81,6 +84,9 @@ const AdminRecipes = () => {
       instructions: ''
     });
     setRecipeIngredients([]);
+    setNewIngredientId('');
+    setNewIngredientQuery('');
+    setNewIngredientAmount('');
     setShowModal(true);
   };
 
@@ -90,9 +96,22 @@ const AdminRecipes = () => {
       recipeName: item.recipeName,
       instructions: item.instructions
     });
+    setNewIngredientId('');
+    setNewIngredientQuery('');
+    setNewIngredientAmount('');
     fetchIngredients();
     fetchRecipeIngredients(item.id);
     setShowModal(true);
+  };
+
+  const handleIngredientQueryChange = (value: string) => {
+    setNewIngredientQuery(value);
+
+    const matchedIngredient = ingredients
+      .filter(i => !recipeIngredients.some(ri => ri.ingredientId === i.id))
+      .find(i => i.name.toLowerCase() === value.trim().toLowerCase());
+
+    setNewIngredientId(matchedIngredient?.id || '');
   };
 
   const fetchIngredients = async () => {
@@ -119,7 +138,12 @@ const AdminRecipes = () => {
       setIngredientsError('');
       const response = await apiClient.get(`/admin/recipes/${recipeId}/ingredients`);
       if (response.data.success) {
-        setRecipeIngredients(response.data.data);
+        setRecipeIngredients(
+          (response.data.data as RecipeIngredient[]).map(ri => ({
+            ...ri,
+            amount: ri.amount != null ? String(ri.amount) : ''
+          }))
+        );
       } else {
         setIngredientsError(response.data.message || 'Failed to load recipe ingredients');
       }
@@ -181,22 +205,46 @@ const AdminRecipes = () => {
   };
 
   const handleIngredientAmountChange = (id: string, amount: string) => {
-    const numericAmount = parseFloat(amount);
+    const inputElement = document.getElementById(`ingredient-amount-${id}`) as HTMLInputElement | null;
+    if (inputElement) {
+      inputElement.setCustomValidity('');
+    }
+
     setRecipeIngredients(prev =>
-      prev.map(ri => ri.id === id ? { ...ri, amount: isNaN(numericAmount) ? 0 : numericAmount } : ri)
+      prev.map(ri => ri.id === id ? { ...ri, amount } : ri)
     );
   };
 
   const handleSaveIngredient = async (ingredient: RecipeIngredient) => {
     if (!editingItem) return;
-    if (!ingredient.amount || ingredient.amount <= 0) {
-      alert('Amount must be greater than 0');
+
+    const amountInput = document.getElementById(`ingredient-amount-${ingredient.id}`) as HTMLInputElement | null;
+    const amountText = ingredient.amount.trim();
+
+    if (!amountText) {
+      if (amountInput) {
+        amountInput.setCustomValidity('Please enter an amount');
+        amountInput.reportValidity();
+      }
       return;
+    }
+
+    const amountValue = parseFloat(ingredient.amount);
+    if (isNaN(amountValue) || amountValue <= 0) {
+      if (amountInput) {
+        amountInput.setCustomValidity('Amount must be greater than 0');
+        amountInput.reportValidity();
+      }
+      return;
+    }
+
+    if (amountInput) {
+      amountInput.setCustomValidity('');
     }
 
     try {
       const response = await apiClient.put(`/admin/recipes/${editingItem.id}/ingredients/${ingredient.id}`, {
-        amount: ingredient.amount
+        amount: amountValue
       });
       if (!response.data.success) {
         alert(response.data.message || 'Failed to update ingredient');
@@ -210,20 +258,33 @@ const AdminRecipes = () => {
   };
 
   const handleDeleteIngredient = async (id: string) => {
-    if (!editingItem) return;
-    if (!confirm('Are you sure you want to remove this ingredient from the recipe?')) return;
+    // Open custom confirmation dialog instead of browser confirm
+    setIngredientToDeleteId(id);
+  };
+
+  const confirmDeleteIngredient = async () => {
+    if (!editingItem || !ingredientToDeleteId) return;
 
     try {
-      const response = await apiClient.delete(`/admin/recipes/${editingItem.id}/ingredients/${id}`);
+      setIngredientDeleteLoading(true);
+      const response = await apiClient.delete(`/admin/recipes/${editingItem.id}/ingredients/${ingredientToDeleteId}`);
       if (!response.data.success) {
         alert(response.data.message || 'Failed to delete ingredient from recipe');
         return;
       }
+      setIngredientToDeleteId(null);
       fetchRecipeIngredients(editingItem.id);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       alert(error.response?.data?.message || 'Failed to delete ingredient from recipe');
+    } finally {
+      setIngredientDeleteLoading(false);
     }
+  };
+
+  const cancelDeleteIngredient = () => {
+    if (ingredientDeleteLoading) return;
+    setIngredientToDeleteId(null);
   };
 
   const handleAddIngredient = async () => {
@@ -249,6 +310,7 @@ const AdminRecipes = () => {
         return;
       }
       setNewIngredientId('');
+      setNewIngredientQuery('');
       setNewIngredientAmount('');
       fetchRecipeIngredients(editingItem.id);
     } catch (err: unknown) {
@@ -369,6 +431,7 @@ const AdminRecipes = () => {
                               <td>{ri.ingredientUnit}</td>
                               <td>
                                 <input
+                                  id={`ingredient-amount-${ri.id}`}
                                   type="number"
                                   min={0.01}
                                   step={0.01}
@@ -398,20 +461,20 @@ const AdminRecipes = () => {
                           ))}
                           <tr>
                             <td>
-                              <select
-                                value={newIngredientId}
-                                onChange={(e) => setNewIngredientId(e.target.value)}
+                              <input
+                                list="available-ingredients"
+                                value={newIngredientQuery}
+                                onChange={(e) => handleIngredientQueryChange(e.target.value)}
+                                placeholder="Select or search ingredient..."
                                 style={{ width: '100%' }}
-                              >
-                                <option value="">Select ingredient...</option>
+                              />
+                              <datalist id="available-ingredients">
                                 {ingredients
                                   .filter(i => !recipeIngredients.some(ri => ri.ingredientId === i.id))
                                   .map(i => (
-                                    <option key={i.id} value={i.id}>
-                                      {i.name}
-                                    </option>
+                                    <option key={i.id} value={i.name} />
                                   ))}
-                              </select>
+                              </datalist>
                             </td>
                             <td>
                               {newIngredientId && (
@@ -449,6 +512,32 @@ const AdminRecipes = () => {
                 <button type="submit" className="btn-primary">Save</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {ingredientToDeleteId && (
+        <div className="modal-overlay">
+          <div className="modal-content confirm-modal">
+            <h2>Confirm removal</h2>
+            <p>Are you sure you want to remove this ingredient from the recipe?</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={cancelDeleteIngredient}
+                disabled={ingredientDeleteLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-delete"
+                onClick={confirmDeleteIngredient}
+                disabled={ingredientDeleteLoading}
+              >
+                {ingredientDeleteLoading ? 'Removing...' : 'Remove'}
+              </button>
+            </div>
           </div>
         </div>
       )}
