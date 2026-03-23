@@ -102,7 +102,7 @@
   width: 32px;
   height: 32px;
   border: none;
-  background: #f0f0f0;
+  background: #525252;
   border-radius: 4px;
   cursor: pointer;
   font-size: 18px;
@@ -112,7 +112,7 @@
 }
 
 .quantity-controls button:hover:not(:disabled) {
-  background: #e0e0e0;
+  background: #525252;
 }
 
 .quantity-controls button:disabled {

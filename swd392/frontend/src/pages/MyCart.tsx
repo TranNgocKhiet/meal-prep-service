@@ -74,10 +74,26 @@ const MyCart = () => {
   const handleUpdateQuantity = async (cartItemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
 
+    // Store the previous state in case we need to rollback
+    const previousCart = cart;
+
+    // Optimistically update the local state
+    if (cart) {
+      const updatedCart = {
+        ...cart,
+        cartItems: cart.cartItems.map(item =>
+          item.id === cartItemId ? { ...item, quantity: newQuantity } : item
+        )
+      };
+      setCart(updatedCart);
+    }
+
     try {
       await apiClient.put(`/cart/items/${cartItemId}`, { quantity: newQuantity });
-      await fetchCart();
+      // If successful, no need to refetch - local state is already correct
     } catch (err: any) {
+      // Rollback to previous state on error
+      setCart(previousCart);
       alert(err.response?.data?.message || 'Failed to update quantity');
     }
   };
