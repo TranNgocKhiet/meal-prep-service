@@ -1,0 +1,43 @@
+.global-error-notification {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1200;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: min(420px, calc(100vw - 2rem));
+  padding: 0.9rem 1rem;
+  border: 1px solid #f5c2c7;
+  border-radius: 10px;
+  background: #fbe9eb;
+  color: #7a1f25;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.global-error-content {
+  flex: 1;
+}
+
+.global-error-content strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+}
+
+.global-error-content p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.global-error-close {
+  border: 0;
+  background: transparent;
+  color: #7a1f25;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}

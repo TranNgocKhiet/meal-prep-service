@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import GlobalErrorNotification from './components/GlobalErrorNotification';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -283,6 +284,7 @@ function App() {
     <GoogleOAuthProvider clientId={clientId}>
       <Router>
         <AuthProvider>
+          <GlobalErrorNotification />
           <AppRoutes />
         </AuthProvider>
       </Router>

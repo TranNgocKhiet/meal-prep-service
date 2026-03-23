@@ -62,7 +62,7 @@ Update the connection string in `appsettings.json`:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=MealPreparationService;Trusted_Connection=True;TrustServerCertificate=True"
+    "DefaultConnection": "Server=127.0.0.1;Database=MealPreparationService;Trusted_Connection=True;TrustServerCertificate=True"
   }
 }
 ```
@@ -89,8 +89,8 @@ Configure allowed frontend origins:
 ```json
 {
   "CorsOrigins": [
-    "http://localhost:3000",
-    "http://localhost:5173"
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173"
   ]
 }
 ```
@@ -141,9 +141,9 @@ dotnet build
 dotnet run --project src/MealPreparationService.API
 
 # The API will be available at:
-# - HTTPS: https://localhost:5001
-# - HTTP: http://localhost:5000
-# - Swagger UI: https://localhost:5001/swagger
+# - HTTPS: https://127.0.0.1:5001
+# - HTTP: http://127.0.0.1:5000
+# - Swagger UI: https://127.0.0.1:5001/swagger
 ```
 
 ### Database Setup
