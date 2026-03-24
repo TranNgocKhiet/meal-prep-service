@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace MealPreparationService.Business.Services;
@@ -43,63 +44,155 @@ public class AIMealPlanService : IAIMealPlanService
 
     public async Task<MealPlanDto> GenerateAIMealPlanAsync(CreateMealPlanDto dto, string userId)
     {
-        _logger.LogInformation("=== STARTING AI MEAL PLAN GENERATION ===");
-        
-        // Check if user has enough credits
-        var user = await _unitOfWork.Accounts.GetByIdAsync(userId);
-        if (user == null)
+        var stopwatch = Stopwatch.StartNew();
+        var inputParameters = JsonSerializer.Serialize(new
         {
-            throw new UnauthorizedAccessException("User not found");
-        }
-        
-        if (user.CurrentCredits < 1)
-        {
-            throw new InvalidOperationException("Insufficient AI credits. Please purchase more credits to generate AI meal plans.");
-        }
-        
-        // Deduct 1 credit from user's account
-        user.CurrentCredits -= 1;
-        _logger.LogInformation("Deducted 1 AI credit from user {UserId}. Remaining credits: {Credits}", 
-            userId, user.CurrentCredits);
-        
-        // Apply defaults for null values
-        var durationDays = dto.DurationDays ?? 1;
-        var startDate = dto.StartDate ?? DateTime.Today;
-        
-        _logger.LogInformation("User: {UserId}, Duration: {Days} days, Start: {StartDate}", 
-            userId, durationDays, startDate.ToString("yyyy-MM-dd"));
+            dto.Name,
+            dto.DurationDays,
+            dto.StartDate,
+            dto.Age,
+            dto.Weight,
+            dto.Height,
+            dto.Gender,
+            dto.HealthNote,
+            dto.CaloriesGoal,
+            AllergyCount = dto.Allergies?.Count ?? 0,
+            LikedIngredientCount = dto.LikedIngredients?.Count ?? 0,
+            DislikedIngredientCount = dto.DislikedIngredients?.Count ?? 0,
+            AllergyIngredientCount = dto.AllergyIngredients?.Count ?? 0
+        });
 
-        // Get user's health profile
-        var healthProfile = await _unitOfWork.HealthProfiles.GetByAccountIdAsync(userId);
-        _logger.LogInformation("Health profile loaded: {HasProfile}", healthProfile != null);
-        
-        // Get user's fridge items
-        var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(userId);
-        _logger.LogInformation("Fridge items loaded: {Count} items", fridgeItems?.Count() ?? 0);
-        
-        // Get all recipes with ingredients
-        var recipes = await _unitOfWork.Recipes.GetAllWithIngredientsAsync();
-        _logger.LogInformation("Recipes loaded: {Count} recipes", recipes?.Count() ?? 0);
-        
-        // Build context for AI
-        _logger.LogInformation("Building AI context...");
-        var context = await BuildAIContextAsync(dto, healthProfile, fridgeItems, recipes);
-        
-        // Call OpenAI API
-        _logger.LogInformation("Calling OpenAI API...");
-        var selectedRecipes = await CallOpenAIAsync(context, durationDays);
-        _logger.LogInformation("OpenAI returned recipes for {DayCount} days with {TotalRecipes} total recipes", 
-            selectedRecipes.Count, selectedRecipes.Sum(d => d.Value.Count));
-        
-        // Create meal plan with AI-generated recipes
-        _logger.LogInformation("Creating meal plan with recipes...");
-        var mealPlan = await CreateMealPlanWithRecipesAsync(dto, userId, selectedRecipes);
-        
-        // Save the credit deduction
-        await _unitOfWork.SaveChangesAsync();
-        
-        _logger.LogInformation("=== AI MEAL PLAN GENERATION COMPLETED ===");
-        return mealPlan;
+        try
+        {
+            _logger.LogInformation("=== STARTING AI MEAL PLAN GENERATION ===");
+
+            // Check if user has enough credits
+            var user = await _unitOfWork.Accounts.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new UnauthorizedAccessException("User not found");
+            }
+
+            if (user.CurrentCredits < 1)
+            {
+                throw new InvalidOperationException("Insufficient AI credits. Please purchase more credits to generate AI meal plans.");
+            }
+
+            // Deduct 1 credit from user's account
+            user.CurrentCredits -= 1;
+            _logger.LogInformation("Deducted 1 AI credit from user {UserId}. Remaining credits: {Credits}",
+                userId, user.CurrentCredits);
+
+            // Apply defaults for null values
+            var durationDays = dto.DurationDays ?? 1;
+            var startDate = dto.StartDate ?? DateTime.Today;
+
+            _logger.LogInformation("User: {UserId}, Duration: {Days} days, Start: {StartDate}",
+                userId, durationDays, startDate.ToString("yyyy-MM-dd"));
+
+            // Get user's health profile
+            var healthProfile = await _unitOfWork.HealthProfiles.GetByAccountIdAsync(userId);
+            _logger.LogInformation("Health profile loaded: {HasProfile}", healthProfile != null);
+
+            // Get user's fridge items
+            var fridgeItems = await _unitOfWork.FridgeItems.GetByAccountIdAsync(userId);
+            _logger.LogInformation("Fridge items loaded: {Count} items", fridgeItems?.Count() ?? 0);
+
+            // Get all recipes with ingredients
+            var recipes = await _unitOfWork.Recipes.GetAllWithIngredientsAsync();
+            _logger.LogInformation("Recipes loaded: {Count} recipes", recipes?.Count() ?? 0);
+
+            // Build context for AI
+            _logger.LogInformation("Building AI context...");
+            var context = await BuildAIContextAsync(dto, healthProfile, fridgeItems, recipes);
+
+            // Call OpenAI API
+            _logger.LogInformation("Calling OpenAI API...");
+            var selectedRecipes = await CallOpenAIAsync(context, durationDays);
+            _logger.LogInformation("OpenAI returned recipes for {DayCount} days with {TotalRecipes} total recipes",
+                selectedRecipes.Count, selectedRecipes.Sum(d => d.Value.Count));
+
+            // Create meal plan with AI-generated recipes
+            _logger.LogInformation("Creating meal plan with recipes...");
+            var mealPlan = await CreateMealPlanWithRecipesAsync(dto, userId, selectedRecipes);
+
+            // Save the credit deduction
+            await _unitOfWork.SaveChangesAsync();
+
+            stopwatch.Stop();
+            await LogUsageAsync(
+                operationType: "MealPlan Generation AI",
+                status: "Success",
+                customerId: userId,
+                inputParameters: inputParameters,
+                outputSummary: JsonSerializer.Serialize(new
+                {
+                    mealPlan.Id,
+                    mealPlan.StartDate,
+                    mealPlan.EndDate,
+                    durationDays,
+                    hasCompleteProfile = mealPlan.Age.HasValue && mealPlan.Weight.HasValue && mealPlan.Height.HasValue
+                }),
+                errorMessage: null,
+                stackTrace: null,
+                executionDurationMs: (int)stopwatch.ElapsedMilliseconds,
+                creditsUsed: 1);
+
+            _logger.LogInformation("=== AI MEAL PLAN GENERATION COMPLETED ===");
+            return mealPlan;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            await LogUsageAsync(
+                operationType: "MealPlan Generation AI",
+                status: "Failed",
+                customerId: userId,
+                inputParameters: inputParameters,
+                outputSummary: null,
+                errorMessage: ex.Message,
+                stackTrace: ex.StackTrace,
+                executionDurationMs: (int)stopwatch.ElapsedMilliseconds,
+                creditsUsed: 1);
+
+            throw;
+        }
+    }
+
+    private async Task LogUsageAsync(
+        string operationType,
+        string status,
+        string customerId,
+        string? inputParameters,
+        string? outputSummary,
+        string? errorMessage,
+        string? stackTrace,
+        int executionDurationMs,
+        int creditsUsed)
+    {
+        try
+        {
+            _context.AIServiceUsageLogs.Add(new AIServiceUsageLog
+            {
+                Id = Guid.NewGuid().ToString(),
+                OperationType = operationType,
+                Timestamp = _dateTimeService.Now,
+                Status = status,
+                CustomerId = customerId,
+                InputParameters = inputParameters,
+                OutputSummary = outputSummary,
+                ErrorMessage = errorMessage,
+                StackTrace = stackTrace,
+                ExecutionDurationMs = executionDurationMs,
+                CreditsUsed = creditsUsed
+            });
+
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to persist AI usage log for user {UserId}", customerId);
+        }
     }
 
     private async Task<string> BuildAIContextAsync(

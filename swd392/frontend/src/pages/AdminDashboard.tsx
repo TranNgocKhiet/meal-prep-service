@@ -905,7 +905,7 @@ const AdminDashboard = () => {
           className={`dashboard-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          Overview
+          Chart
         </button>
         <button
           type="button"

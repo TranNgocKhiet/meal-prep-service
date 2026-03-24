@@ -45,6 +45,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<UserSubscription> UserSubscriptions { get; set; }
     public DbSet<AIcreditPackage> AIcreditPackages { get; set; }
     public DbSet<AIcreditTransaction> AIcreditTransactions { get; set; }
+    public DbSet<AIServiceUsageLog> AIServiceUsageLogs { get; set; }
     public DbSet<RevenueReport> RevenueReports { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -86,6 +87,7 @@ public class ApplicationDbContext : DbContext
         ConfigureUserSubscription(modelBuilder);
         ConfigureAIcreditPackage(modelBuilder);
         ConfigureAIcreditTransaction(modelBuilder);
+        ConfigureAIServiceUsageLog(modelBuilder);
         ConfigureRevenueReport(modelBuilder);
     }
 
@@ -711,6 +713,33 @@ public class ApplicationDbContext : DbContext
                 .WithMany(pg => pg.AIcreditTransactions)
                 .HasForeignKey(e => e.PaymentGatewayId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private void ConfigureAIServiceUsageLog(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AIServiceUsageLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.OperationType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Timestamp).IsRequired();
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.InputParameters);
+            entity.Property(e => e.OutputSummary);
+            entity.Property(e => e.ErrorMessage);
+            entity.Property(e => e.StackTrace);
+            entity.Property(e => e.ExecutionDurationMs).IsRequired();
+            entity.Property(e => e.CreditsUsed).IsRequired();
+
+            entity.HasIndex(e => e.CustomerId);
+            entity.HasIndex(e => e.Timestamp);
+            entity.HasIndex(e => new { e.OperationType, e.Timestamp });
+
+            entity.HasOne(e => e.Customer)
+                .WithMany(a => a.AIServiceUsageLogs)
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 

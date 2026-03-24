@@ -1,5 +1,6 @@
 using MealPreparationService.API.Models;
 using MealPreparationService.Business.DTOs;
+using MealPreparationService.DataAccess.Data;
 using MealPreparationService.DataAccess.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +14,14 @@ namespace MealPreparationService.API.Controllers;
 public class AdminDashboardController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ApplicationDbContext _context;
     private readonly ILogger<AdminDashboardController> _logger;
     private const int PageSize = 10;
 
-    public AdminDashboardController(IUnitOfWork unitOfWork, ILogger<AdminDashboardController> logger)
+    public AdminDashboardController(IUnitOfWork unitOfWork, ApplicationDbContext context, ILogger<AdminDashboardController> logger)
     {
         _unitOfWork = unitOfWork;
+        _context = context;
         _logger = logger;
     }
 
@@ -132,23 +135,23 @@ public class AdminDashboardController : ControllerBase
         var rangeEnd = rangeEndExclusive.AddDays(-1);
         var periodSeries = BuildPeriodRange(rangeStart, rangeEnd, useDailyGranularity);
 
-        var aiMealPlans = await _unitOfWork.MealPlans.GetAllQueryable()
+        var aiMealPlanLogs = await _context.AIServiceUsageLogs
             .AsNoTracking()
-            .Where(mp => mp.IsAiGenerated && mp.CreatedAt >= rangeStart && mp.CreatedAt < rangeEndExclusive)
-            .Select(mp => mp.CreatedAt)
+            .Where(x => x.OperationType == "MealPlan Generation AI" && x.Status == "Success" && x.Timestamp >= rangeStart && x.Timestamp < rangeEndExclusive)
+            .Select(x => x.Timestamp)
             .ToListAsync();
 
-        var aiCreditTransactions = await _unitOfWork.AICreditTransactions.GetAllQueryable()
+        var nutritionLogs = await _context.AIServiceUsageLogs
             .AsNoTracking()
-            .Where(tx => tx.CreatedAt >= rangeStart && tx.CreatedAt < rangeEndExclusive)
-            .Select(tx => tx.CreatedAt)
+            .Where(x => x.OperationType == "Nutrition Analysis" && x.Status == "Success" && x.Timestamp >= rangeStart && x.Timestamp < rangeEndExclusive)
+            .Select(x => x.Timestamp)
             .ToListAsync();
 
-        var mealPlanByMonth = aiMealPlans
+        var mealPlanByMonth = aiMealPlanLogs
             .GroupBy(x => TruncateToPeriod(x, useDailyGranularity))
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var nutritionProxyByMonth = aiCreditTransactions
+        var nutritionProxyByMonth = nutritionLogs
             .GroupBy(x => TruncateToPeriod(x, useDailyGranularity))
             .ToDictionary(g => g.Key, g => g.Count());
 
@@ -230,10 +233,10 @@ public class AdminDashboardController : ControllerBase
             .Select(a => new { a.Id, a.FullName, a.Email })
             .ToDictionaryAsync(a => a.Id, a => new { a.FullName, a.Email });
 
-        var aiMealPlanList = await _unitOfWork.MealPlans.GetAllQueryable()
+        var aiMealPlanList = await _context.AIServiceUsageLogs
             .AsNoTracking()
-            .Where(mp => mp.IsAiGenerated)
-            .GroupBy(mp => mp.AccountId)
+            .Where(x => x.OperationType == "MealPlan Generation AI" && x.Status == "Success")
+            .GroupBy(x => x.CustomerId)
             .OrderByDescending(g => g.Count())
             .Take(100)
             .Select(g => new { CustomerId = g.Key, UsageCount = g.Count() })
@@ -254,9 +257,10 @@ public class AdminDashboardController : ControllerBase
             .Take(PageSize)
             .ToList();
 
-        var aiNutritionList = await _unitOfWork.AICreditTransactions.GetAllQueryable()
+        var aiNutritionList = await _context.AIServiceUsageLogs
             .AsNoTracking()
-            .GroupBy(tx => tx.AccountId)
+            .Where(x => x.OperationType == "Nutrition Analysis" && x.Status == "Success")
+            .GroupBy(x => x.CustomerId)
             .OrderByDescending(g => g.Count())
             .Take(100)
             .Select(g => new { CustomerId = g.Key, UsageCount = g.Count() })

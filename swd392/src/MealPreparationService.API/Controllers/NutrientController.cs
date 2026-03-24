@@ -1,9 +1,12 @@
 using MealPreparationService.API.Models;
 using MealPreparationService.Business.DTOs;
 using MealPreparationService.Business.Services;
+using MealPreparationService.DataAccess.Data;
+using MealPreparationService.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace MealPreparationService.API.Controllers;
@@ -16,17 +19,20 @@ public class NutrientController : ControllerBase
     private readonly INutrientCalculatorService _nutrientCalculatorService;
     private readonly IOpenAiService _openAiService;
     private readonly IIngredientService _ingredientService;
+    private readonly ApplicationDbContext _dbContext;
     private readonly ILogger<NutrientController> _logger;
 
     public NutrientController(
         INutrientCalculatorService nutrientCalculatorService,
         IOpenAiService openAiService,
         IIngredientService ingredientService,
+        ApplicationDbContext dbContext,
         ILogger<NutrientController> logger)
     {
         _nutrientCalculatorService = nutrientCalculatorService;
         _openAiService = openAiService;
         _ingredientService = ingredientService;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -34,8 +40,16 @@ public class NutrientController : ControllerBase
     public async Task<ActionResult<ApiResponse<CustomMealNutritionResponseDto>>> AnalyzeCustomMealNutrition(
         [FromBody] CustomMealNutritionRequestDto request)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
         try
         {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(ApiResponse<CustomMealNutritionResponseDto>.ErrorResponse("User not authenticated"));
+            }
+
             if (request == null)
             {
                 return BadRequest(ApiResponse<CustomMealNutritionResponseDto>.ErrorResponse("Invalid request."));
@@ -61,6 +75,8 @@ public class NutrientController : ControllerBase
                 return BadRequest(ApiResponse<CustomMealNutritionResponseDto>.ErrorResponse(
                     "Each ingredient must include name, quantity (> 0), and unit."));
             }
+
+            await ConsumeOneCreditAsync(userId);
 
             var nutrientRequest = new NutrientPromptDto
             {
@@ -109,16 +125,102 @@ Conflicts: {(conflicts.Any() ? string.Join("; ", conflicts) : "No major ingredie
                     hasRealConflicts)
             };
 
+            stopwatch.Stop();
+            await SaveUsageLogAsync(new AIServiceUsageLog
+            {
+                Id = Guid.NewGuid().ToString(),
+                OperationType = "Nutrition Analysis",
+                Timestamp = DateTime.Now,
+                Status = "Success",
+                CustomerId = userId,
+                InputParameters = JsonSerializer.Serialize(new
+                {
+                    request.MealDescription,
+                    ingredientCount = request.Ingredients.Count,
+                    ingredients = request.Ingredients.Select(i => new { i.IngredientName, i.Quantity, i.Unit })
+                }),
+                OutputSummary = JsonSerializer.Serialize(new
+                {
+                    success = true,
+                    totalCalories = response.TotalCalories,
+                    proteinG = response.ProteinG,
+                    carbsG = response.CarbsG,
+                    fatG = response.FatG
+                }),
+                ErrorMessage = null,
+                StackTrace = null,
+                ExecutionDurationMs = (int)stopwatch.ElapsedMilliseconds,
+                CreditsUsed = 1
+            });
+
             return Ok(ApiResponse<CustomMealNutritionResponseDto>.SuccessResponse(response));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogWarning(ex, "Unauthorized nutrition analysis request");
+            return Unauthorized(ApiResponse<CustomMealNutritionResponseDto>.ErrorResponse(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogWarning(ex, "Validation or credit error during nutrition analysis");
+            return BadRequest(ApiResponse<CustomMealNutritionResponseDto>.ErrorResponse(ex.Message));
         }
         catch (TimeoutException ex)
         {
+            stopwatch.Stop();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await SaveUsageLogAsync(new AIServiceUsageLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    OperationType = "Nutrition Analysis",
+                    Timestamp = DateTime.Now,
+                    Status = "Failed",
+                    CustomerId = userId,
+                    InputParameters = request == null ? null : JsonSerializer.Serialize(new
+                    {
+                        request.MealDescription,
+                        ingredientCount = request.Ingredients?.Count ?? 0
+                    }),
+                    OutputSummary = null,
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    ExecutionDurationMs = (int)stopwatch.ElapsedMilliseconds,
+                    CreditsUsed = 1
+                });
+            }
+
             _logger.LogWarning(ex, "AI service timeout during custom meal nutrition analysis");
             return StatusCode(408, ApiResponse<CustomMealNutritionResponseDto>.ErrorResponse(
                 "AI service timeout. Please try again."));
         }
         catch (Exception ex)
         {
+            stopwatch.Stop();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await SaveUsageLogAsync(new AIServiceUsageLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    OperationType = "Nutrition Analysis",
+                    Timestamp = DateTime.Now,
+                    Status = "Failed",
+                    CustomerId = userId,
+                    InputParameters = request == null ? null : JsonSerializer.Serialize(new
+                    {
+                        request.MealDescription,
+                        ingredientCount = request.Ingredients?.Count ?? 0
+                    }),
+                    OutputSummary = null,
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    ExecutionDurationMs = (int)stopwatch.ElapsedMilliseconds,
+                    CreditsUsed = 1
+                });
+            }
+
             _logger.LogError(ex, "Error analyzing custom meal nutrition");
             return StatusCode(500, ApiResponse<CustomMealNutritionResponseDto>.ErrorResponse(
                 "An error occurred while analyzing custom meal nutrition."));
@@ -128,31 +230,174 @@ Conflicts: {(conflicts.Any() ? string.Join("; ", conflicts) : "No major ingredie
     [HttpPost("calculate")]
     public async Task<ActionResult<ApiResponse<NutrientCalculationDto>>> CalculateNutrients([FromBody] NutrientRequestDto dto)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized(ApiResponse<NutrientCalculationDto>.ErrorResponse("User not authenticated"));
             }
 
+            if (dto.Ingredients == null || dto.Ingredients.Count == 0)
+            {
+                return BadRequest(ApiResponse<NutrientCalculationDto>.ErrorResponse("At least one ingredient is required."));
+            }
+
+            await ConsumeOneCreditAsync(userId);
+
             var calculation = await _nutrientCalculatorService.CalculateNutrientsAsync(dto, userId);
+
+            stopwatch.Stop();
+            await SaveUsageLogAsync(new AIServiceUsageLog
+            {
+                Id = Guid.NewGuid().ToString(),
+                OperationType = "Nutrition Analysis",
+                Timestamp = DateTime.Now,
+                Status = "Success",
+                CustomerId = userId,
+                InputParameters = JsonSerializer.Serialize(new
+                {
+                    dto.CalculationName,
+                    ingredientCount = dto.Ingredients.Count,
+                    ingredients = dto.Ingredients.Select(i => new { i.IngredientName, i.Quantity, i.Unit })
+                }),
+                OutputSummary = JsonSerializer.Serialize(new
+                {
+                    success = true,
+                    totalCalories = calculation.NutrientData.TotalCalories,
+                    proteinG = calculation.NutrientData.TotalProteins,
+                    carbsG = calculation.NutrientData.TotalCarbohydrates,
+                    fatG = calculation.NutrientData.TotalFats
+                }),
+                ErrorMessage = null,
+                StackTrace = null,
+                ExecutionDurationMs = (int)stopwatch.ElapsedMilliseconds,
+                CreditsUsed = 1
+            });
+
             return Ok(ApiResponse<NutrientCalculationDto>.SuccessResponse(calculation, "Nutrients calculated successfully"));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            stopwatch.Stop();
+            _logger.LogWarning(ex, "Unauthorized nutrient calculation request");
+            return Unauthorized(ApiResponse<NutrientCalculationDto>.ErrorResponse(ex.Message));
         }
         catch (InvalidOperationException ex)
         {
+            stopwatch.Stop();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await SaveUsageLogAsync(new AIServiceUsageLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    OperationType = "Nutrition Analysis",
+                    Timestamp = DateTime.Now,
+                    Status = "Failed",
+                    CustomerId = userId,
+                    InputParameters = dto == null ? null : JsonSerializer.Serialize(new
+                    {
+                        dto.CalculationName,
+                        ingredientCount = dto.Ingredients?.Count ?? 0
+                    }),
+                    OutputSummary = null,
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    ExecutionDurationMs = (int)stopwatch.ElapsedMilliseconds,
+                    CreditsUsed = 1
+                });
+            }
+
             _logger.LogWarning(ex, "Validation error calculating nutrients");
             return BadRequest(ApiResponse<NutrientCalculationDto>.ErrorResponse(ex.Message));
         }
         catch (TimeoutException ex)
         {
+            stopwatch.Stop();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await SaveUsageLogAsync(new AIServiceUsageLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    OperationType = "Nutrition Analysis",
+                    Timestamp = DateTime.Now,
+                    Status = "Failed",
+                    CustomerId = userId,
+                    InputParameters = dto == null ? null : JsonSerializer.Serialize(new
+                    {
+                        dto.CalculationName,
+                        ingredientCount = dto.Ingredients?.Count ?? 0
+                    }),
+                    OutputSummary = null,
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    ExecutionDurationMs = (int)stopwatch.ElapsedMilliseconds,
+                    CreditsUsed = 1
+                });
+            }
+
             _logger.LogWarning(ex, "AI service timeout during nutrient calculation");
             return StatusCode(408, ApiResponse<NutrientCalculationDto>.ErrorResponse("AI service timeout. Please try again."));
         }
         catch (Exception ex)
         {
+            stopwatch.Stop();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await SaveUsageLogAsync(new AIServiceUsageLog
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    OperationType = "Nutrition Analysis",
+                    Timestamp = DateTime.Now,
+                    Status = "Failed",
+                    CustomerId = userId,
+                    InputParameters = dto == null ? null : JsonSerializer.Serialize(new
+                    {
+                        dto.CalculationName,
+                        ingredientCount = dto.Ingredients?.Count ?? 0
+                    }),
+                    OutputSummary = null,
+                    ErrorMessage = ex.Message,
+                    StackTrace = ex.StackTrace,
+                    ExecutionDurationMs = (int)stopwatch.ElapsedMilliseconds,
+                    CreditsUsed = 1
+                });
+            }
+
             _logger.LogError(ex, "Error calculating nutrients");
             return StatusCode(500, ApiResponse<NutrientCalculationDto>.ErrorResponse("An error occurred while calculating nutrients"));
+        }
+    }
+
+    private async Task ConsumeOneCreditAsync(string userId)
+    {
+        var user = await _dbContext.Accounts.FindAsync(userId);
+        if (user == null)
+        {
+            throw new UnauthorizedAccessException("User not found");
+        }
+
+        if (user.CurrentCredits < 1)
+        {
+            throw new InvalidOperationException("Insufficient AI credits. Please purchase more credits.");
+        }
+
+        user.CurrentCredits -= 1;
+        await _dbContext.SaveChangesAsync();
+    }
+
+    private async Task SaveUsageLogAsync(AIServiceUsageLog log)
+    {
+        try
+        {
+            _dbContext.AIServiceUsageLogs.Add(log);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save AI usage log for customer {CustomerId}", log.CustomerId);
         }
     }
 
