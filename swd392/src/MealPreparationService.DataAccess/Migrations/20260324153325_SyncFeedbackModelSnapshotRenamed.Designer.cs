@@ -4,6 +4,7 @@ using MealPreparationService.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MealPreparationService.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260324153325_SyncFeedbackModelSnapshotRenamed")]
+    partial class SyncFeedbackModelSnapshotRenamed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,57 +24,6 @@ namespace MealPreparationService.DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("MealPreparationService.Domain.Entities.AIServiceUsageLog", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("CreditsUsed")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ExecutionDurationMs")
-                        .HasColumnType("int");
-
-                    b.Property<string>("InputParameters")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OperationType")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("OutputSummary")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StackTrace")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("Timestamp");
-
-                    b.HasIndex("OperationType", "Timestamp");
-
-                    b.ToTable("AIServiceUsageLogs");
-                });
 
             modelBuilder.Entity("MealPreparationService.Domain.Entities.AIcreditPackage", b =>
                 {
@@ -1242,17 +1194,6 @@ namespace MealPreparationService.DataAccess.Migrations
                     b.ToTable("UserSubscriptions");
                 });
 
-            modelBuilder.Entity("MealPreparationService.Domain.Entities.AIServiceUsageLog", b =>
-                {
-                    b.HasOne("MealPreparationService.Domain.Entities.Account", "Customer")
-                        .WithMany("AIServiceUsageLogs")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
             modelBuilder.Entity("MealPreparationService.Domain.Entities.AIcreditTransaction", b =>
                 {
                     b.HasOne("MealPreparationService.Domain.Entities.AIcreditPackage", "AIcreditPackage")
@@ -1717,8 +1658,6 @@ namespace MealPreparationService.DataAccess.Migrations
 
             modelBuilder.Entity("MealPreparationService.Domain.Entities.Account", b =>
                 {
-                    b.Navigation("AIServiceUsageLogs");
-
                     b.Navigation("AIcreditTransactions");
 
                     b.Navigation("Carts");

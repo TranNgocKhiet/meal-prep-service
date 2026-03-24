@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './hooks/useAuth';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import GlobalErrorNotification from './components/GlobalErrorNotification';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -48,6 +49,7 @@ import RevenueReport from './pages/RevenueReport';
 import AdminDashboard from './pages/AdminDashboard';
 import AICredits from './pages/AICredits';
 import AICreditCallback from './pages/AICreditCallback';
+import Feedback from './pages/Feedback';
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -258,6 +260,11 @@ function AppRoutes() {
             <Profile />
           </ProtectedRoute>
         } />
+        <Route path="/feedback" element={
+          <ProtectedRoute>
+            <Feedback />
+          </ProtectedRoute>
+        } />
         <Route path="/ai-credits" element={
           <ProtectedRoute>
             <AICredits />
@@ -289,6 +296,7 @@ function App() {
     <GoogleOAuthProvider clientId={clientId}>
       <Router>
         <AuthProvider>
+          <GlobalErrorNotification />
           <AppRoutes />
         </AuthProvider>
       </Router>

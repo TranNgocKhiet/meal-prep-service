@@ -277,6 +277,8 @@
   padding: var(--spacing-xxl);
   gap: var(--spacing-lg);
 }
+.loading-container p {
+  color:#fff;
 
 .spinner {
   width: 50px;

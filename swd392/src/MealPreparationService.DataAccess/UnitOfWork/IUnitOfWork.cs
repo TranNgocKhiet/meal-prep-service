@@ -34,8 +34,7 @@ public interface IUnitOfWork : IDisposable
     IAICreditPackageRepository AICreditPackages { get; }
     IAICreditTransactionRepository AICreditTransactions { get; }
     IRevenueReportRepository RevenueReports { get; }
-    ISystemConfigurationRepository SystemConfigurations { get; }
-    
+    ISystemConfigurationRepository SystemConfigurations { get; }    IFeedbackRepository Feedbacks { get; }    
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();

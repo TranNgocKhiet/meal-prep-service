@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Container from '../components/layout/Container';
 import apiClient from '../config/api';
 import './GroceryList.css';
@@ -24,6 +25,7 @@ interface GroceryList {
 }
 
 const GroceryList = () => {
+  const location = useLocation();
   const [groceryList, setGroceryList] = useState<GroceryList | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
@@ -32,14 +34,19 @@ const GroceryList = () => {
 
   useEffect(() => {
     fetchGroceryList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.key, location.state]);
 
   const fetchGroceryList = async () => {
     try {
       setLoading(true);
       setError('');
-      const response = await apiClient.get('/fridge/grocery-list');
+      const response = await apiClient.get('/fridge/grocery-list', {
+        params: { t: Date.now() },
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache'
+        }
+      });
       if (response.data.success) {
         const list = response.data.data;
         // Initialize purchase quantities and expiry dates, but don't auto-select
@@ -177,7 +184,7 @@ const GroceryList = () => {
       <Container>
         <div className="loading-container">
           <div className="spinner"></div>
-          <p>Loading grocery list...</p>
+          <p className="loading-message">Loading grocery list...</p>
         </div>
       </Container>
     );
