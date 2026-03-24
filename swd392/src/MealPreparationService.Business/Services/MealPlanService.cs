@@ -509,7 +509,15 @@ public class MealPlanService : IMealPlanService
                     {
                         Id = mr.Recipe.Id,
                         RecipeName = mr.Recipe.RecipeName,
-                        Instructions = mr.Recipe.Instructions
+                        Instructions = mr.Recipe.Instructions,
+                        Ingredients = mr.Recipe.RecipeIngredients
+                            .Select(ri => new RecipeIngredientDto
+                            {
+                                IngredientId = ri.IngredientId,
+                                IngredientName = ri.Ingredient?.Name ?? string.Empty,
+                                Amount = ri.Amount
+                            })
+                            .ToList()
                     })
                     .ToList();
 

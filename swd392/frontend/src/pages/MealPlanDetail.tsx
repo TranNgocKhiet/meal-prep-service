@@ -22,12 +22,15 @@ interface Recipe {
 }
 
 interface RecipeIngredient {
-  ingredient: {
-    id: string;
-    name: string;
-    unit: string;
+  ingredient?: {
+    id?: string;
+    name?: string;
+    unit?: string;
   };
-  amount: number;
+  ingredientName?: string;
+  amount?: number;
+  quantity?: number;
+  unit?: string;
 }
 
 interface Meal {
@@ -293,6 +296,22 @@ const MealPlanDetail = () => {
     }
   };
 
+  const getIngredientDisplay = (ingredient: RecipeIngredient) => {
+    const name = ingredient.ingredient?.name || ingredient.ingredientName || 'Unknown ingredient';
+    const amount = ingredient.amount ?? ingredient.quantity;
+    const unit = ingredient.ingredient?.unit || ingredient.unit;
+
+    if (amount !== undefined && unit) {
+      return `${amount} ${unit} ${name}`;
+    }
+
+    if (amount !== undefined) {
+      return `${amount} ${name}`;
+    }
+
+    return name;
+  };
+
   if (loading) {
     return (
       <Container>
@@ -525,18 +544,20 @@ const MealPlanDetail = () => {
                               </div>
 
                               <div className="recipe-content">
-                                {recipe.ingredients && recipe.ingredients.length > 0 && (
-                                  <div className="recipe-section">
-                                    <h6>Ingredients</h6>
+                                <div className="recipe-section">
+                                  <h6>Ingredients</h6>
+                                  {recipe.ingredients && recipe.ingredients.length > 0 ? (
                                     <ul className="ingredients-list">
                                       {recipe.ingredients.map((ing, idx) => (
-                                        <li key={idx}>
-                                          {ing.amount} {ing.ingredient.unit} {ing.ingredient.name}
+                                        <li key={ing.ingredient?.id || `${recipe.id}-${idx}`}>
+                                          {getIngredientDisplay(ing)}
                                         </li>
                                       ))}
                                     </ul>
-                                  </div>
-                                )}
+                                  ) : (
+                                    <p className="instructions">No ingredient data available.</p>
+                                  )}
+                                </div>
 
                                 <div className="recipe-section">
                                   <h6>Instructions</h6>
