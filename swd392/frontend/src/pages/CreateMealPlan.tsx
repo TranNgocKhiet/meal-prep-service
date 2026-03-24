@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Container from '../components/layout/Container';
 import apiClient from '../config/api';
+import AILoadingOverlay from '../components/ai/AILoadingOverlay';
 import './CreateMealPlan.css';
 
 interface Allergy {
@@ -617,6 +618,13 @@ const CreateMealPlan = () => {
             </div>
           </div>
         )}
+
+        <AILoadingOverlay
+          open={loading && useAI}
+          title="AI chef is generating your meal plan..."
+          description="Combining your profile, preferences, and ingredients into an optimized plan."
+          steps={['Preference Parsing', 'Meal Selection', 'Schedule Balancing']}
+        />
       </div>
     </Container>
   );

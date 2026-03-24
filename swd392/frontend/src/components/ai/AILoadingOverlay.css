@@ -1,0 +1,310 @@
+.ai-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(14, 165, 233, 0.22), transparent 38%),
+    radial-gradient(circle at 82% 88%, rgba(34, 197, 94, 0.18), transparent 44%),
+    rgba(2, 6, 23, 0.82);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ai-loading-content {
+  position: relative;
+  width: min(92vw, 620px);
+  text-align: center;
+  color: #ecfeff;
+  padding: 1.4rem 1.2rem 1.15rem;
+  border-radius: 18px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  background: linear-gradient(165deg, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.94) 100%);
+  box-shadow: 0 24px 58px rgba(2, 6, 23, 0.58), inset 0 1px 0 rgba(148, 163, 184, 0.14);
+  overflow: hidden;
+}
+
+.ai-tech-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(14, 165, 233, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 233, 0.08) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), transparent 84%);
+  pointer-events: none;
+}
+
+.ai-robot-chef-module {
+  width: 188px;
+  margin: 0.3rem auto 0.75rem;
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-items: center;
+}
+
+.ai-orbital {
+  position: absolute;
+  border-radius: 999px;
+  border: 2px solid rgba(125, 211, 252, 0.44);
+  pointer-events: none;
+}
+
+.ai-orbital-one {
+  width: 160px;
+  height: 160px;
+  animation: ai-orbit-spin 4.1s linear infinite;
+}
+
+.ai-orbital-two {
+  width: 124px;
+  height: 124px;
+  border-color: rgba(34, 197, 94, 0.56);
+  border-style: dashed;
+  animation: ai-orbit-spin-reverse 3.6s linear infinite;
+}
+
+.ai-robot-head {
+  width: 78px;
+  height: 64px;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+  box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.08), 0 6px 18px rgba(2, 6, 23, 0.5);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0.35rem;
+  z-index: 2;
+}
+
+.ai-robot-antenna {
+  position: absolute;
+  width: 2px;
+  height: 14px;
+  top: -12px;
+  background: rgba(148, 163, 184, 0.9);
+}
+
+.ai-robot-antenna::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: -5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.75);
+  animation: ai-pulse-dot 1.4s ease-in-out infinite;
+}
+
+.ai-robot-eyes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ai-robot-eye {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.75);
+  animation: ai-blink-eye 2.1s ease-in-out infinite;
+}
+
+.ai-robot-eye:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ai-robot-mouth {
+  width: 26px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.9);
+}
+
+.ai-cooking-bowl {
+  width: 112px;
+  height: 18px;
+  margin-top: 0.5rem;
+  border-radius: 0 0 999px 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.82) 100%);
+  position: relative;
+}
+
+.ai-cooking-bowl::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.65), rgba(34, 197, 94, 0.75));
+}
+
+.ai-steam {
+  position: absolute;
+  bottom: 8px;
+  width: 3px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.72);
+  filter: blur(0.4px);
+  animation: ai-steam-rise 1.9s ease-in-out infinite;
+}
+
+.ai-steam-one {
+  left: 32px;
+}
+
+.ai-steam-two {
+  left: 52px;
+  animation-delay: 0.28s;
+}
+
+.ai-steam-three {
+  left: 72px;
+  animation-delay: 0.56s;
+}
+
+.ai-loading-content h3 {
+  margin: 0.25rem 0 0;
+  color: #f8fafc;
+  font-size: clamp(1.05rem, 2vw, 1.55rem);
+}
+
+.ai-loading-content p {
+  margin: 0.45rem 0 0;
+  color: #cbd5e1;
+  font-size: 1rem;
+}
+
+.ai-loading-steps {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.ai-loading-steps span {
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.32);
+  background: rgba(15, 23, 42, 0.72);
+  color: #bae6fd;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  animation: ai-step-glow 1.5s ease-in-out infinite;
+}
+
+.ai-loading-steps span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ai-loading-steps span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes ai-orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ai-orbit-spin-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes ai-blink-eye {
+  0%,
+  42%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  45%,
+  48% {
+    transform: scaleY(0.12);
+  }
+}
+
+@keyframes ai-steam-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(2px) scaleY(0.4);
+  }
+
+  45% {
+    opacity: 0.72;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scaleY(1);
+  }
+}
+
+@keyframes ai-pulse-dot {
+  0%,
+  100% {
+    transform: scale(0.88);
+    opacity: 0.75;
+  }
+
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes ai-step-glow {
+  0%,
+  100% {
+    border-color: rgba(125, 211, 252, 0.26);
+    color: #bae6fd;
+  }
+
+  50% {
+    border-color: rgba(34, 197, 94, 0.65);
+    color: #dcfce7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-orbital,
+  .ai-robot-eye,
+  .ai-robot-antenna::before,
+  .ai-steam,
+  .ai-loading-steps span {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .ai-loading-content {
+    width: min(94vw, 520px);
+  }
+
+  .ai-robot-chef-module {
+    width: 164px;
+  }
+
+  .ai-orbital-one {
+    width: 138px;
+    height: 138px;
+  }
+
+  .ai-orbital-two {
+    width: 108px;
+    height: 108px;
+  }
+}

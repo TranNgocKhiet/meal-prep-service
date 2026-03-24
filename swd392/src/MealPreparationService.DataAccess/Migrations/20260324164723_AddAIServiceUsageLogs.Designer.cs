@@ -4,6 +4,7 @@ using MealPreparationService.DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MealPreparationService.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260324164723_AddAIServiceUsageLogs")]
+    partial class AddAIServiceUsageLogs
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -312,37 +315,6 @@ namespace MealPreparationService.DataAccess.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("DeliverySchedules");
-                });
-
-            modelBuilder.Entity("MealPreparationService.Domain.Entities.Feedback", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CustomerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("MealPreparationService.Domain.Entities.Fridge", b =>
@@ -1358,17 +1330,6 @@ namespace MealPreparationService.DataAccess.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("MealPreparationService.Domain.Entities.Feedback", b =>
-                {
-                    b.HasOne("MealPreparationService.Domain.Entities.Account", "Customer")
-                        .WithMany("Feedbacks")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
             modelBuilder.Entity("MealPreparationService.Domain.Entities.Fridge", b =>
                 {
                     b.HasOne("MealPreparationService.Domain.Entities.Account", "Account")
@@ -1724,8 +1685,6 @@ namespace MealPreparationService.DataAccess.Migrations
                     b.Navigation("Carts");
 
                     b.Navigation("DeliverySchedules");
-
-                    b.Navigation("Feedbacks");
 
                     b.Navigation("Fridges");
 

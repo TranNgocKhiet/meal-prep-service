@@ -52,7 +52,7 @@ apiClient.interceptors.response.use(
 
     const containsLocalhostDetails =
       typeof fallbackMessage === 'string' &&
-      /localhost|127\.0\.0\.1|network error|failed to fetch|econnrefused|timeout/i.test(fallbackMessage);
+      /localhost:5173/i.test(fallbackMessage);
 
     if (containsLocalhostDetails) {
       notifyGlobalError(sanitizedMessage);
