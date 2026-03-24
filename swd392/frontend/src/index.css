@@ -148,6 +148,12 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(45, 122, 62, 0.1);
 }
 
+/* Keep native dropdown menu text readable on Windows/light popups. */
+select option {
+  color: #111827;
+  background-color: #ffffff;
+}
+
 /* Mobile-first: Ensure minimum font size in inputs */
 @media (max-width: 767px) {
   input,
