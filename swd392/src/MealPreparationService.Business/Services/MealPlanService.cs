@@ -509,7 +509,15 @@ public class MealPlanService : IMealPlanService
                     {
                         Id = mr.Recipe.Id,
                         RecipeName = mr.Recipe.RecipeName,
-                        Instructions = mr.Recipe.Instructions
+                        Instructions = mr.Recipe.Instructions,
+                        Ingredients = mr.Recipe.RecipeIngredients
+                            .Select(ri => new RecipeIngredientDto
+                            {
+                                IngredientId = ri.IngredientId,
+                                IngredientName = ri.Ingredient?.Name ?? string.Empty,
+                                Amount = ri.Amount
+                            })
+                            .ToList()
                     })
                     .ToList();
 
@@ -519,7 +527,7 @@ public class MealPlanService : IMealPlanService
                     MealTypeId = meal.MealTypeId,
                     RecipeIds = meal.MealRecipes.Select(mr => mr.RecipeId).ToList(),
                     Recipes = recipes,
-                    Status = meal.MealFinished ? "Finished" : "Pending",
+                    Status = GetMealStatus(meal),
                     Date = meal.ServerDate,
                     MealPlanId = mealPlan.Id,
                     TotalCalories = meal.TotalCalories,
@@ -541,6 +549,21 @@ public class MealPlanService : IMealPlanService
         }
 
         return days;
+    }
+
+    private string GetMealStatus(Meal meal)
+    {
+        if (meal.MealFinished)
+        {
+            return "Finished";
+        }
+
+        if (meal.ServerDate.Date < _dateTimeService.Now.Date)
+        {
+            return "Expired";
+        }
+
+        return "Pending";
     }
 
     public async Task<bool> ValidateMealPlanLimitsAsync(string userId)
