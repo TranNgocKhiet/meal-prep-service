@@ -26,6 +26,7 @@ public class Account : BaseEntity
     public ICollection<DeliverySchedule> DeliverySchedules { get; set; } = new List<DeliverySchedule>();
     public ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
     public ICollection<AIcreditTransaction> AIcreditTransactions { get; set; } = new List<AIcreditTransaction>();
+    public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 }
 
 

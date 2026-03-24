@@ -47,6 +47,7 @@ import SystemConfiguration from './pages/SystemConfiguration';
 import RevenueReport from './pages/RevenueReport';
 import AICredits from './pages/AICredits';
 import AICreditCallback from './pages/AICreditCallback';
+import Feedback from './pages/Feedback';
 
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
@@ -250,6 +251,11 @@ function AppRoutes() {
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/feedback" element={
+          <ProtectedRoute>
+            <Feedback />
           </ProtectedRoute>
         } />
         <Route path="/ai-credits" element={

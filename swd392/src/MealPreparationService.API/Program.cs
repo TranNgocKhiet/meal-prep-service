@@ -131,6 +131,7 @@ builder.Services.AddScoped<IAICreditPackageRepository, AICreditPackageRepository
 builder.Services.AddScoped<IAICreditTransactionRepository, AICreditTransactionRepository>();
 builder.Services.AddScoped<IRevenueReportRepository, RevenueReportRepository>();
 builder.Services.AddScoped<ISystemConfigurationRepository, SystemConfigurationRepository>();
+builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 
 // Register Business Services (Scoped)
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -165,6 +166,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IDeliveryScheduleService, DeliveryScheduleService>();
 // builder.Services.AddScoped<IDeliveryService, DeliveryService>();
 // builder.Services.AddScoped<IUserDataService, UserDataService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 // Register HttpClient for Google Maps
 builder.Services.AddHttpClient("GoogleMaps");

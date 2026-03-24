@@ -42,6 +42,7 @@ public class UnitOfWork : IUnitOfWork
     private IAICreditTransactionRepository? _aiCreditTransactionRepository;
     private IRevenueReportRepository? _revenueReportRepository;
     private ISystemConfigurationRepository? _systemConfigurationRepository;
+    private IFeedbackRepository? _feedbackRepository;
 
     public UnitOfWork(ApplicationDbContext context, IDateTimeService dateTimeService)
     {
@@ -80,6 +81,7 @@ public class UnitOfWork : IUnitOfWork
     public IAICreditTransactionRepository AICreditTransactions => _aiCreditTransactionRepository ??= new AICreditTransactionRepository(_context);
     public IRevenueReportRepository RevenueReports => _revenueReportRepository ??= new RevenueReportRepository(_context);
     public ISystemConfigurationRepository SystemConfigurations => _systemConfigurationRepository ??= new SystemConfigurationRepository(_context);
+    public IFeedbackRepository Feedbacks => _feedbackRepository ??= new FeedbackRepository(_context);
 
     public async Task<int> SaveChangesAsync()
     {
