@@ -39,3 +39,27 @@ public class UpdateRecipeDto
     [StringLength(2000, MinimumLength = 10, ErrorMessage = "Instructions must be between 10 and 2000 characters")]
     public string Instructions { get; set; } = string.Empty;
 }
+
+public class AdminRecipeIngredientDto
+{
+    public string Id { get; set; } = string.Empty;
+    public string IngredientId { get; set; } = string.Empty;
+    public string IngredientName { get; set; } = string.Empty;
+    public string IngredientUnit { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+}
+
+public class CreateRecipeIngredientDto
+{
+    [Required(ErrorMessage = "Ingredient is required")]
+    public string IngredientId { get; set; } = string.Empty;
+
+    [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
+    public decimal Amount { get; set; }
+}
+
+public class UpdateRecipeIngredientDto
+{
+    [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
+    public decimal Amount { get; set; }
+}

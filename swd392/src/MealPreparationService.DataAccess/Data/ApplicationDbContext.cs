@@ -46,6 +46,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<AIcreditPackage> AIcreditPackages { get; set; }
     public DbSet<AIcreditTransaction> AIcreditTransactions { get; set; }
     public DbSet<RevenueReport> RevenueReports { get; set; }
+    public DbSet<Feedback> Feedbacks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +88,7 @@ public class ApplicationDbContext : DbContext
         ConfigureAIcreditPackage(modelBuilder);
         ConfigureAIcreditTransaction(modelBuilder);
         ConfigureRevenueReport(modelBuilder);
+        ConfigureFeedback(modelBuilder);
     }
 
     private void ConfigureAccount(ModelBuilder modelBuilder)
@@ -727,6 +729,26 @@ public class ApplicationDbContext : DbContext
             
             entity.ToTable(t => t.HasCheckConstraint("CK_RevenueReport_Month", "[Month] >= 1 AND [Month] <= 12"));
             entity.ToTable(t => t.HasCheckConstraint("CK_RevenueReport_Year", "[Year] > 0"));
+        });
+    }
+
+    private void ConfigureFeedback(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Feedback>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CustomerId).IsRequired();
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Content).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            entity.Property(e => e.UpdatedAt).IsRequired();
+            
+            entity.HasOne(e => e.Customer)
+                .WithMany(a => a.Feedbacks)
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.CustomerId);
         });
     }
 }
