@@ -124,6 +124,7 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
                   {/* Admin menu items */}
                   {isAdmin && (
                     <>
+                      <li><Link to="/admin/dashboard">Dashboard</Link></li>
                       <li><Link to="/admin/menu">Menu</Link></li>
                       <li><Link to="/admin/accounts">Accounts</Link></li>
                       <li className="dropdown">
