@@ -22,6 +22,8 @@ public class AdminDashboardResponseDto
     public List<TopCustomerUsageDto> TopCustomersAiNutritionUsage { get; set; } = new();
     public List<TopCustomerSpendingDto> TopCustomerOrderSpending { get; set; } = new();
     public List<TopMealOrderDto> TopMealsOrdered { get; set; } = new();
+    public List<TopMealSharePointDto> TopMealsByQuantityInRange { get; set; } = new();
+    public List<TopMealSharePointDto> TopMealsByRevenueInRange { get; set; } = new();
 
     public int MealPlanPage { get; set; }
     public int NutritionPage { get; set; }
@@ -87,4 +89,11 @@ public class TopMealOrderDto
 {
     public string MealName { get; set; } = string.Empty;
     public int TotalQuantity { get; set; }
+}
+
+public class TopMealSharePointDto
+{
+    public string MealName { get; set; } = string.Empty;
+    public int TotalQuantity { get; set; }
+    public decimal TotalRevenue { get; set; }
 }

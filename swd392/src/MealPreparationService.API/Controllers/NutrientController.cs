@@ -4,6 +4,7 @@ using MealPreparationService.Business.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace MealPreparationService.API.Controllers;
 
@@ -83,6 +84,8 @@ Fat(g): {nutrientData.TotalFats}
 Conflicts: {(conflicts.Any() ? string.Join("; ", conflicts) : "No major ingredient conflicts detected")}";
 
             var healthAdvice = await _openAiService.GetHealthAdviceAsync(adviceContext);
+            var cleanedAdvice = NormalizeAiAdvice(healthAdvice);
+            var hasRealConflicts = conflicts.Any(c => !c.Equals("No major ingredient conflicts detected.", StringComparison.OrdinalIgnoreCase));
 
             var response = new CustomMealNutritionResponseDto
             {
@@ -95,10 +98,15 @@ Conflicts: {(conflicts.Any() ? string.Join("; ", conflicts) : "No major ingredie
                 SugarG = GetDictionaryValue(nutrientData.Vitamins, "Sugar"),
                 SodiumMg = GetDictionaryValue(nutrientData.Minerals, "Sodium"),
                 IngredientConflicts = conflicts,
-                BestConsumptionAdvice = healthAdvice,
+                BestConsumptionAdvice = cleanedAdvice,
                 OverallNote = BuildOverallNote(
                     nutrientData.TotalCalories,
-                    conflicts.Any(c => !c.Equals("No major ingredient conflicts detected.", StringComparison.OrdinalIgnoreCase)))
+                    nutrientData.TotalProteins,
+                    nutrientData.TotalCarbohydrates,
+                    nutrientData.TotalFats,
+                    GetDictionaryValue(nutrientData.Vitamins, "Fiber"),
+                    GetDictionaryValue(nutrientData.Minerals, "Sodium"),
+                    hasRealConflicts)
             };
 
             return Ok(ApiResponse<CustomMealNutritionResponseDto>.SuccessResponse(response));
@@ -267,20 +275,110 @@ Conflicts: {(conflicts.Any() ? string.Join("; ", conflicts) : "No major ingredie
         return string.IsNullOrWhiteSpace(partialMatch.Key) ? 0 : partialMatch.Value;
     }
 
-    private static string BuildOverallNote(decimal calories, bool hasRealConflicts)
+    private static string BuildOverallNote(
+        decimal calories,
+        decimal proteinG,
+        decimal carbsG,
+        decimal fatG,
+        decimal fiberG,
+        decimal sodiumMg,
+        bool hasRealConflicts)
     {
         var calorieNote = calories switch
         {
             < 350 => "This is a light meal.",
-            >= 350 and <= 700 => "This is a balanced calorie meal for most adults.",
-            _ => "This is a high-calorie meal; consider portion control if needed."
+            >= 350 and <= 700 => "This is a moderate-calorie meal for most adults.",
+            _ => "This is a higher-calorie meal; portion control may help depending on your goal."
         };
+
+        var dominantMacro = new[]
+        {
+            (Name: "protein", Value: proteinG),
+            (Name: "carbohydrate", Value: carbsG),
+            (Name: "fat", Value: fatG)
+        }
+        .OrderByDescending(x => x.Value)
+        .First().Name;
+
+        var qualityTips = new List<string>();
+        if (fiberG < 5)
+        {
+            qualityTips.Add("fiber is low, so add vegetables, legumes, or whole grains");
+        }
+
+        if (sodiumMg > 800)
+        {
+            qualityTips.Add("sodium is relatively high, so keep the next meal lower in salt");
+        }
+
+        var qualityNote = qualityTips.Count > 0
+            ? $"Nutrient quality note: {string.Join("; ", qualityTips)}."
+            : "Nutrient quality looks generally balanced for a single meal.";
 
         if (hasRealConflicts)
         {
-            return $"{calorieNote} Review ingredient conflict notes before regular consumption.";
+            return $"{calorieNote} Dominant macro: {dominantMacro}. {qualityNote} Review ingredient conflict notes before regular consumption.";
         }
 
-        return calorieNote;
+        return $"{calorieNote} Dominant macro: {dominantMacro}. {qualityNote}";
+    }
+
+    private static string NormalizeAiAdvice(string rawAdvice)
+    {
+        if (string.IsNullOrWhiteSpace(rawAdvice))
+        {
+            return "No advice provided.";
+        }
+
+        var text = rawAdvice.Trim();
+        if (text.StartsWith("```") && text.EndsWith("```"))
+        {
+            text = text
+                .TrimStart('`')
+                .TrimEnd('`')
+                .Trim();
+
+            if (text.StartsWith("json", StringComparison.OrdinalIgnoreCase))
+            {
+                text = text[4..].Trim();
+            }
+        }
+
+        if ((text.StartsWith("{") && text.EndsWith("}")) || (text.StartsWith("[") && text.EndsWith("]")))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(text);
+                if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    var preferredKeys = new[] { "health_advice", "advice", "message", "bestConsumptionAdvice", "note" };
+                    foreach (var key in preferredKeys)
+                    {
+                        if (doc.RootElement.TryGetProperty(key, out var value) && value.ValueKind == JsonValueKind.String)
+                        {
+                            var parsed = value.GetString();
+                            if (!string.IsNullOrWhiteSpace(parsed))
+                            {
+                                return parsed.Trim();
+                            }
+                        }
+                    }
+
+                    foreach (var property in doc.RootElement.EnumerateObject())
+                    {
+                        if (property.Value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(property.Value.GetString()))
+                        {
+                            return property.Value.GetString()!.Trim();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Keep original cleaned string when parsing fails.
+            }
+        }
+
+        return text;
     }
 }

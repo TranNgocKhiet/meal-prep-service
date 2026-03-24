@@ -28,6 +28,9 @@ public class AdminDashboardController : ControllerBase
         [FromQuery] DateTime? toDate,
         [FromQuery] int? topMonth,
         [FromQuery] int? topYear,
+        [FromQuery] int topMealsCount = 5,
+        [FromQuery] int? topMealsQuantityCount = null,
+        [FromQuery] int? topMealsRevenueCount = null,
         [FromQuery] int mealPlanPage = 1,
         [FromQuery] int nutritionPage = 1,
         [FromQuery] int spendingPage = 1,
@@ -51,6 +54,9 @@ public class AdminDashboardController : ControllerBase
             }
 
             var safeTopYear = topYear ?? safeToDate.Year;
+            var safeTopMealsCount = Math.Clamp(topMealsCount, 2, 20);
+            var safeTopMealsQuantityCount = Math.Clamp(topMealsQuantityCount ?? safeTopMealsCount, 2, 20);
+            var safeTopMealsRevenueCount = Math.Clamp(topMealsRevenueCount ?? safeTopMealsCount, 2, 20);
 
             var result = new AdminDashboardResponseDto
             {
@@ -72,6 +78,12 @@ public class AdminDashboardController : ControllerBase
             await LoadOrderRevenueTrendAsync(result, rangeStart, rangeEndExclusive);
             await LoadOrderStatusCountsAsync(result, rangeStart, rangeEndExclusive);
             await LoadAiUsageTrendsAsync(result, rangeStart, rangeEndExclusive);
+            await LoadOverviewTopMealsAsync(
+                result,
+                rangeStart,
+                rangeEndExclusive,
+                safeTopMealsQuantityCount,
+                safeTopMealsRevenueCount);
             await LoadMonthChangeOverviewsAsync(result);
             await LoadTopDashboardsAsync(result, safeTopYear, safeTopMonth);
 
@@ -87,33 +99,38 @@ public class AdminDashboardController : ControllerBase
 
     private async Task LoadOrderRevenueTrendAsync(AdminDashboardResponseDto result, DateTime rangeStart, DateTime rangeEndExclusive)
     {
+        var useDailyGranularity = ShouldUseDailyGranularity(rangeStart, rangeEndExclusive);
+        var rangeEnd = rangeEndExclusive.AddDays(-1);
+
         var orders = await _unitOfWork.Orders.GetAllQueryable()
             .AsNoTracking()
             .Where(o => o.Date >= rangeStart && o.Date < rangeEndExclusive)
             .Select(o => new { o.Date, o.Amount })
             .ToListAsync();
 
-        var monthSeries = BuildMonthRange(rangeStart, rangeEndExclusive.AddDays(-1));
+        var periodSeries = BuildPeriodRange(rangeStart, rangeEnd, useDailyGranularity);
         var grouped = orders
-            .GroupBy(o => new DateTime(o.Date.Year, o.Date.Month, 1))
+            .GroupBy(o => TruncateToPeriod(o.Date, useDailyGranularity))
             .ToDictionary(
                 g => g.Key,
                 g => new { Revenue = g.Sum(x => x.Amount), Orders = g.Count() });
 
-        result.MonthlyOrderRevenue = monthSeries
-            .Select(month => new MonthlyOrderRevenuePointDto
+        result.MonthlyOrderRevenue = periodSeries
+            .Select(period => new MonthlyOrderRevenuePointDto
             {
-                MonthStart = month,
-                Label = month.ToString("MMM yyyy"),
-                Revenue = grouped.TryGetValue(month, out var value) ? value.Revenue : 0m,
-                Orders = grouped.TryGetValue(month, out value) ? value.Orders : 0
+                MonthStart = period,
+                Label = BuildPeriodLabel(period, useDailyGranularity),
+                Revenue = grouped.TryGetValue(period, out var value) ? value.Revenue : 0m,
+                Orders = grouped.TryGetValue(period, out value) ? value.Orders : 0
             })
             .ToList();
     }
 
     private async Task LoadAiUsageTrendsAsync(AdminDashboardResponseDto result, DateTime rangeStart, DateTime rangeEndExclusive)
     {
-        var monthSeries = BuildMonthRange(rangeStart, rangeEndExclusive.AddDays(-1));
+        var useDailyGranularity = ShouldUseDailyGranularity(rangeStart, rangeEndExclusive);
+        var rangeEnd = rangeEndExclusive.AddDays(-1);
+        var periodSeries = BuildPeriodRange(rangeStart, rangeEnd, useDailyGranularity);
 
         var aiMealPlans = await _unitOfWork.MealPlans.GetAllQueryable()
             .AsNoTracking()
@@ -128,34 +145,37 @@ public class AdminDashboardController : ControllerBase
             .ToListAsync();
 
         var mealPlanByMonth = aiMealPlans
-            .GroupBy(x => new DateTime(x.Year, x.Month, 1))
+            .GroupBy(x => TruncateToPeriod(x, useDailyGranularity))
             .ToDictionary(g => g.Key, g => g.Count());
 
         var nutritionProxyByMonth = aiCreditTransactions
-            .GroupBy(x => new DateTime(x.Year, x.Month, 1))
+            .GroupBy(x => TruncateToPeriod(x, useDailyGranularity))
             .ToDictionary(g => g.Key, g => g.Count());
 
-        result.MonthlyAiMealPlanUsage = monthSeries
-            .Select(month => new MonthlyUsagePointDto
+        result.MonthlyAiMealPlanUsage = periodSeries
+            .Select(period => new MonthlyUsagePointDto
             {
-                MonthStart = month,
-                Label = month.ToString("MMM yyyy"),
-                Count = mealPlanByMonth.TryGetValue(month, out var count) ? count : 0
+                MonthStart = period,
+                Label = BuildPeriodLabel(period, useDailyGranularity),
+                Count = mealPlanByMonth.TryGetValue(period, out var count) ? count : 0
             })
             .ToList();
 
-        result.MonthlyAiNutritionUsage = monthSeries
-            .Select(month => new MonthlyUsagePointDto
+        result.MonthlyAiNutritionUsage = periodSeries
+            .Select(period => new MonthlyUsagePointDto
             {
-                MonthStart = month,
-                Label = month.ToString("MMM yyyy"),
-                Count = nutritionProxyByMonth.TryGetValue(month, out var count) ? count : 0
+                MonthStart = period,
+                Label = BuildPeriodLabel(period, useDailyGranularity),
+                Count = nutritionProxyByMonth.TryGetValue(period, out var count) ? count : 0
             })
             .ToList();
     }
 
     private async Task LoadOrderStatusCountsAsync(AdminDashboardResponseDto result, DateTime rangeStart, DateTime rangeEndExclusive)
     {
+        var useDailyGranularity = ShouldUseDailyGranularity(rangeStart, rangeEndExclusive);
+        var rangeEnd = rangeEndExclusive.AddDays(-1);
+
         var orders = await _unitOfWork.Orders.GetAllQueryable()
             .AsNoTracking()
             .Include(o => o.Status)
@@ -173,10 +193,10 @@ public class AdminDashboardController : ControllerBase
             return values.Any(v => status.Contains(v, StringComparison.OrdinalIgnoreCase));
         }
 
-        var monthSeries = BuildMonthRange(rangeStart, rangeEndExclusive.AddDays(-1));
+        var periodSeries = BuildPeriodRange(rangeStart, rangeEnd, useDailyGranularity);
 
         var grouped = orders
-            .GroupBy(o => new DateTime(o.Date.Year, o.Date.Month, 1))
+            .GroupBy(o => TruncateToPeriod(o.Date, useDailyGranularity))
             .ToDictionary(g => g.Key, g => new
             {
                 FailedCount = g.Count(x => Matches(x.StatusName, "failed", "payment_failed")),
@@ -185,15 +205,15 @@ public class AdminDashboardController : ControllerBase
                 CustomerRejectedCount = g.Count(x => Matches(x.StatusName, "customer_reject", "customer_rejected", "rejected"))
             });
 
-        result.MonthlyOrderStatusCounts = monthSeries
-            .Select(month => new MonthlyOrderStatusCountPointDto
+        result.MonthlyOrderStatusCounts = periodSeries
+            .Select(period => new MonthlyOrderStatusCountPointDto
             {
-                MonthStart = month,
-                Label = month.ToString("MMM yyyy"),
-                FailedCount = grouped.TryGetValue(month, out var value) ? value.FailedCount : 0,
-                CanceledCount = grouped.TryGetValue(month, out value) ? value.CanceledCount : 0,
-                CustomerReceivedCount = grouped.TryGetValue(month, out value) ? value.CustomerReceivedCount : 0,
-                CustomerRejectedCount = grouped.TryGetValue(month, out value) ? value.CustomerRejectedCount : 0
+                MonthStart = period,
+                Label = BuildPeriodLabel(period, useDailyGranularity),
+                FailedCount = grouped.TryGetValue(period, out var value) ? value.FailedCount : 0,
+                CanceledCount = grouped.TryGetValue(period, out value) ? value.CanceledCount : 0,
+                CustomerReceivedCount = grouped.TryGetValue(period, out value) ? value.CustomerReceivedCount : 0,
+                CustomerRejectedCount = grouped.TryGetValue(period, out value) ? value.CustomerRejectedCount : 0
             })
             .ToList();
     }
@@ -318,6 +338,70 @@ public class AdminDashboardController : ControllerBase
             .ToList();
     }
 
+    private async Task LoadOverviewTopMealsAsync(
+        AdminDashboardResponseDto result,
+        DateTime rangeStart,
+        DateTime rangeEndExclusive,
+        int topMealsQuantityCount,
+        int topMealsRevenueCount)
+    {
+        var mealRows = await _unitOfWork.OrderDetails.GetAllQueryable()
+            .AsNoTracking()
+            .Include(od => od.Order)
+            .Include(od => od.MenuMeal)
+                .ThenInclude(mm => mm.MenuMealRecipes)
+                .ThenInclude(mmr => mmr.Recipe)
+            .Where(od => od.Order.Date >= rangeStart && od.Order.Date < rangeEndExclusive)
+            .Select(od => new
+            {
+                od.Quantity,
+                od.UnitPrice,
+                Recipes = od.MenuMeal.MenuMealRecipes.Select(mmr => mmr.Recipe.RecipeName).ToList()
+            })
+            .ToListAsync();
+
+        var mealAggregates = mealRows
+            .Select(od =>
+            {
+                var recipeNames = od.Recipes
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .Select(name => name.Trim())
+                    .Distinct()
+                    .ToList();
+
+                var mealName = recipeNames.Count > 0
+                    ? string.Join(" + ", recipeNames)
+                    : "Unknown meal";
+
+                return new
+                {
+                    MealName = mealName,
+                    Quantity = od.Quantity,
+                    Revenue = od.UnitPrice * od.Quantity
+                };
+            })
+            .GroupBy(x => x.MealName)
+            .Select(g => new TopMealSharePointDto
+            {
+                MealName = g.Key,
+                TotalQuantity = g.Sum(x => x.Quantity),
+                TotalRevenue = g.Sum(x => x.Revenue)
+            })
+            .ToList();
+
+        result.TopMealsByQuantityInRange = mealAggregates
+            .OrderByDescending(x => x.TotalQuantity)
+            .ThenBy(x => x.MealName)
+            .Take(topMealsQuantityCount)
+            .ToList();
+
+        result.TopMealsByRevenueInRange = mealAggregates
+            .OrderByDescending(x => x.TotalRevenue)
+            .ThenBy(x => x.MealName)
+            .Take(topMealsRevenueCount)
+            .ToList();
+    }
+
     private async Task LoadMonthChangeOverviewsAsync(AdminDashboardResponseDto result)
     {
         var today = DateTime.Today;
@@ -361,16 +445,41 @@ public class AdminDashboardController : ControllerBase
         };
     }
 
-    private static List<DateTime> BuildMonthRange(DateTime start, DateTime end)
+    private static bool ShouldUseDailyGranularity(DateTime rangeStart, DateTime rangeEndExclusive)
+    {
+        var rangeEnd = rangeEndExclusive.AddDays(-1);
+        return rangeStart.Year == rangeEnd.Year && rangeStart.Month == rangeEnd.Month;
+    }
+
+    private static DateTime TruncateToPeriod(DateTime value, bool useDailyGranularity)
+    {
+        return useDailyGranularity
+            ? value.Date
+            : new DateTime(value.Year, value.Month, 1);
+    }
+
+    private static string BuildPeriodLabel(DateTime value, bool useDailyGranularity)
+    {
+        return useDailyGranularity
+            ? value.ToString("dd MMM")
+            : value.ToString("MMM yyyy");
+    }
+
+    private static List<DateTime> BuildPeriodRange(DateTime start, DateTime end, bool useDailyGranularity)
     {
         var result = new List<DateTime>();
-        var month = new DateTime(start.Year, start.Month, 1);
-        var last = new DateTime(end.Year, end.Month, 1);
+        var cursor = useDailyGranularity
+            ? start.Date
+            : new DateTime(start.Year, start.Month, 1);
 
-        while (month <= last)
+        var last = useDailyGranularity
+            ? end.Date
+            : new DateTime(end.Year, end.Month, 1);
+
+        while (cursor <= last)
         {
-            result.Add(month);
-            month = month.AddMonths(1);
+            result.Add(cursor);
+            cursor = useDailyGranularity ? cursor.AddDays(1) : cursor.AddMonths(1);
         }
 
         return result;

@@ -1,49 +1,238 @@
 .nutrition-analyzer-page {
+  /* Lock this page to a readable light palette regardless of OS dark mode. */
+  --color-primary: #2d7a3e;
+  --color-primary-dark: #1e5a2e;
+  --color-primary-hover: #3a8f4d;
+  --color-text-primary: #212529;
+  --color-text-secondary: #6c757d;
+  --color-text-on-primary: #ffffff;
+  --color-border: #dee2e6;
+  --color-surface: #f8f9fa;
+  --color-secondary: #ffffff;
+  --color-info: #17a2b8;
+  --color-success: #28a745;
+  color-scheme: light;
+
   position: relative;
   padding: 2rem 0 3rem;
   display: grid;
   gap: 1.5rem;
+  isolation: isolate;
+}
+
+.nutrition-analyzer-page > * {
+  animation: riseIn 0.55s cubic-bezier(0.2, 0.7, 0.25, 1) both;
+}
+
+.nutrition-analyzer-page > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.nutrition-analyzer-page > *:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.nutrition-analyzer-page > *:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.nutrition-analyzer-page::before,
+.nutrition-analyzer-page::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  border-radius: 999px;
+  filter: blur(40px);
+  z-index: -1;
+}
+
+.nutrition-analyzer-page::before {
+  width: 280px;
+  height: 280px;
+  top: -20px;
+  right: 8%;
+  background: rgba(14, 165, 233, 0.24);
+}
+
+.nutrition-analyzer-page::after {
+  width: 240px;
+  height: 240px;
+  bottom: 22%;
+  left: -40px;
+  background: rgba(34, 197, 94, 0.18);
+}
+
+.nutrition-header {
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: 14px;
+  padding: 1.25rem 1.2rem;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(14, 165, 233, 0.28), transparent 35%),
+    linear-gradient(135deg, rgba(2, 6, 23, 0.92) 0%, rgba(15, 23, 42, 0.96) 100%);
+}
+
+.nutrition-header {
+  animation: heroGlowIn 0.75s ease-out both;
+}
+
+.nutrition-kicker {
+  display: inline-block;
+  padding: 0.3rem 0.62rem;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.48);
+  background: rgba(14, 116, 144, 0.2);
+  color: #bae6fd;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .nutrition-header h1 {
-  margin: 0;
-  color: #0f172a;
+  margin: 0.55rem 0 0;
+  color: #f8fafc;
+  font-size: clamp(1.6rem, 2.4vw, 2.35rem);
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 .nutrition-header p {
   margin-top: 0.5rem;
-  color: #334155;
+  color: #cbd5e1;
+  font-size: 1.08rem;
+  max-width: 72ch;
+}
+
+.nutrition-header-meta {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.nutrition-header-meta span {
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  color: #e2e8f0;
+  border-radius: 999px;
+  padding: 0.32rem 0.62rem;
+  font-size: 0.84rem;
 }
 
 .nutrition-input-card,
 .nutrition-result-card {
   background: #ffffff;
-  border: 1px solid #dbe4ee;
-  border-radius: 14px;
-  padding: 1.25rem;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  border: 1px solid #d9e5f2;
+  border-radius: 16px;
+  padding: 1.35rem;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
 }
 
 .nutrition-input-card h2,
 .nutrition-result-card h2 {
   margin-top: 0;
-  color: #0f172a;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.input-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.input-kicker {
+  margin-bottom: 0.35rem;
+}
+
+.input-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  margin-right: 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 14%, white);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, white);
+  font-size: 0.78rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.result-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.result-kicker {
+  display: inline-block;
+  margin-bottom: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, white);
+  background: color-mix(in srgb, var(--color-primary) 10%, white);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.export-pdf-btn {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0.55rem 0.9rem;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(3, 105, 161, 0.25);
+}
+
+.export-pdf-btn:hover {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
 }
 
 .input-label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-text-primary);
+}
+
+.input-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .meal-description {
   width: 100%;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
+  background: color-mix(in srgb, var(--color-surface) 95%, white);
+  color: var(--color-text-primary);
   padding: 0.75rem;
   resize: vertical;
   min-height: 90px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.meal-description::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 1;
+}
+
+.meal-description:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+  outline: none;
 }
 
 .ingredients-header {
@@ -57,7 +246,13 @@
 
 .ingredients-header h3 {
   margin: 0;
-  color: #1e293b;
+  color: var(--color-text-primary);
+}
+
+.input-section-title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
 }
 
 .add-row-btn,
@@ -69,13 +264,22 @@
 }
 
 .add-row-btn {
-  background: #e2e8f0;
-  color: #0f172a;
-  padding: 0.5rem 0.8rem;
+  background: color-mix(in srgb, var(--color-primary) 12%, white);
+  color: var(--color-primary-dark);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 34%, white);
+  padding: 0.55rem 0.9rem;
+  font-weight: 700;
+}
+
+.add-row-btn:hover {
+  background: color-mix(in srgb, var(--color-primary) 20%, white);
 }
 
 .ingredients-table-wrapper {
   overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-surface) 92%, white);
 }
 
 .ingredients-table {
@@ -86,27 +290,56 @@
 
 .ingredients-table th,
 .ingredients-table td {
-  border: 1px solid #dbe4ee;
+  border: 1px solid var(--color-border);
   padding: 0.55rem;
 }
 
 .ingredients-table th {
-  background: #f8fafc;
+  background: color-mix(in srgb, var(--color-surface) 88%, white);
   text-align: left;
-  color: #334155;
+  color: var(--color-text-primary);
+}
+
+.ingredients-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--color-surface) 92%, white);
 }
 
 .ingredients-table input {
   width: 100%;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
+  background: #ffffff;
+  color: var(--color-text-primary);
   padding: 0.5rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ingredients-table input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 1;
+}
+
+.meal-description:-webkit-autofill,
+.meal-description:-webkit-autofill:hover,
+.meal-description:-webkit-autofill:focus,
+.ingredients-table input:-webkit-autofill,
+.ingredients-table input:-webkit-autofill:hover,
+.ingredients-table input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #0f172a;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+}
+
+.ingredients-table input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+  outline: none;
 }
 
 .remove-row-btn {
   background: #fee2e2;
   color: #7f1d1d;
   padding: 0.45rem 0.65rem;
+  font-weight: 700;
 }
 
 .remove-row-btn:disabled {
@@ -121,20 +354,38 @@
 
 .analyze-btn {
   margin-top: 1rem;
-  background: #16a34a;
-  color: #fff;
-  padding: 0.75rem 1.2rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-text-on-primary);
+  padding: 0.8rem 1.25rem;
   font-weight: 600;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px color-mix(in srgb, var(--color-primary) 28%, transparent);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.analyze-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--color-primary) 34%, transparent);
 }
 
 .analyze-btn:disabled {
   background: #94a3b8;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .meal-summary {
   margin-top: 0;
-  color: #334155;
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-surface) 88%, white);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  line-height: 1.55;
 }
 
 .nutrition-grid {
@@ -144,61 +395,144 @@
 }
 
 .nutrition-item {
-  border: 1px solid #dbe4ee;
-  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
   padding: 0.7rem;
-  background: #f8fafc;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-surface) 92%, white) 0%,
+    color-mix(in srgb, var(--color-surface) 86%, white) 100%
+  );
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.35rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .nutrition-item span {
-  color: #64748b;
+  color: var(--color-text-secondary);
   font-size: 0.88rem;
 }
 
 .nutrition-item strong {
-  color: #0f172a;
+  color: var(--color-text-primary);
+}
+
+.nutrition-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-info) 45%, white);
+  background: color-mix(in srgb, var(--color-info) 12%, white);
+  color: color-mix(in srgb, var(--color-info) 75%, black);
+  padding: 0.12rem 0.48rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .result-section {
   margin-top: 1rem;
+  background: color-mix(in srgb, var(--color-surface) 90%, white);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 0.8rem 0.85rem;
 }
 
 .result-section h3 {
   margin-bottom: 0.4rem;
+  color: var(--color-text-primary);
 }
 
-.analyzer-loading-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.9);
+.result-section p {
+  color: var(--color-text-primary);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.result-section ul {
+  list-style: disc;
+  margin-left: 1rem;
+  color: var(--color-text-primary);
+}
+
+.result-section-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.result-badge {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: 0.2rem 0.56rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid transparent;
 }
 
-.analyzer-loading-content {
-  text-align: center;
-  color: #fff;
-  padding: 1.2rem;
+.result-badge--info {
+  background: color-mix(in srgb, var(--color-info) 14%, white);
+  color: color-mix(in srgb, var(--color-info) 72%, black);
+  border-color: color-mix(in srgb, var(--color-info) 40%, white);
 }
 
-.loading-spinner {
-  width: 64px;
-  height: 64px;
-  border: 6px solid rgba(255, 255, 255, 0.25);
-  border-top-color: #22c55e;
-  border-radius: 50%;
-  margin: 0 auto 1rem;
-  animation: spin 1s linear infinite;
+.result-badge--success {
+  background: color-mix(in srgb, var(--color-success) 14%, white);
+  color: color-mix(in srgb, var(--color-success) 74%, black);
+  border-color: color-mix(in srgb, var(--color-success) 40%, white);
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+.result-badge--health {
+  background: color-mix(in srgb, var(--color-primary) 14%, white);
+  color: var(--color-primary-dark);
+  border-color: color-mix(in srgb, var(--color-primary) 40%, white);
+}
+
+@keyframes riseIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroGlowIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+    filter: saturate(85%);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: saturate(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nutrition-analyzer-page > *,
+  .nutrition-header {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
@@ -207,9 +541,44 @@
     padding-top: 1rem;
   }
 
+  .nutrition-header {
+    padding: 0.95rem;
+  }
+
+  .nutrition-kicker {
+    font-size: 0.74rem;
+  }
+
+  .nutrition-header p {
+    font-size: 0.98rem;
+  }
+
+  .nutrition-header-meta {
+    gap: 0.35rem;
+  }
+
+  .nutrition-header-meta span {
+    font-size: 0.78rem;
+  }
+
   .nutrition-input-card,
   .nutrition-result-card {
     padding: 1rem;
+  }
+
+  .result-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .input-section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .result-section-head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .ingredients-header {
