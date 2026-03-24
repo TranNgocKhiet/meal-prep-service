@@ -21,9 +21,7 @@ const MealUnfinishConfirmModal = ({ isOpen, onClose, onConfirm, ingredients, loa
   const [editableIngredients, setEditableIngredients] = useState<IngredientReturn[]>([]);
 
   useEffect(() => {
-    if (ingredients.length > 0) {
-      setEditableIngredients(ingredients);
-    }
+    setEditableIngredients(ingredients);
   }, [ingredients]);
 
   const updateAmount = (ingredientId: string, amount: number) => {
@@ -47,6 +45,11 @@ const MealUnfinishConfirmModal = ({ isOpen, onClose, onConfirm, ingredients, loa
   };
 
   const handleConfirm = () => {
+    if (editableIngredients.length === 0) {
+      onConfirm([]);
+      return;
+    }
+
     // Validate all ingredients have valid data
     const invalidItems = editableIngredients.filter(
       ing => !ing.amount || ing.amount <= 0 || !ing.expiryDate
@@ -124,8 +127,9 @@ const MealUnfinishConfirmModal = ({ isOpen, onClose, onConfirm, ingredients, loa
               </div>
             </>
           ) : (
-            <div className="error-state">
-              <p>No ingredients to return</p>
+            <div className="info-message">
+              <span className="info-icon">ℹ️</span>
+              <span>No ingredients to return. You can still confirm to mark this meal as unfinished.</span>
             </div>
           )}
         </div>
@@ -137,7 +141,7 @@ const MealUnfinishConfirmModal = ({ isOpen, onClose, onConfirm, ingredients, loa
           <button 
             className="btn btn-warning" 
             onClick={handleConfirm}
-            disabled={loading || editableIngredients.length === 0}
+            disabled={loading}
             style={{
               backgroundColor: '#ffc107',
               color: '#000',

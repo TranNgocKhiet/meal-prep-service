@@ -21,6 +21,7 @@
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-xl);
+  overflow: hidden;
 }
 
 .modal-header {
@@ -156,10 +157,47 @@
 }
 
 .recipe-content h4 {
-  margin: 0 0 var(--spacing-sm) 0;
+  margin: 0 0 8px 0;
   color: #000;
-  font-size: var(--font-size-base);
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1.2;
+  max-height: 36px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.nutrition-info {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.nutrition-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.nutrition-label {
+  color: #666;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.1;
+}
+
+.nutrition-value {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 12px;
 }
 
 .recipe-instructions {
@@ -236,63 +274,10 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--spacing-md);
-}
-
-.selected-recipes-section {
-  padding: var(--spacing-lg);
-  border-top: 1px solid var(--color-border);
-  background-color: #f9f9f9;
-}
-
-.selected-recipes-section h3 {
-  margin: 0 0 var(--spacing-md) 0;
-  color: #000;
-  font-size: var(--font-size-lg);
-}
-
-.selected-recipes-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  max-height: 80px; /* Enough for one recipe item */
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.selected-recipe-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: #fff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-}
-
-.selected-recipe-item .recipe-name {
-  color: #000;
-  font-size: var(--font-size-base);
-  flex: 1;
-}
-
-.btn-remove-recipe {
-  background: none;
-  border: none;
-  color: #dc3545;
-  font-size: var(--font-size-lg);
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--border-radius-sm);
-  transition: background-color var(--transition-base);
-}
-
-.btn-remove-recipe:hover {
-  background-color: #fee;
+  background-color: var(--color-secondary);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .allergy-warning-overlay {

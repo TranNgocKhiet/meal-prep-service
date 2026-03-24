@@ -23,6 +23,8 @@ interface FridgeItem {
   addedAt: string;
 }
 
+type ItemStatusFilter = 'all' | 'expired' | 'today' | 'tomorrow' | 'soon' | 'fresh';
+
 const VirtualFridge = () => {
   const navigate = useNavigate();
   const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
@@ -34,6 +36,12 @@ const VirtualFridge = () => {
   const [ingredientSearch, setIngredientSearch] = useState('');
   const [searchResults, setSearchResults] = useState<Ingredient[]>([]);
   const [searchingIngredients, setSearchingIngredients] = useState(false);
+  const [activeStatusFilter, setActiveStatusFilter] = useState<ItemStatusFilter>('all');
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
+  const [deletingItem, setDeletingItem] = useState(false);
+  const [showUpdateConfirmModal, setShowUpdateConfirmModal] = useState(false);
+  const [updatingItem, setUpdatingItem] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -43,6 +51,8 @@ const VirtualFridge = () => {
     quantity: '',
     expiryDate: '',
   });
+
+  const getTodayDateString = () => new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     fetchFridgeItems();
@@ -98,6 +108,11 @@ const VirtualFridge = () => {
       return;
     }
 
+    if (formData.expiryDate < getTodayDateString()) {
+      alert('Expiry date cannot be before today');
+      return;
+    }
+
     try {
       const response = await apiClient.post('/fridge', {
         ingredientId: formData.ingredientId,
@@ -124,6 +139,20 @@ const VirtualFridge = () => {
       return;
     }
 
+    if (formData.expiryDate < getTodayDateString()) {
+      alert('Expiry date cannot be before today');
+      return;
+    }
+
+    setShowUpdateConfirmModal(true);
+  };
+
+  const confirmUpdateItem = async () => {
+    if (!editingItem || updatingItem) {
+      return;
+    }
+
+    setUpdatingItem(true);
     try {
       const response = await apiClient.put(`/fridge/${editingItem.id}`, {
         quantity: parseFloat(formData.quantity),
@@ -134,24 +163,37 @@ const VirtualFridge = () => {
         await fetchFridgeItems();
         resetForm();
         setEditingItem(null);
+        setShowUpdateConfirmModal(false);
       }
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       alert(error.response?.data?.message || 'Failed to update item');
+    } finally {
+      setUpdatingItem(false);
     }
   };
 
-  const handleDeleteItem = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) {
+  const requestDeleteItem = (id: string) => {
+    setPendingDeleteItemId(id);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleDeleteItem = async () => {
+    if (!pendingDeleteItemId || deletingItem) {
       return;
     }
 
+    setDeletingItem(true);
     try {
-      await apiClient.delete(`/fridge/${id}`);
-      setFridgeItems(fridgeItems.filter(item => item.id !== id));
+      await apiClient.delete(`/fridge/${pendingDeleteItemId}`);
+      setFridgeItems(fridgeItems.filter(item => item.id !== pendingDeleteItemId));
+      setShowDeleteConfirmModal(false);
+      setPendingDeleteItemId(null);
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to delete item');
+      setError(error.response?.data?.message || 'Failed to delete item');
+    } finally {
+      setDeletingItem(false);
     }
   };
 
@@ -162,7 +204,8 @@ const VirtualFridge = () => {
       ingredientName: ingredient.name,
       unit: ingredient.unit,
     });
-    setIngredientSearch(ingredient.name);
+    // Keep selected ingredient only in "Selected" area and stop search dropdown from reopening.
+    setIngredientSearch('');
     setSearchResults([]);
   };
 
@@ -192,6 +235,7 @@ const VirtualFridge = () => {
 
   const cancelEdit = () => {
     setEditingItem(null);
+    setShowUpdateConfirmModal(false);
     resetForm();
   };
 
@@ -214,12 +258,40 @@ const VirtualFridge = () => {
     return `${item.daysUntilExpiry} days left`;
   };
 
+  const getStatusFilterKey = (item: FridgeItem): Exclude<ItemStatusFilter, 'all'> => {
+    if (item.isExpired) return 'expired';
+    if (item.daysUntilExpiry === 0) return 'today';
+    if (item.daysUntilExpiry === 1) return 'tomorrow';
+    if (item.daysUntilExpiry <= 3) return 'soon';
+    return 'fresh';
+  };
+
   const filteredItems = fridgeItems.filter(item =>
     item.ingredient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.ingredient.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sortedItems = [...filteredItems].sort((a, b) => {
+  const statusCounts = filteredItems.reduce(
+    (acc, item) => {
+      const status = getStatusFilterKey(item);
+      acc[status] += 1;
+      return acc;
+    },
+    {
+      expired: 0,
+      today: 0,
+      tomorrow: 0,
+      soon: 0,
+      fresh: 0,
+    }
+  );
+
+  const statusFilteredItems =
+    activeStatusFilter === 'all'
+      ? filteredItems
+      : filteredItems.filter((item) => getStatusFilterKey(item) === activeStatusFilter);
+
+  const sortedItems = [...statusFilteredItems].sort((a, b) => {
     const dateA = new Date(a.expiryDate).getTime();
     const dateB = new Date(b.expiryDate).getTime();
     return dateA - dateB;
@@ -245,13 +317,13 @@ const VirtualFridge = () => {
           <h1>Virtual Fridge</h1>
           <div className="header-actions">
             <button
-              className="btn btn-secondary"
+              className="btn btn-warning"
               onClick={() => navigate('/grocery-list')}
             >
               Create Grocery List
             </button>
             <button
-              className="btn btn-primary"
+              className="btn"
               onClick={() => {
                 setShowAddForm(true);
                 setEditingItem(null);
@@ -335,7 +407,7 @@ const VirtualFridge = () => {
                         ))}
                       </div>
                     )}
-                    {ingredientSearch.length >= 2 && !searchingIngredients && searchResults.length === 0 && (
+                    {ingredientSearch.length >= 2 && !searchingIngredients && searchResults.length === 0 && !formData.ingredientId && (
                       <div className="search-results">
                         <div className="search-result-item no-results">
                           No ingredients found
@@ -383,12 +455,13 @@ const VirtualFridge = () => {
                   id="expiryDate"
                   value={formData.expiryDate}
                   onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                  min={getTodayDateString()}
                   required
                 />
               </div>
 
               <div className="form-actions">
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn">
                   {editingItem ? 'Update Item' : 'Add Item'}
                 </button>
                 <button
@@ -406,6 +479,40 @@ const VirtualFridge = () => {
           </div>
         )}
 
+        {showUpdateConfirmModal && (
+          <div className="delete-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="update-fridge-item-title">
+            <div className="delete-modal-card">
+              <div className="delete-modal-header update-modal-header">
+                <h3 id="update-fridge-item-title">Confirm Update Item</h3>
+              </div>
+              <div className="delete-modal-body">
+                <p>Are you sure you want to save changes to this fridge item?</p>
+              </div>
+              <div className="delete-modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    if (updatingItem) return;
+                    setShowUpdateConfirmModal(false);
+                  }}
+                  disabled={updatingItem}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={confirmUpdateItem}
+                  disabled={updatingItem}
+                >
+                  {updatingItem ? 'Updating...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="search-bar">
           <input
             type="text"
@@ -416,13 +523,68 @@ const VirtualFridge = () => {
           />
         </div>
 
+        <div className="status-summary-grid">
+          <button
+            type="button"
+            className={`status-summary-card ${activeStatusFilter === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('all')}
+          >
+            <span className="status-summary-title">All</span>
+            <span className="status-summary-value">{filteredItems.length}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card expired ${activeStatusFilter === 'expired' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('expired')}
+          >
+            <span className="status-summary-title">Expired</span>
+            <span className="status-summary-value">{statusCounts.expired}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card today ${activeStatusFilter === 'today' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('today')}
+          >
+            <span className="status-summary-title">Today</span>
+            <span className="status-summary-value">{statusCounts.today}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card tomorrow ${activeStatusFilter === 'tomorrow' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('tomorrow')}
+          >
+            <span className="status-summary-title">Tomorrow</span>
+            <span className="status-summary-value">{statusCounts.tomorrow}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card soon ${activeStatusFilter === 'soon' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('soon')}
+          >
+            <span className="status-summary-title">Expiring Soon</span>
+            <span className="status-summary-value">{statusCounts.soon}</span>
+          </button>
+          <button
+            type="button"
+            className={`status-summary-card fresh ${activeStatusFilter === 'fresh' ? 'active' : ''}`}
+            onClick={() => setActiveStatusFilter('fresh')}
+          >
+            <span className="status-summary-title">Fresh</span>
+            <span className="status-summary-value">{statusCounts.fresh}</span>
+          </button>
+        </div>
+
         {sortedItems.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🥗</div>
-            <h2>Your Fridge is Empty</h2>
-            <p>Start adding ingredients to track your inventory</p>
+            <h2>{fridgeItems.length === 0 ? 'Your Fridge is Empty' : 'No Items Match This Filter'}</h2>
+            <p>
+              {fridgeItems.length === 0
+                ? 'Start adding ingredients to track your inventory'
+                : 'Try another status card or clear your search keywords.'}
+            </p>
             <button
-              className="btn btn-primary"
+              className="btn"
               onClick={() => {
                 setShowAddForm(true);
                 resetForm();
@@ -464,7 +626,7 @@ const VirtualFridge = () => {
                     </button>
                     <button
                       className="btn-icon"
-                      onClick={() => handleDeleteItem(item.id)}
+                      onClick={() => requestDeleteItem(item.id)}
                       title="Delete"
                     >
                       🗑️
@@ -473,6 +635,42 @@ const VirtualFridge = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {showDeleteConfirmModal && (
+          <div className="delete-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-fridge-item-title">
+            <div className="delete-modal-card">
+              <div className="delete-modal-header">
+                <h3 id="delete-fridge-item-title">Confirm Delete Item</h3>
+              </div>
+              <div className="delete-modal-body">
+                <p>Are you sure you want to delete this item from your fridge?</p>
+                <p>This action cannot be undone.</p>
+              </div>
+              <div className="delete-modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    if (deletingItem) return;
+                    setShowDeleteConfirmModal(false);
+                    setPendingDeleteItemId(null);
+                  }}
+                  disabled={deletingItem}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={handleDeleteItem}
+                  disabled={deletingItem}
+                >
+                  {deletingItem ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

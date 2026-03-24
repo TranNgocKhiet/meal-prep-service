@@ -71,7 +71,7 @@ const PaymentCallback = () => {
         <div className="payment-callback-page">
           <div className="payment-status success">
             <div className="status-icon success-icon">✓</div>
-            <h1>Payment Successful!</h1>
+            <h1 style={{color: '#000000'}}>Payment Successful!</h1>
             <p>{message}</p>
             <div className="action-buttons">
               <button

@@ -23,6 +23,8 @@ const CreateMealPlan = () => {
   const [useAI, setUseAI] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   
   // Personal Information
   const [age, setAge] = useState('');
@@ -154,18 +156,94 @@ const CreateMealPlan = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const validateForm = () => {
     if (!name.trim()) {
       setError('Please enter a meal plan name');
+      return false;
+    }
+
+    if (name.trim().length < 3) {
+      setError('Plan name must be at least 3 characters');
+      return false;
+    }
+
+    if (!age.trim()) {
+      setError('Please enter age');
+      return false;
+    }
+
+    if (!weight.trim()) {
+      setError('Please enter weight');
+      return false;
+    }
+
+    if (!height.trim()) {
+      setError('Please enter height');
+      return false;
+    }
+
+    if (!gender) {
+      setError('Please select gender');
+      return false;
+    }
+
+    if (!caloriesGoal.trim()) {
+      setError('Please enter calories goal');
+      return false;
+    }
+
+    const parsedAge = Number(age);
+    const parsedWeight = Number(weight);
+    const parsedHeight = Number(height);
+    const parsedCaloriesGoal = Number(caloriesGoal);
+
+    if (!Number.isFinite(parsedAge) || parsedAge <= 0) {
+      setError('Age must be greater than 0');
+      return false;
+    }
+
+    if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) {
+      setError('Weight must be greater than 0');
+      return false;
+    }
+
+    if (!Number.isFinite(parsedHeight) || parsedHeight <= 0) {
+      setError('Height must be greater than 0');
+      return false;
+    }
+
+    if (!Number.isFinite(parsedCaloriesGoal) || parsedCaloriesGoal < 500 || parsedCaloriesGoal > 10000) {
+      setError('Calories goal must be between 500 and 10000');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    setError('');
+    setSuccessMessage('');
+
+    if (!validateForm()) {
       return;
     }
 
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmCreate = async () => {
+    setShowConfirmModal(false);
+
     setLoading(true);
-    setError('');
 
     try {
+      const parsedAge = Number(age);
+      const parsedWeight = Number(weight);
+      const parsedHeight = Number(height);
+      const parsedCaloriesGoal = Number(caloriesGoal);
+
       // Build arrays from ingredient preferences
       const likedIngredients = Object.entries(ingredientPreferences)
         .filter(([, pref]) => pref === 'like')
@@ -183,12 +261,12 @@ const CreateMealPlan = () => {
         name: name.trim(),
         durationDays,
         startDate,
-        age: age ? parseInt(age) : null,
-        weight: weight ? parseFloat(weight) : null,
-        height: height ? parseFloat(height) : null,
-        gender: gender || null,
+        age: parsedAge,
+        weight: parsedWeight,
+        height: parsedHeight,
+        gender,
         healthNote: healthNote.trim() || null,
-        caloriesGoal: caloriesGoal ? parseInt(caloriesGoal) : null,
+        caloriesGoal: parsedCaloriesGoal,
         allergies: selectedAllergies,
         likedIngredients,
         dislikedIngredients,
@@ -199,13 +277,16 @@ const CreateMealPlan = () => {
       const response = await apiClient.post(endpoint, payload);
       
       if (response.data.success) {
-        navigate('/meal-plans');
+        setSuccessMessage('Meal plan created successfully!');
+        setTimeout(() => {
+          navigate('/meal-plans');
+        }, 1200);
       } else {
         setError(response.data.message || 'Failed to create meal plan');
       }
     } catch (err) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Failed to create meal plan');
+      const error = err as { response?: { data?: { message?: string } }; message?: string };
+      setError(error.response?.data?.message || error.message || 'Failed to create meal plan');
     } finally {
       setLoading(false);
     }
@@ -226,6 +307,7 @@ const CreateMealPlan = () => {
         </div>
 
         {error && <div className="error-message">{error}</div>}
+        {successMessage && <div className="success-message-box">{successMessage}</div>}
 
         <form onSubmit={handleSubmit} className="meal-plan-form">
           <div className="form-section">
@@ -296,7 +378,7 @@ const CreateMealPlan = () => {
             
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="age">Age</label>
+                <label htmlFor="age">Age *</label>
                 <input
                   type="number"
                   id="age"
@@ -305,15 +387,17 @@ const CreateMealPlan = () => {
                   placeholder="e.g., 25"
                   min="1"
                   max="120"
+                  required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="gender">Gender</label>
+                <label htmlFor="gender">Gender *</label>
                 <select
                   id="gender"
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
+                  required
                 >
                   <option value="">Select gender</option>
                   <option value="Male">Male</option>
@@ -325,7 +409,7 @@ const CreateMealPlan = () => {
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="weight">Weight (kg)</label>
+                <label htmlFor="weight">Weight (kg) *</label>
                 <input
                   type="number"
                   id="weight"
@@ -335,11 +419,12 @@ const CreateMealPlan = () => {
                   min="1"
                   max="500"
                   step="0.1"
+                  required
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="height">Height (cm)</label>
+                <label htmlFor="height">Height (cm) *</label>
                 <input
                   type="number"
                   id="height"
@@ -349,12 +434,13 @@ const CreateMealPlan = () => {
                   min="1"
                   max="300"
                   step="0.1"
+                  required
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="caloriesGoal">Calories Goal (kcal/day)</label>
+              <label htmlFor="caloriesGoal">Calories Goal (kcal/day) *</label>
               <input
                 type="number"
                 id="caloriesGoal"
@@ -363,6 +449,7 @@ const CreateMealPlan = () => {
                 placeholder="e.g., 2000"
                 min="500"
                 max="10000"
+                required
               />
             </div>
 
@@ -496,13 +583,40 @@ const CreateMealPlan = () => {
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn"
               disabled={loading}
             >
               {loading ? 'Creating...' : 'Create Meal Plan'}
             </button>
           </div>
         </form>
+
+        {showConfirmModal && (
+          <div className="confirm-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-create-title">
+            <div className="confirm-modal-card">
+              <h3 id="confirm-create-title" style = {{color: '#000000'}}>Confirm Create Meal Plan</h3>
+              <p style = {{color: '#000000'}}>Are you sure you want to create this meal plan?</p>
+              <div className="confirm-modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowConfirmModal(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleConfirmCreate}
+                  disabled={loading}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Container>
   );

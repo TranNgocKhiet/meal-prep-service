@@ -14,7 +14,7 @@ interface RecipeIngredient {
 
 interface Recipe {
   id: string;
-  recipeName?: string;
+  recipeName: string;
   name: string;
   description: string;
   instructions: string;

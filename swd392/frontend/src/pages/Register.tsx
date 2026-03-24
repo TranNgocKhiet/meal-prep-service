@@ -10,12 +10,13 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: '',
-    phoneNumber: ''
+    fullName: ''
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { register, loginWithGoogle } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { register, registerWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +62,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      await register(formData.email, formData.password, formData.fullName, formData.phoneNumber);
+      await register(formData.email, formData.password, formData.fullName);
       navigate('/');
     } catch (err: unknown) {
       setError(getErrorMessage(err) || 'Registration failed. Please try again.');
@@ -76,13 +77,18 @@ const Register = () => {
 
     try {
       if (credentialResponse.credential) {
-        await loginWithGoogle(credentialResponse.credential);
+        await registerWithGoogle(credentialResponse.credential);
         navigate('/');
       } else {
         setError('Google signup failed: No credential received');
       }
     } catch (err: unknown) {
-      setError(getErrorMessage(err) || 'Google signup failed');
+      const message = getErrorMessage(err) || 'Google signup failed';
+      if (message.toLowerCase().includes('already') || message.toLowerCase().includes('exists')) {
+        setError('This account already exists. Please sign in instead.');
+      } else {
+        setError(message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -130,44 +136,71 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="phoneNumber">Phone Number</label>
-            <input
-              type="tel"
-              id="phoneNumber"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              placeholder="Enter your phone number (optional)"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password (min. 6 characters)"
-              disabled={isLoading}
-              required
-            />
+            <div className="password-input-wrapper">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password (min. 6 characters)"
+                disabled={isLoading}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                disabled={isLoading}
+              >
+                {showPassword ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 3.9 4.3 2.6 21.4 19.7 20.1 21l-3.2-3.2c-1.5.7-3.1 1.1-4.9 1.1C6.6 18.9 2.2 12 2.2 12s1.7-2.7 4.7-4.9L3 3.9Zm8.9 8.9-1.8-1.8a2.5 2.5 0 0 0 3 3l-1.2-1.2Zm6.8 1.6-1.5-1.5c1.7-1.6 2.6-2.9 2.6-2.9s-4.4-6.9-9.8-6.9c-1.1 0-2.1.2-3.1.5L5.3 2.1c1.4-.5 2.9-.8 4.7-.8 5.4 0 9.8 6.9 9.8 6.9s-1.1 1.7-3.1 3.7Z" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 5.5c5.4 0 9.8 6.5 9.8 6.5s-4.4 6.5-9.8 6.5S2.2 12 2.2 12s4.4-6.5 9.8-6.5Zm0 11a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-2a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              disabled={isLoading}
-              required
-            />
+            <div className="password-input-wrapper">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                disabled={isLoading}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                title={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                disabled={isLoading}
+              >
+                {showConfirmPassword ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 3.9 4.3 2.6 21.4 19.7 20.1 21l-3.2-3.2c-1.5.7-3.1 1.1-4.9 1.1C6.6 18.9 2.2 12 2.2 12s1.7-2.7 4.7-4.9L3 3.9Zm8.9 8.9-1.8-1.8a2.5 2.5 0 0 0 3 3l-1.2-1.2Zm6.8 1.6-1.5-1.5c1.7-1.6 2.6-2.9 2.6-2.9s-4.4-6.9-9.8-6.9c-1.1 0-2.1.2-3.1.5L5.3 2.1c1.4-.5 2.9-.8 4.7-.8 5.4 0 9.8 6.9 9.8 6.9s-1.1 1.7-3.1 3.7Z" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M12 5.5c5.4 0 9.8 6.5 9.8 6.5s-4.4 6.5-9.8 6.5S2.2 12 2.2 12s4.4-6.5 9.8-6.5Zm0 11a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Zm0-2a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="btn-primary" disabled={isLoading}>

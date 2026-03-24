@@ -40,10 +40,26 @@ const DeliverySchedule = () => {
   const [schedules, setSchedules] = useState<DeliverySchedule[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [confirmedOrders, setConfirmedOrders] = useState<Order[]>([]);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
+  
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  
+  // View/Edit modal state
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<DeliverySchedule | null>(null);
+  const [editingSchedule, setEditingSchedule] = useState<DeliverySchedule | null>(null);
+  const [editingDeliveryTime, setEditingDeliveryTime] = useState('');
+  const [editingDriver, setEditingDriver] = useState('');
+  const [updating, setUpdating] = useState(false);
   
   // Form state
   const [selectedDriver, setSelectedDriver] = useState('');
@@ -51,11 +67,29 @@ const DeliverySchedule = () => {
   const [deliveryTime, setDeliveryTime] = useState('');
   const [address, setAddress] = useState('');
   const [driverContact, setDriverContact] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 30;
+
+  const getCurrentDateTimeLocal = () => {
+    const now = new Date();
+    // Align to minute precision used by datetime-local inputs.
+    now.setSeconds(0, 0);
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
 
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, dateFrom, dateTo]);
 
   const fetchData = async () => {
     try {
@@ -99,10 +133,13 @@ const DeliverySchedule = () => {
     try {
       const response = await apiClient.get('/orders/all');
       if (response.data.success) {
+        // Store all orders for address lookup
+        const orders = response.data.data;
+        setAllOrders(orders);
+        
         // Filter only prepared orders (StatusId = 7) that don't have a delivery schedule yet
-        const allOrders = response.data.data;
         const scheduledOrderIds = schedules.map(s => s.orderId);
-        const prepared = allOrders.filter((order: { status: string; id: string }) => 
+        const prepared = orders.filter((order: { status: string; id: string }) => 
           order.status === 'Prepared' && 
           !scheduledOrderIds.includes(order.id)
         );
@@ -110,6 +147,194 @@ const DeliverySchedule = () => {
       }
     } catch (err) {
       console.error('Failed to load orders', err);
+    }
+  };
+
+  // Helper function to get real address from order matching
+  const getRealAddress = (schedule: DeliverySchedule): string => {
+    // Check if address looks like a meal name (Dinner, Breakfast, Lunch, etc.)
+    const mealNames = ['dinner', 'breakfast', 'lunch', 'meal', 'snack', 'brunch'];
+    const isLikelyMealName = mealNames.some(name => 
+      schedule.address.toLowerCase().includes(name)
+    );
+
+    if (isLikelyMealName) {
+      // Look up order by orderId to get real address
+      const order = allOrders.find(o => o.id === schedule.orderId);
+      return order?.address || schedule.address;
+    }
+
+    return schedule.address;
+  };
+
+  // Convert ISO datetime to datetime-local format
+  const toDateTimeLocalValue = (isoDate: string): string => {
+    const match = isoDate.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+    if (match) {
+      return `${match[1]}T${match[2]}`;
+    }
+
+    const date = new Date(isoDate);
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const toApiDateTimeValue = (dateTimeLocal: string): string => {
+    return `${dateTimeLocal}:00`;
+  };
+
+  const getDatePart = (dateTimeValue: string): string => {
+    const match = dateTimeValue.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) {
+      return match[1];
+    }
+
+    const parsed = new Date(dateTimeValue);
+    if (Number.isNaN(parsed.getTime())) {
+      return '';
+    }
+
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatScheduleDateTime = (dateTimeValue: string): string => {
+    const match = dateTimeValue.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (match) {
+      const [_, year, month, day, hours, minutes] = match;
+      const localDate = new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hours),
+        Number(minutes),
+        0,
+        0
+      );
+
+      return localDate.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    const parsed = new Date(dateTimeValue);
+    if (Number.isNaN(parsed.getTime())) {
+      return 'N/A';
+    }
+
+    return parsed.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Filter schedules based on search and date range
+  const getFilteredSchedules = (): DeliverySchedule[] => {
+    return schedules.filter(schedule => {
+      const lowerSearchQuery = searchQuery.toLowerCase();
+      const matchesSearch = !searchQuery || 
+        schedule.customerName.toLowerCase().includes(lowerSearchQuery) ||
+        schedule.driverName.toLowerCase().includes(lowerSearchQuery) ||
+        getRealAddress(schedule).toLowerCase().includes(lowerSearchQuery);
+
+      const scheduleDate = getDatePart(schedule.deliveryTime);
+      const matchesDateFrom = !dateFrom || scheduleDate >= dateFrom;
+      const matchesDateTo = !dateTo || scheduleDate <= dateTo;
+
+      return matchesSearch && matchesDateFrom && matchesDateTo;
+    });
+  };
+
+  const getPaginatedSchedules = (): DeliverySchedule[] => {
+    const filtered = getFilteredSchedules();
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filtered.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = (): number => {
+    return Math.ceil(getFilteredSchedules().length / ITEMS_PER_PAGE);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    const maxPages = getTotalPages();
+    setCurrentPage(prev => Math.min(maxPages, prev + 1));
+  };
+
+  const handleOpenViewModal = (schedule: DeliverySchedule) => {
+    setSelectedSchedule(schedule);
+    setShowViewModal(true);
+  };
+
+  const handleOpenEditModal = (schedule: DeliverySchedule) => {
+    setEditingSchedule(schedule);
+    setEditingDriver(schedule.driverId);
+    setEditingDeliveryTime(toDateTimeLocalValue(schedule.deliveryTime));
+    setShowViewModal(false);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+
+    if (!editingSchedule || !editingDriver || !editingDeliveryTime) {
+      setError('Please select a driver and delivery time');
+      return;
+    }
+
+    const selectedDeliveryDate = new Date(editingDeliveryTime);
+    const minAllowedDate = new Date();
+    minAllowedDate.setSeconds(0, 0);
+
+    if (Number.isNaN(selectedDeliveryDate.getTime()) || selectedDeliveryDate < minAllowedDate) {
+      setError('Delivery time cannot be in the past');
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const selectedDriverInfo = drivers.find((d) => d.id === editingDriver);
+      const response = await apiClient.put(`/delivery-schedules/${editingSchedule.id}`, {
+        driverId: editingDriver,
+        deliveryTime: toApiDateTimeValue(editingDeliveryTime),
+        address: getRealAddress(editingSchedule),
+        driverContact: selectedDriverInfo?.phoneNumber || editingSchedule.driverContact || ''
+      });
+
+      if (response.data.success) {
+        setSuccessMessage('Delivery schedule updated successfully');
+        setShowEditModal(false);
+        setEditingSchedule(null);
+        await fetchData();
+      }
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to update delivery schedule');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -137,12 +362,21 @@ const DeliverySchedule = () => {
       return;
     }
 
+    const selectedDeliveryDate = new Date(deliveryTime);
+    const minAllowedDate = new Date();
+    minAllowedDate.setSeconds(0, 0);
+
+    if (Number.isNaN(selectedDeliveryDate.getTime()) || selectedDeliveryDate < minAllowedDate) {
+      alert('Delivery time cannot be in the past');
+      return;
+    }
+
     setCreating(true);
     try {
       const response = await apiClient.post('/delivery-schedules', {
         driverId: selectedDriver,
         orderId: selectedOrder,
-        deliveryTime: new Date(deliveryTime).toISOString(),
+        deliveryTime: toApiDateTimeValue(deliveryTime),
         address,
         driverContact
       });
@@ -202,10 +436,53 @@ const DeliverySchedule = () => {
         </div>
 
         {error && <div className="error-message">{error}</div>}
+        {successMessage && <div className="success-message">{successMessage}</div>}
 
-        {schedules.length === 0 ? (
+        {/* Search and Filter Controls */}
+        <div className="schedule-controls">
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search by customer name, driver name, or address..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+          </div>
+          <div className="date-filters">
+            <input
+              type="date"
+              placeholder="From"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="date-input"
+            />
+            <span className="date-separator">to</span>
+            <input
+              type="date"
+              placeholder="To"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="date-input"
+            />
+            {(searchQuery || dateFrom || dateTo) && (
+              <button
+                className="btn btn-sm btn-secondary"
+                onClick={() => {
+                  setSearchQuery('');
+                  setDateFrom('');
+                  setDateTo('');
+                }}
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {getFilteredSchedules().length === 0 ? (
           <div className="empty-state">
-            <p>No delivery schedules yet</p>
+            <p>{schedules.length === 0 ? 'No delivery schedules yet' : 'No schedules match your filters'}</p>
           </div>
         ) : (
           <div className="schedules-table">
@@ -219,12 +496,11 @@ const DeliverySchedule = () => {
                   <th>Delivery Time</th>
                   <th>Address</th>
                   <th>Contact</th>
-                  <th>Total</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {schedules.map((schedule) => (
+                {getPaginatedSchedules().map((schedule) => (
                   <tr key={schedule.id}>
                     <td>{schedule.orderNumber}</td>
                     <td>
@@ -241,29 +517,51 @@ const DeliverySchedule = () => {
                       <div className="text-secondary">{schedule.driverEmail}</div>
                     </td>
                     <td>
-                      {new Date(schedule.deliveryTime).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {formatScheduleDateTime(schedule.deliveryTime)}
                     </td>
-                    <td className="address-cell">{schedule.address}</td>
+                    <td className="address-cell">{getRealAddress(schedule)}</td>
                     <td>{schedule.driverContact}</td>
-                    <td>{formatVND(schedule.orderTotal)}</td>
                     <td>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleDeleteSchedule(schedule.id)}
-                      >
-                        Delete
-                      </button>
+                      <div className="action-buttons">
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => handleOpenViewModal(schedule)}
+                        >
+                          View
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDeleteSchedule(schedule.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            <div className="pagination-controls">
+              <button
+                className="btn btn-sm btn-secondary"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <span className="pagination-info">
+                Page {currentPage} of {getTotalPages()}
+              </span>
+              <button
+                className="btn btn-sm btn-secondary"
+                onClick={handleNextPage}
+                disabled={currentPage >= getTotalPages()}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
 
@@ -310,6 +608,7 @@ const DeliverySchedule = () => {
                     type="datetime-local"
                     value={deliveryTime}
                     onChange={(e) => setDeliveryTime(e.target.value)}
+                    min={getCurrentDateTimeLocal()}
                     required
                   />
                 </div>
@@ -353,6 +652,141 @@ const DeliverySchedule = () => {
                     disabled={creating}
                   >
                     {creating ? 'Creating...' : 'Create Schedule'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* View Modal */}
+        {showViewModal && selectedSchedule && (
+          <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Delivery Schedule Details</h2>
+              <div className="view-details">
+                <div className="detail-row">
+                  <label>Order Number:</label>
+                  <span>{selectedSchedule.orderNumber}</span>
+                </div>
+                <div className="detail-row">
+                  <label>Customer Name:</label>
+                  <span>{selectedSchedule.customerName}</span>
+                </div>
+                <div className="detail-row">
+                  <label>Customer Phone:</label>
+                  <span>{selectedSchedule.customerPhone}</span>
+                </div>
+                <div className="detail-row">
+                  <label>Driver:</label>
+                  <span>{selectedSchedule.driverName}</span>
+                </div>
+                <div className="detail-row">
+                  <label>Driver Email:</label>
+                  <span>{selectedSchedule.driverEmail}</span>
+                </div>
+                <div className="detail-row">
+                  <label>Delivery Time:</label>
+                  <span>
+                    {formatScheduleDateTime(selectedSchedule.deliveryTime)}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <label>Address:</label>
+                  <span>{getRealAddress(selectedSchedule)}</span>
+                </div>
+                <div className="detail-row">
+                  <label>Status:</label>
+                  <span>{selectedSchedule.orderStatus}</span>
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowViewModal(false)}
+                >
+                  Close
+                </button>
+                <button
+                  className="btn"
+                  onClick={() => handleOpenEditModal(selectedSchedule)}
+                >
+                  Update Delivery Schedule
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Modal */}
+        {showEditModal && editingSchedule && (
+          <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Update Delivery Schedule</h2>
+              <form onSubmit={handleUpdateSchedule}>
+                <div className="form-group">
+                  <label>Order Number (Read-only)</label>
+                  <input
+                    type="text"
+                    value={editingSchedule.orderNumber}
+                    disabled
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Customer Name (Read-only)</label>
+                  <input
+                    type="text"
+                    value={editingSchedule.customerName}
+                    disabled
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Select Driver *</label>
+                  <select
+                    value={editingDriver}
+                    onChange={(e) => setEditingDriver(e.target.value)}
+                    required
+                  >
+                    <option value="">-- Select Driver --</option>
+                    {drivers.map((driver) => (
+                      <option key={driver.id} value={driver.id}>
+                        {driver.fullName} ({driver.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Delivery Time *</label>
+                  <input
+                    type="datetime-local"
+                    value={editingDeliveryTime}
+                    onChange={(e) => setEditingDeliveryTime(e.target.value)}
+                    min={getCurrentDateTimeLocal()}
+                    required
+                  />
+                </div>
+
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingSchedule(null);
+                    }}
+                    disabled={updating}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={updating}
+                  >
+                    {updating ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </form>

@@ -59,6 +59,7 @@ const EditMealPlan = () => {
   const [error, setError] = useState('');
   const [showRecipeSelector, setShowRecipeSelector] = useState(false);
   const [currentSelection, setCurrentSelection] = useState<{ dayIndex: number; mealIndex: number } | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -129,8 +130,13 @@ const EditMealPlan = () => {
       return;
     }
 
+    setShowConfirmModal(true);
+  };
+
+  const performSave = async () => {
     setSaving(true);
     setError('');
+    setShowConfirmModal(false);
 
     try {
       const payload = {
@@ -159,6 +165,10 @@ const EditMealPlan = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancelConfirm = () => {
+    setShowConfirmModal(false);
   };
 
   const getRecipeCount = (dayIndex: number, mealIndex: number) => {
@@ -230,7 +240,7 @@ const EditMealPlan = () => {
                     {day.meals.map((meal, mealIndex) => (
                       <div key={meal.id} className="meal-slot">
                         <div className="meal-header">
-                          <h4>{getMealTypeName(meal.mealTypeId)}</h4>
+                          <h4 style={{color: '#2c2c2c'}}>{getMealTypeName(meal.mealTypeId)}</h4>
                           <span className="recipe-count">
                             {getRecipeCount(dayIndex, mealIndex)}/10 recipes
                           </span>
@@ -239,7 +249,6 @@ const EditMealPlan = () => {
                           type="button"
                           className="btn btn-sm btn-secondary"
                           onClick={() => handleSelectRecipes(dayIndex, mealIndex)}
-                          disabled={getRecipeCount(dayIndex, mealIndex) >= 10}
                         >
                           {getRecipeCount(dayIndex, mealIndex) === 0 
                             ? 'Add Recipes' 
@@ -268,7 +277,7 @@ const EditMealPlan = () => {
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
+              className="btn"
               disabled={saving}
             >
               {saving ? 'Saving...' : 'Save Changes'}
@@ -286,6 +295,38 @@ const EditMealPlan = () => {
               setCurrentSelection(null);
             }}
           />
+        )}
+
+        {showConfirmModal && (
+          <div className="modal-overlay" onClick={handleCancelConfirm}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Save Meal Plan Changes</h2>
+                <button className="btn-close" onClick={handleCancelConfirm}>×</button>
+              </div>
+              <div className="modal-body">
+                <p>Are you sure you want to save the changes to this meal plan?</p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={handleCancelConfirm}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={performSave}
+                  disabled={saving}
+                >
+                  {saving ? 'Saving...' : 'Confirm Save'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </Container>

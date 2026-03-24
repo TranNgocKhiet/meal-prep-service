@@ -27,24 +27,52 @@ interface DailyMenu {
   menuMeals: MenuMeal[];
 }
 
+const FAR_FUTURE_DATE = '2100-12-31';
+
+const getLocalDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const AdminMenu = () => {
-  const [items, setItems] = useState<DailyMenu[]>([]);
+  const todayDateString = getLocalDateString();
+  const [currentMenus, setCurrentMenus] = useState<DailyMenu[]>([]);
+  const [pastMenus, setPastMenus] = useState<DailyMenu[]>([]);
   const [filtered, setFiltered] = useState<DailyMenu[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [activeTab, setActiveTab] = useState<'current' | 'past'>('current');
+  const [currentDateFrom, setCurrentDateFrom] = useState('');
+  const [currentDateTo, setCurrentDateTo] = useState('');
+  const [pastDateFrom, setPastDateFrom] = useState('');
+  const [pastDateTo, setPastDateTo] = useState('');
+  const [showPastRecords, setShowPastRecords] = useState(false);
+  const [currentQuery, setCurrentQuery] = useState({
+    startDate: todayDateString,
+    endDate: FAR_FUTURE_DATE
+  });
+  const [pastQuery, setPastQuery] = useState<{ mode: 'none' | 'all' | 'interval'; startDate?: string; endDate?: string }>({
+    mode: 'none'
+  });
   const [showCreateMenuModal, setShowCreateMenuModal] = useState(false);
   const [showAddRecipesModal, setShowAddRecipesModal] = useState(false);
   const [showMealInfoModal, setShowMealInfoModal] = useState(false);
   const [showEditMealModal, setShowEditMealModal] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState<DailyMenu | null>(null);
   const [selectedMeal, setSelectedMeal] = useState<MenuMeal | null>(null);
+  const [pendingDeleteMenuId, setPendingDeleteMenuId] = useState<string | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipeSearchTerm, setRecipeSearchTerm] = useState('');
   const [showAllRecipes, setShowAllRecipes] = useState(false);
   
   const [menuFormData, setMenuFormData] = useState({
-    menuDate: new Date().toISOString().split('T')[0]
+    menuDate: todayDateString
   });
 
   const [editMealFormData, setEditMealFormData] = useState({
@@ -55,16 +83,22 @@ const AdminMenu = () => {
   const [selectedRecipeIds, setSelectedRecipeIds] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchItems();
+    fetchCurrentMenus(todayDateString, FAR_FUTURE_DATE);
     fetchRecipes();
-  }, []);
+  }, [todayDateString]);
 
   useEffect(() => {
-    const result = items.filter(item =>
-      new Date(item.menuDate).toLocaleDateString().includes(searchTerm)
-    );
+    const result = (activeTab === 'current' ? currentMenus : (showPastRecords ? pastMenus : []))
+      .filter(item => {
+        if (!searchTerm.trim()) {
+          return true;
+        }
+
+        return new Date(item.menuDate).toLocaleDateString().includes(searchTerm);
+      });
+
     setFiltered(result);
-  }, [searchTerm, items]);
+  }, [activeTab, currentMenus, pastMenus, searchTerm, showPastRecords]);
 
   const getStatusName = (statusId: number) => {
     switch (statusId) {
@@ -93,20 +127,114 @@ const AdminMenu = () => {
     }
   };
 
-  const fetchItems = async () => {
+  const toDateOnly = (date: Date) => {
+    const normalized = new Date(date);
+    normalized.setHours(0, 0, 0, 0);
+    return normalized;
+  };
+
+  const isPastMenuDate = (menuDate: string) => {
+    return toDateOnly(new Date(menuDate)) < toDateOnly(new Date());
+  };
+
+  const isCurrentOrForwardMenuDate = (menuDate: string) => {
+    return toDateOnly(new Date(menuDate)) >= toDateOnly(new Date());
+  };
+
+  const buildDailyMenuUrl = (startDate?: string, endDate?: string) => {
+    const params = new URLSearchParams({ includeAll: 'true' });
+
+    if (startDate && endDate) {
+      params.append('startDate', startDate);
+      params.append('endDate', endDate);
+    }
+
+    return `/dailymenus?${params.toString()}`;
+  };
+
+  const fetchCurrentMenus = async (startDate: string, endDate: string) => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/dailymenus?includeAll=true');
+      setError('');
+      const response = await apiClient.get(buildDailyMenuUrl(startDate, endDate));
+
       if (response.data.success) {
-        setItems(response.data.data);
-        setFiltered(response.data.data);
+        const menus = (response.data.data as DailyMenu[]).filter(menu => isCurrentOrForwardMenuDate(menu.menuDate));
+        setCurrentMenus(menus);
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Failed to load daily menus');
+      setError(error.response?.data?.message || 'Failed to load current daily menus');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPastMenus = async (startDate?: string, endDate?: string) => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await apiClient.get(buildDailyMenuUrl(startDate, endDate));
+
+      if (response.data.success) {
+        const menus = (response.data.data as DailyMenu[]).filter(menu => isPastMenuDate(menu.menuDate));
+        setPastMenus(menus);
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Failed to load past daily menus');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshMenusAfterMutation = async () => {
+    await fetchCurrentMenus(currentQuery.startDate, currentQuery.endDate);
+
+    if (pastQuery.mode === 'all') {
+      await fetchPastMenus();
+    }
+
+    if (pastQuery.mode === 'interval' && pastQuery.startDate && pastQuery.endDate) {
+      await fetchPastMenus(pastQuery.startDate, pastQuery.endDate);
+    }
+  };
+
+  const handleApplyInterval = async () => {
+    if (activeTab === 'current') {
+      if (!currentDateFrom || !currentDateTo) {
+        setError('Please select both From and To dates before applying interval.');
+        return;
+      }
+
+      setError('');
+      setSuccessMessage('');
+      setCurrentQuery({ startDate: currentDateFrom, endDate: currentDateTo });
+      await fetchCurrentMenus(currentDateFrom, currentDateTo);
+      return;
+    }
+
+    if (!pastDateFrom || !pastDateTo) {
+      setError('Please select both From and To dates before applying interval.');
+      return;
+    }
+
+    setError('');
+    setSuccessMessage('');
+    setPastQuery({ mode: 'interval', startDate: pastDateFrom, endDate: pastDateTo });
+    setShowPastRecords(true);
+    await fetchPastMenus(pastDateFrom, pastDateTo);
+  };
+
+  const handleShowAllPastRecords = async () => {
+    if (showPastRecords) {
+      setShowPastRecords(false);
+      return;
+    }
+
+    setShowPastRecords(true);
+    setPastQuery({ mode: 'all' });
+    await fetchPastMenus();
   };
 
   const fetchRecipes = async () => {
@@ -122,8 +250,10 @@ const AdminMenu = () => {
 
   // Step 1: Create empty menu
   const handleCreateMenu = () => {
+    setError('');
+    setSuccessMessage('');
     setMenuFormData({
-      menuDate: new Date().toISOString().split('T')[0]
+      menuDate: todayDateString
     });
     setShowCreateMenuModal(true);
   };
@@ -131,28 +261,32 @@ const AdminMenu = () => {
   const handleSubmitMenu = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const menuDate = new Date(menuFormData.menuDate).toISOString();
+      setError('');
+      setSuccessMessage('');
+      const menuDate = `${menuFormData.menuDate}T00:00:00`;
       const response = await apiClient.post('/dailymenus', {
         menuDate
       });
       
       if (response.data.success) {
         setShowCreateMenuModal(false);
-        fetchItems();
-        alert('Menu created successfully as Draft! Now you can add meals to it.');
+        await refreshMenusAfterMutation();
+        setSuccessMessage('Menu created successfully as Draft. Now you can add meals to it.');
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to create menu');
+      setError(error.response?.data?.message || 'Failed to create menu');
     }
   };
 
   // Add recipes to meal
   const handleAddRecipes = (menu: DailyMenu, meal: MenuMeal) => {
     if (menu.statusId === 17) {
-      alert('Cannot edit recipes while menu is active. Please deactivate the menu first.');
+      setError('Cannot edit recipes while menu is active. Please deactivate the menu first.');
       return;
     }
+    setError('');
+    setSuccessMessage('');
     setSelectedMenu(menu);
     setSelectedMeal(meal);
     setSelectedRecipeIds(meal.menuMealRecipes?.map(mmr => mmr.recipe.id) || []);
@@ -166,6 +300,8 @@ const AdminMenu = () => {
     if (!selectedMenu || !selectedMeal) return;
 
     try {
+      setError('');
+      setSuccessMessage('');
       const response = await apiClient.post(
         `/dailymenus/${selectedMenu.id}/meals/${selectedMeal.id}/recipes`,
         { recipeIds: selectedRecipeIds }
@@ -173,15 +309,15 @@ const AdminMenu = () => {
       
       if (response.data.success) {
         setShowAddRecipesModal(false);
-        fetchItems();
+        await refreshMenusAfterMutation();
         const message = selectedRecipeIds.length === 0 
           ? 'All recipes removed from meal' 
           : 'Recipes updated successfully!';
-        alert(message);
+        setSuccessMessage(message);
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to update recipes');
+      setError(error.response?.data?.message || 'Failed to update recipes');
     }
   };
 
@@ -195,9 +331,11 @@ const AdminMenu = () => {
   // Edit meal details
   const handleEditMeal = (menu: DailyMenu, meal: MenuMeal) => {
     if (menu.statusId === 17) {
-      alert('Cannot edit meal details while menu is active. Please deactivate the menu first.');
+      setError('Cannot edit meal details while menu is active. Please deactivate the menu first.');
       return;
     }
+    setError('');
+    setSuccessMessage('');
     setSelectedMenu(menu);
     setSelectedMeal(meal);
     setEditMealFormData({
@@ -211,9 +349,9 @@ const AdminMenu = () => {
     e.preventDefault();
     if (!selectedMenu || !selectedMeal) return;
 
-    console.log('Submitting meal update with price:', editMealFormData.price);
-
     try {
+      setError('');
+      setSuccessMessage('');
       const response = await apiClient.patch(
         `/dailymenus/${selectedMenu.id}/meals/${selectedMeal.id}`,
         editMealFormData
@@ -221,39 +359,54 @@ const AdminMenu = () => {
       
       if (response.data.success) {
         setShowEditMealModal(false);
-        fetchItems();
-        alert('Meal details updated successfully!');
+        await refreshMenusAfterMutation();
+        setSuccessMessage('Meal details updated successfully!');
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to update meal details');
+      setError(error.response?.data?.message || 'Failed to update meal details');
     }
   };
 
   const handleUpdateStatus = async (menuId: string, newStatusId: number) => {
     try {
+      setError('');
+      setSuccessMessage('');
       const response = await apiClient.patch(`/dailymenus/${menuId}/status`, {
         statusId: newStatusId
       });
       
       if (response.data.success) {
-        fetchItems();
-        alert('Menu status updated successfully!');
+        await refreshMenusAfterMutation();
+        setSuccessMessage('Menu status updated successfully!');
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to update status');
+      setError(error.response?.data?.message || 'Failed to update status');
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this daily menu?')) return;
+  const requestDeleteMenu = (id: string) => {
+    setPendingDeleteMenuId(id);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (!pendingDeleteMenuId) {
+      return;
+    }
+
     try {
-      await apiClient.delete(`/dailymenus/${id}`);
-      fetchItems();
+      setError('');
+      setSuccessMessage('');
+      await apiClient.delete(`/dailymenus/${pendingDeleteMenuId}`);
+      await refreshMenusAfterMutation();
+      setSuccessMessage('Daily menu deleted successfully!');
+      setShowDeleteConfirmModal(false);
+      setPendingDeleteMenuId(null);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to delete');
+      setError(error.response?.data?.message || 'Failed to delete');
     }
   };
 
@@ -303,18 +456,96 @@ const AdminMenu = () => {
       <div className="crud-header">
         <h1 style={{ color: '#fff' }}>Daily Menu Management</h1>
         <div className="crud-actions">
-          <input
-            type="text"
-            placeholder="Search by date..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <button onClick={handleCreateMenu} className="btn-primary">Create New Menu</button>
+          <button onClick={handleCreateMenu} className="btn">Create New Menu</button>
         </div>
       </div>
 
       {error && <div className="error-message">{error}</div>}
+      {successMessage && (
+        <div
+          style={{
+            backgroundColor: '#c6f6d5',
+            border: '1px solid #48bb78',
+            color: '#22543d',
+            padding: '1rem',
+            borderRadius: '8px',
+            marginBottom: '1rem'
+          }}
+        >
+          {successMessage}
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="menu-tabs">
+        <button 
+          className={`tab-btn ${activeTab === 'current' ? 'active' : ''}`}
+          onClick={() => setActiveTab('current')}
+        >
+          Current & Forward
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'past' ? 'active' : ''}`}
+          onClick={() => setActiveTab('past')}
+        >
+          Past
+        </button>
+      </div>
+
+      {/* Date Range Filters */}
+      <div className="menu-filters">
+        <div className="date-range-filter">
+          <label>From:</label>
+          <input
+            type="date"
+            value={activeTab === 'current' ? currentDateFrom : pastDateFrom}
+            onChange={(e) => activeTab === 'current' ? setCurrentDateFrom(e.target.value) : setPastDateFrom(e.target.value)}
+            className="date-input"
+          />
+          <label>To:</label>
+          <input
+            type="date"
+            value={activeTab === 'current' ? currentDateTo : pastDateTo}
+            onChange={(e) => activeTab === 'current' ? setCurrentDateTo(e.target.value) : setPastDateTo(e.target.value)}
+            className="date-input"
+          />
+          <button
+            className="btn"
+            onClick={handleApplyInterval}
+          >
+            Apply Interval
+          </button>
+          <button
+            className="btn-secondary"
+            onClick={() => {
+              if (activeTab === 'current') {
+                setCurrentDateFrom('');
+                setCurrentDateTo('');
+              } else {
+                setPastDateFrom('');
+                setPastDateTo('');
+                setShowPastRecords(false);
+                setPastQuery({ mode: 'none' });
+                setPastMenus([]);
+              }
+            }}
+          >
+            Clear
+          </button>
+        </div>
+
+        {/* Show All button for past tab */}
+        {activeTab === 'past' && (
+          <div className="show-all-section">
+            <button
+              className={showPastRecords ? 'btn-secondary' : 'btn-primary'}
+                onClick={handleShowAllPastRecords}
+            >
+              {showPastRecords ? 'Hide Past Records' : 'Show All Past Records'}
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="crud-table-container">
         <table className="crud-table">
@@ -392,7 +623,7 @@ const AdminMenu = () => {
                         )}
                         <button 
                           onClick={() => handleViewMealInfo(item, meal)} 
-                          className="btn-edit"
+                          className="btn"
                           style={{ marginLeft: '0rem', padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
                           title="View meal info"
                         >
@@ -421,7 +652,7 @@ const AdminMenu = () => {
                   )}
                 </td>
                 <td>
-                  <button onClick={() => handleDelete(item.id)} className="btn-delete">Delete</button>
+                  <button onClick={() => requestDeleteMenu(item.id)} className="btn-delete">Delete</button>
                 </td>
               </tr>
             ))}
@@ -698,7 +929,7 @@ const AdminMenu = () => {
                 onClick={() => {
                   setShowMealInfoModal(false);
                   if (selectedMenu.statusId === 17) {
-                    alert('Cannot edit recipes while menu is active. Please deactivate the menu first.');
+                    setError('Cannot edit recipes while menu is active. Please deactivate the menu first.');
                     return;
                   }
                   handleAddRecipes(selectedMenu, selectedMeal);
@@ -709,6 +940,30 @@ const AdminMenu = () => {
               >
                 {selectedMeal.menuMealRecipes && selectedMeal.menuMealRecipes.length > 0 ? 'Edit Recipes' : 'Add Recipes'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirmModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '460px' }}>
+            <h2>Delete Daily Menu</h2>
+            <p style={{ color: '#4a5568', marginBottom: '1rem' }}>
+              Are you sure you want to delete this daily menu?
+            </p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirmModal(false);
+                  setPendingDeleteMenuId(null);
+                }}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+              <button type="button" onClick={handleDelete} className="btn-delete">Delete</button>
             </div>
           </div>
         </div>

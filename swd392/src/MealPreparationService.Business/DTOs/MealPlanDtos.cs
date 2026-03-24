@@ -122,6 +122,12 @@ public class RecipeDto
     public bool HasAllergyWarning { get; set; }
     public List<string>? Allergens { get; set; }
     public bool IsFavorite { get; set; }
+    
+    // Nutrition information per serving
+    public decimal TotalCalories { get; set; }
+    public decimal ProteinG { get; set; }
+    public decimal FatG { get; set; }
+    public decimal CarbsG { get; set; }
 }
 
 public class RecipeIngredientDto

@@ -7,6 +7,7 @@ public interface IAuthenticationService
     Task<AuthenticationServiceResult> RegisterAsync(string email, string password, string fullName, string phoneNumber, string roleName);
     Task<AuthenticationServiceResult> LoginAsync(string email, string password);
     Task<AuthenticationServiceResult> LoginWithGoogleAsync(string googleToken);
+    Task<AuthenticationServiceResult> RegisterWithGoogleAsync(string googleToken);
     Task<bool> ValidateTokenAsync(string token);
     Task<AuthenticationServiceResult> RefreshTokenAsync(string refreshToken);
     Task LogoutAsync(string userId);

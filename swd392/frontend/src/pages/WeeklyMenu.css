@@ -86,29 +86,29 @@
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid #718096;
 }
 
 .day-header h3 {
   margin: 0;
-  color: #2d3748;
+  color: #ffffff;
   font-size: 1.25rem;
 }
 
 .day-date {
-  color: #718096;
+  color: #ffffff;
   font-weight: 500;
 }
 
 .meals-horizontal {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
 }
 
 .meal-card-horizontal {
-  flex: 0 0 300px;
+  width: 100%;
+  min-width: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -130,6 +130,32 @@
   font-size: 1rem;
 }
 
+.meal-recipes-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.recipe-chip {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #e6f4ea;
+  color: #1f6b3f;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.no-recipe-chip {
+  font-size: 0.78rem;
+  color: #718096;
+  font-style: italic;
+}
+
 .meal-nutrition-compact {
   display: flex;
   gap: 0.75rem;
@@ -142,12 +168,16 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 0.5rem;
+  min-width: fit-content;
 }
 
 .meal-price {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-primary);
+  white-space: nowrap;
+  line-height: 1;
+  text-align: right;
 }
 
 .availability-badge {
@@ -176,6 +206,15 @@
   font-size: 1.1rem;
 }
 
+.no-day-menu {
+  text-align: center;
+  padding: 1.25rem;
+  border: 1px dashed #cbd5e0;
+  border-radius: 8px;
+  color: #718096;
+  background: #f8fafc;
+}
+
 @media (max-width: 768px) {
   .week-navigation {
     flex-direction: column;
@@ -185,8 +224,8 @@
     width: 100%;
   }
 
-  .meal-card-horizontal {
-    flex: 0 0 250px;
+  .meals-horizontal {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -203,10 +242,51 @@
 }
 
 .btn-add-to-cart:hover:not(:disabled) {
-  background: var(--primary-hover);
+  background: var(--color-primary-dark) !important;
+  border-color: var(--color-primary-dark) !important;
+  color: #fff !important;
 }
 
 .btn-add-to-cart:disabled {
   background: #cbd5e0;
+  color: #7a8798;
+  opacity: 0.6;
   cursor: not-allowed;
+}
+
+.btn-add-to-cart.past-date {
+  background: #d1d5db;
+  color: #6b7280;
+  opacity: 0.55;
+}
+
+.cart-success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.cart-success-modal {
+  width: 100%;
+  max-width: 380px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.cart-success-modal h3 {
+  margin: 0 0 0.5rem 0;
+  color: #166534;
+}
+
+.cart-success-modal p {
+  margin: 0 0 1rem 0;
+  color: #374151;
 }

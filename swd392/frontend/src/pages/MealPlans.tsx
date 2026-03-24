@@ -22,6 +22,8 @@ const MealPlans = () => {
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingPlan, setDeletingPlan] = useState<MealPlan | null>(null);
   const navigate = useNavigate();
 
   const currentCredits = user?.currentCredits || 0;
@@ -45,18 +47,26 @@ const MealPlans = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this meal plan?')) {
+  const handleDelete = async () => {
+    if (!deletingPlan) {
       return;
     }
 
     try {
-      await apiClient.delete(`/mealplans/${id}`);
-      setMealPlans(mealPlans.filter(plan => plan.id !== id));
+      await apiClient.delete(`/mealplans/${deletingPlan.id}`);
+      setMealPlans(prev => prev.filter(plan => plan.id !== deletingPlan.id));
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       alert(error.response?.data?.message || 'Failed to delete meal plan');
+    } finally {
+      setShowDeleteModal(false);
+      setDeletingPlan(null);
     }
+  };
+
+  const openDeleteModal = (plan: MealPlan) => {
+    setDeletingPlan(plan);
+    setShowDeleteModal(true);
   };
 
   const handleSetActive = async (id: string) => {
@@ -102,7 +112,7 @@ const MealPlans = () => {
           </div>
           <div className="header-actions">
             <button
-              className="btn btn-primary"
+              className="btn"
               onClick={() => navigate('/meal-plans/create')}
               disabled={!canCreateMorePlans()}
             >
@@ -140,9 +150,6 @@ const MealPlans = () => {
                 <div className="card-header">
                   <h3 style={{ color: '#000' }}>{plan.name}</h3>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    {plan.isActive && (
-                      <span className="status-badge status-active" style={{ fontSize: '12px' }}>Active</span>
-                    )}
                     {plan.isAiGenerated && (
                       <span className="ai-badge">AI Generated</span>
                     )}
@@ -176,37 +183,71 @@ const MealPlans = () => {
                 </div>
                 <div className="card-actions">
                   <button
-                    className={`btn btn-sm ${plan.isActive ? 'btn-warning' : 'btn-success'}`}
+                    className={`btn ${plan.isActive ? 'btn-warning' : 'btn-success'}`}
                     onClick={() => handleSetActive(plan.id)}
                     style={{
                       backgroundColor: plan.isActive ? '#ffc107' : '#28a745',
                       color: plan.isActive ? '#000' : '#fff',
-                      border: 'none'
+                      border: 'none', width: '5vw', height: '2vh'
                     }}
                   >
-                    {plan.isActive ? 'Deactivate' : 'Set Active'}
+                    {plan.isActive ? 'Deactivate' : 'Active'}
                   </button>
                   <button
-                    className="btn btn-sm btn-primary"
+                    className="btn"
                     onClick={() => navigate(`/meal-plans/${plan.id}`)}
+                    style = {{width: '5vw', height: '2vh', backgroundColor: '#808080'}}
                   >
-                    View Details
+                    Details
                   </button>
                   <button
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => navigate(`/meal-plans/${plan.id}/edit`)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleDelete(plan.id)}
+                    className="btn btn-danger"
+                    onClick={() => openDeleteModal(plan)}
+                    style = {{width: '5vw', height: '2vh'}}
                   >
                     Delete
                   </button>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {showDeleteModal && (
+          <div className="delete-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-meal-plan-title">
+            <div className="delete-modal-card">
+              <div className="delete-modal-header">
+                <h3 id="delete-meal-plan-title">Confirm Delete Meal Plan</h3>
+              </div>
+              <div className="delete-modal-body">
+                <p>
+                  Are you sure you want to delete
+                  {' '}
+                  <strong>{deletingPlan?.name}</strong>
+                  ?
+                </p>
+                <p>This action cannot be undone.</p>
+              </div>
+              <div className="delete-modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeletingPlan(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleDelete}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

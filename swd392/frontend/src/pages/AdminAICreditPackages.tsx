@@ -109,7 +109,7 @@ const AdminAICreditPackages = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
-          <button onClick={handleCreate} className="btn-primary">Add Package</button>
+          <button onClick={handleCreate} className="btn">Add Package</button>
         </div>
       </div>
 
@@ -190,10 +190,10 @@ const AdminAICreditPackages = () => {
                 />
               </div>
               <div className="modal-footer">
-                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary">
+                <button type="button" onClick={() => setShowModal(false)} className="btn btn-secondary">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary">
+                <button type="submit" className="btn btn-sm">
                   {editingItem ? 'Update' : 'Create'}
                 </button>
               </div>

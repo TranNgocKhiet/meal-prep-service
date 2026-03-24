@@ -15,8 +15,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, fullName: string, phoneNumber: string) => Promise<void>;
+  register: (email: string, password: string, fullName: string) => Promise<void>;
   loginWithGoogle: (googleToken: string) => Promise<void>;
+  registerWithGoogle: (googleToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -30,6 +31,30 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const getRoleFromToken = () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) return '';
+
+      const tokenParts = token.split('.');
+      if (tokenParts.length < 2) return '';
+
+      const base64 = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(base64));
+
+      const role =
+        payload?.role ||
+        payload?.roles?.[0] ||
+        payload?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+        payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'] ||
+        '';
+
+      return String(role);
+    } catch {
+      return '';
+    }
+  };
 
   useEffect(() => {
     const initAuth = async () => {
@@ -53,7 +78,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const response = await apiClient.get('/auth/me');
       if (response.data.success) {
-        setUser(response.data.data);
+        const userData = response.data.data as User;
+        if (!userData.roleName || !userData.roleName.trim()) {
+          userData.roleName = getRoleFromToken();
+        }
+        setUser(userData);
       }
     } catch (error) {
       console.error('Failed to fetch user:', error);
@@ -80,13 +109,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const register = async (email: string, password: string, fullName: string, phoneNumber: string) => {
+  const register = async (email: string, password: string, fullName: string) => {
     try {
       const response = await apiClient.post('/auth/register', {
         email,
         password,
         fullName,
-        phoneNumber,
+        phoneNumber: '',
         roleName: 'Customer'
       });
       
@@ -124,6 +153,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const registerWithGoogle = async (googleToken: string) => {
+    try {
+      const response = await apiClient.post('/auth/google-register', { googleToken });
+
+      if (response.data.success) {
+        const { token, refreshToken, user: userData } = response.data.data;
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('refreshToken', refreshToken);
+        setUser(userData);
+      } else {
+        throw new Error(response.data.message || 'Google signup failed');
+      }
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string };
+      const message = err.response?.data?.message || err.message || 'Google signup failed';
+      throw new Error(message);
+    }
+  };
+
   const logout = async () => {
     try {
       await apiClient.post('/auth/logout');
@@ -143,6 +191,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     login,
     register,
     loginWithGoogle,
+    registerWithGoogle,
     logout,
     refreshUser
   };

@@ -298,11 +298,18 @@ public class OrderService : IOrderService
         _logger.LogInformation("Cancelling order {OrderId} by staff {StaffId}", orderId, staffId);
 
         var order = await _unitOfWork.Orders.GetAllQueryable()
+            .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.MenuMeal)
             .FirstOrDefaultAsync(o => o.Id == orderId);
 
         if (order == null)
         {
             throw new KeyNotFoundException($"Order {orderId} not found");
+        }
+
+        if (order.StatusId == 3) // OrderConfirmed
+        {
+            RestoreMenuMealQuantities(order);
         }
 
         order.StatusId = 2; // OrderCanceled
@@ -318,6 +325,8 @@ public class OrderService : IOrderService
         _logger.LogInformation("Updating order {OrderId} status to {StatusId} by staff {StaffId}", orderId, statusId, staffId);
 
         var order = await _unitOfWork.Orders.GetAllQueryable()
+            .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.MenuMeal)
             .FirstOrDefaultAsync(o => o.Id == orderId);
 
         if (order == null)
@@ -331,6 +340,11 @@ public class OrderService : IOrderService
         if (status == null)
         {
             throw new InvalidOperationException($"Invalid status ID: {statusId}");
+        }
+
+        if (order.StatusId == 3 && (statusId == 1 || statusId == 2)) // Confirmed -> Pending/Canceled
+        {
+            RestoreMenuMealQuantities(order);
         }
 
         order.StatusId = statusId;
@@ -407,6 +421,22 @@ public class OrderService : IOrderService
             3 => "Dinner",
             _ => "Unknown"
         };
+    }
+
+    private void RestoreMenuMealQuantities(Order order)
+    {
+        foreach (var orderDetail in order.OrderDetails)
+        {
+            var menuMeal = orderDetail.MenuMeal;
+            menuMeal.AvailableQuantity += orderDetail.Quantity;
+            menuMeal.UpdatedAt = _dateTimeService.Now;
+
+            _logger.LogInformation(
+                "Restored {Quantity} to MenuMeal {MenuMealId}. New available quantity: {NewQuantity}",
+                orderDetail.Quantity,
+                menuMeal.Id,
+                menuMeal.AvailableQuantity);
+        }
     }
 }
 

@@ -102,7 +102,7 @@
   width: 32px;
   height: 32px;
   border: none;
-  background: #f0f0f0;
+  background: #525252;
   border-radius: 4px;
   cursor: pointer;
   font-size: 18px;
@@ -112,7 +112,7 @@
 }
 
 .quantity-controls button:hover:not(:disabled) {
-  background: #e0e0e0;
+  background: #525252;
 }
 
 .quantity-controls button:disabled {
@@ -201,10 +201,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
+}
+
+.checkout-modal-overlay {
+  align-items: flex-start;
+  margin-top: 10vh;
+  padding: 88px 16px 24px;
+  overflow-y: auto;
 }
 
 .modal-content {
+  position: relative;
+  z-index: 10000;
   background: white;
   border-radius: 8px;
   padding: var(--spacing-lg);
@@ -223,6 +232,25 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+}
+
+.checkout-notice {
+  margin-bottom: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.checkout-notice.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.checkout-notice.success {
+  background: #ecfdf5;
+  color: #166534;
+  border: 1px solid #bbf7d0;
 }
 
 .form-group {
@@ -279,4 +307,14 @@
 
 .modal-actions button {
   padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.confirm-modal-content {
+  max-width: 460px;
+}
+
+.confirm-modal-message {
+  color: #333;
+  margin: 0;
+  line-height: 1.5;
 }

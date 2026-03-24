@@ -43,7 +43,7 @@ interface Meal {
 }
 
 interface MealPlanDay {
-  id: string;
+  id?: string;
   dayNumber: number;
   date: string;
   meals: Meal[];
@@ -80,6 +80,8 @@ const MealPlanDetail = () => {
   const [showUnfinishModal, setShowUnfinishModal] = useState(false);
   const [unfinishCheckData, setUnfinishCheckData] = useState<any>(null);
   const [checkingUnfinish, setCheckingUnfinish] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<{ mealId: string; recipeId: string; recipeName: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -226,22 +228,30 @@ const MealPlanDetail = () => {
     setUnfinishCheckData(null);
   };
 
-  const handleRemoveRecipe = async (mealId: string, recipeId: string) => {
-    if (!window.confirm('Remove this recipe from the meal?')) {
-      return;
-    }
+  const requestRemoveRecipe = (mealId: string, recipeId: string, recipeName: string) => {
+    setRemoveTarget({ mealId, recipeId, recipeName });
+    setShowRemoveModal(true);
+  };
+
+  const closeRemoveModal = () => {
+    setShowRemoveModal(false);
+    setRemoveTarget(null);
+  };
+
+  const confirmRemoveRecipe = async () => {
+    if (!removeTarget) return;
 
     try {
       // Get current meal's recipes
       const meal = mealPlan?.days
         .flatMap(d => d.meals)
-        .find(m => m.id === mealId);
+        .find(m => m.id === removeTarget.mealId);
       
       if (!meal || !meal.recipes) return;
 
       // Filter out the recipe to remove
       const updatedRecipeIds = meal.recipes
-        .filter(r => r.id !== recipeId)
+        .filter(r => r.id !== removeTarget.recipeId)
         .map(r => r.id);
 
       // Update the meal with new recipe list
@@ -253,12 +263,13 @@ const MealPlanDetail = () => {
           meals: day.meals.map(m => ({
             id: m.id,
             mealTypeId: m.mealTypeId,
-            recipeIds: m.id === mealId ? updatedRecipeIds : m.recipes?.map(r => r.id) || []
+            recipeIds: m.id === removeTarget.mealId ? updatedRecipeIds : m.recipes?.map(r => r.id) || []
           }))
         }))
       });
 
       await fetchMealPlan();
+      closeRemoveModal();
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       alert(error.response?.data?.message || 'Failed to remove recipe');
@@ -320,6 +331,7 @@ const MealPlanDetail = () => {
             <button
               className="btn btn-secondary"
               onClick={() => navigate(`/meal-plans/${id}/edit`)}
+              style={{backgroundColor: '#FFDE21'}}
             >
               Edit
             </button>
@@ -354,7 +366,7 @@ const MealPlanDetail = () => {
               </div>
               <div className="detail-item">
                 <span className="label" style={{ color: '#666' }}>Status:</span>
-                <span className={getStatusBadgeClass(mealPlan.status)}>
+                <span className={getStatusBadgeClass(mealPlan.status)} style={{ color: '#000' }}>
                   {mealPlan.status}
                 </span>
               </div>
@@ -405,8 +417,8 @@ const MealPlanDetail = () => {
           {mealPlan.days.map((day) => (
             <div key={day.dayNumber} className="day-section">
               <div className="day-header">
-                <h3>Day {day.dayNumber}</h3>
-                <span className="day-date">
+                <h3 style={{color : '#ffffff'}}>Day {day.dayNumber}</h3>
+                <span className="day-date" style={{color : '#ffffff'}}>
                   {new Date(day.date).toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
@@ -430,7 +442,7 @@ const MealPlanDetail = () => {
                       <div className="meal-actions">
                         {meal.status.toLowerCase() === 'pending' ? (
                           <button
-                            className="btn btn-sm btn-primary"
+                            className="btn btn-sm"
                             onClick={() => handleMarkMealFinished(meal.id)}
                           >
                             Mark Finished
@@ -459,25 +471,24 @@ const MealPlanDetail = () => {
 
                     {/* Nutrition Summary */}
                     {meal.recipes && meal.recipes.length > 0 && (
-                      <div className="meal-nutrition" style={{
-                        padding: 'var(--spacing-sm) var(--spacing-md)',
-                        backgroundColor: '#f9f9f9',
-                        borderTop: '1px solid #e0e0e0',
-                        display: 'flex',
-                        gap: 'var(--spacing-md)',
-                        flexWrap: 'wrap'
-                      }}>
-                        <div style={{ color: '#000', fontSize: '14px' }}>
-                          <strong>Calories:</strong> {meal.totalCalories?.toFixed(0) || 0} kcal
-                        </div>
-                        <div style={{ color: '#000', fontSize: '14px' }}>
-                          <strong>Protein:</strong> {meal.proteinG?.toFixed(1) || 0}g
-                        </div>
-                        <div style={{ color: '#000', fontSize: '14px' }}>
-                          <strong>Fat:</strong> {meal.fatG?.toFixed(1) || 0}g
-                        </div>
-                        <div style={{ color: '#000', fontSize: '14px' }}>
-                          <strong>Carbs:</strong> {meal.carbsG?.toFixed(1) || 0}g
+                      <div className="meal-nutrition">
+                        <div className="nutrition-grid">
+                          <div className="nutrition-card">
+                            <span className="nutrition-label">Calories</span>
+                            <span className="nutrition-value">{meal.totalCalories?.toFixed(0) || 0} <small>kcal</small></span>
+                          </div>
+                          <div className="nutrition-card">
+                            <span className="nutrition-label">Protein</span>
+                            <span className="nutrition-value">{meal.proteinG?.toFixed(1) || 0} <small>g</small></span>
+                          </div>
+                          <div className="nutrition-card">
+                            <span className="nutrition-label">Fat</span>
+                            <span className="nutrition-value">{meal.fatG?.toFixed(1) || 0} <small>g</small></span>
+                          </div>
+                          <div className="nutrition-card">
+                            <span className="nutrition-label">Carbs</span>
+                            <span className="nutrition-value">{meal.carbsG?.toFixed(1) || 0} <small>g</small></span>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -498,7 +509,7 @@ const MealPlanDetail = () => {
                                 </div>
                                 <button
                                   className="btn btn-sm btn-danger"
-                                  onClick={() => handleRemoveRecipe(meal.id, recipe.id)}
+                                  onClick={() => requestRemoveRecipe(meal.id, recipe.id, recipe.recipeName)}
                                   style={{
                                     backgroundColor: '#dc3545',
                                     color: '#fff',
@@ -538,7 +549,7 @@ const MealPlanDetail = () => {
                           <div className="no-recipes">
                             <p style={{ color: '#000' }}>No recipes added to this meal yet.</p>
                             <button
-                              className="btn btn-sm btn-primary"
+                              className="btn btn-sm"
                               onClick={() => navigate(`/meal-plans/${id}/edit`)}
                             >
                               Add Recipes
@@ -570,6 +581,30 @@ const MealPlanDetail = () => {
         ingredients={unfinishCheckData?.ingredients || []}
         loading={checkingUnfinish}
       />
+
+      {showRemoveModal && removeTarget && (
+        <div className="remove-confirm-overlay" onClick={closeRemoveModal}>
+          <div className="remove-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="remove-confirm-header">
+              <h3>Remove Recipe</h3>
+              <button className="remove-confirm-close" onClick={closeRemoveModal}>×</button>
+            </div>
+            <div className="remove-confirm-body">
+              <p style= {{color: '#000000'}}>
+                Are you sure you want to remove <strong>{removeTarget.recipeName}</strong> from this meal?
+              </p>
+            </div>
+            <div className="remove-confirm-actions">
+              <button className="btn btn-secondary" onClick={closeRemoveModal}>
+                Cancel
+              </button>
+              <button className="btn btn-danger" onClick={confirmRemoveRecipe}>
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Container>
   );
 };
