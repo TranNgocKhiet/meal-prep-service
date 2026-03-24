@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Container from '../components/layout/Container';
 import apiClient from '../config/api';
 import { useAuth } from '../hooks/useAuth';
+import AILoadingOverlay from '../components/ai/AILoadingOverlay';
 import './CreateAIMealPlan.css';
 
 const CreateAIMealPlan = () => {
@@ -228,6 +229,13 @@ const CreateAIMealPlan = () => {
             </button>
           </div>
         </form>
+
+        <AILoadingOverlay
+          open={loading}
+          title="AI chef is composing your meal plan..."
+          description="Analyzing your goals, allergies, fridge items, and recipe combinations."
+          steps={['Health Profiling', 'Recipe Matching', 'Plan Optimization']}
+        />
       </div>
     </Container>
   );

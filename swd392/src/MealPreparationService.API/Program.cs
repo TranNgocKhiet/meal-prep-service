@@ -161,7 +161,7 @@ builder.Services.AddSingleton<IDateTimeService, DateTimeService>();
 // TODO: Implement these services
 // builder.Services.AddScoped<IGroceryListService, GroceryListService>();
 // builder.Services.AddScoped<IAllergyCheckService, AllergyCheckService>();
-// builder.Services.AddScoped<INutrientCalculatorService, NutrientCalculatorService>();
+builder.Services.AddScoped<INutrientCalculatorService, NutrientCalculatorService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IDeliveryScheduleService, DeliveryScheduleService>();
 // builder.Services.AddScoped<IDeliveryService, DeliveryService>();
@@ -276,9 +276,10 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var unitOfWork = services.GetRequiredService<IUnitOfWork>();
+        var dbContext = services.GetRequiredService<ApplicationDbContext>();
         var logger = services.GetRequiredService<ILogger<MealPreparationService.DataAccess.Data.DatabaseSeeder>>();
         var dateTimeService = services.GetRequiredService<IDateTimeService>();
-        var seeder = new MealPreparationService.DataAccess.Data.DatabaseSeeder(unitOfWork, logger, dateTimeService);
+        var seeder = new MealPreparationService.DataAccess.Data.DatabaseSeeder(unitOfWork, dbContext, logger, dateTimeService);
         await seeder.SeedAsync();
         Log.Information("Database seeding completed successfully");
     }

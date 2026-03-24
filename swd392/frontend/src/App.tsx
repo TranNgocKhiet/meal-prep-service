@@ -46,6 +46,7 @@ import AdminMenu from './pages/AdminMenu';
 import AdminAccounts from './pages/AdminAccounts';
 import SystemConfiguration from './pages/SystemConfiguration';
 import RevenueReport from './pages/RevenueReport';
+import AdminDashboard from './pages/AdminDashboard';
 import AICredits from './pages/AICredits';
 import AICreditCallback from './pages/AICreditCallback';
 import Feedback from './pages/Feedback';
@@ -142,6 +143,11 @@ function AppRoutes() {
         <Route path="/admin/system-config" element={
           <ProtectedRoute>
             <SystemConfiguration />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/dashboard" element={
+          <ProtectedRoute requiredRole="Admin">
+            <AdminDashboard />
           </ProtectedRoute>
         } />
         <Route path="/admin/revenue-report" element={
