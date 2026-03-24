@@ -35,6 +35,7 @@ const MyCart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showOrderConfirmModal, setShowOrderConfirmModal] = useState(false);
   const [showRemoveConfirmModal, setShowRemoveConfirmModal] = useState(false);
   const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
   const [pendingRemoveItemId, setPendingRemoveItemId] = useState<string | null>(null);
@@ -42,6 +43,7 @@ const MyCart = () => {
   const [address, setAddress] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [checkoutNotice, setCheckoutNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -139,6 +141,8 @@ const MyCart = () => {
   };
 
   const handleCheckout = () => {
+    setCheckoutNotice(null);
+    setShowOrderConfirmModal(false);
     setShowCheckoutModal(true);
   };
 
@@ -152,23 +156,37 @@ const MyCart = () => {
     return phoneRegex.test(phone);
   };
 
-  const handleConfirmOrder = async () => {
-    // Validate address
+  const validateCheckout = () => {
     if (!address || address.trim().length < 10) {
-      alert('Please enter a valid address (at least 10 characters)');
-      return;
+      return 'Please enter a valid address (at least 10 characters)';
     }
 
     if (address.trim().length > 500) {
-      alert('Address is too long (maximum 500 characters)');
+      return 'Address is too long (maximum 500 characters)';
+    }
+
+    if (!phoneNumber || !validatePhoneNumber(phoneNumber)) {
+      return 'Please enter a valid Vietnamese phone number (e.g., 0912345678 or +84912345678)';
+    }
+
+    return null;
+  };
+
+  const handleRequestConfirmOrder = () => {
+    setCheckoutNotice(null);
+    const validationError = validateCheckout();
+
+    if (validationError) {
+      setCheckoutNotice({ type: 'error', message: validationError });
       return;
     }
 
-    // Validate phone number
-    if (!phoneNumber || !validatePhoneNumber(phoneNumber)) {
-      alert('Please enter a valid Vietnamese phone number (e.g., 0912345678 or +84912345678)');
-      return;
-    }
+    setShowOrderConfirmModal(true);
+  };
+
+  const handleConfirmOrder = async () => {
+    setCheckoutNotice(null);
+    setShowOrderConfirmModal(false);
 
     try {
       setIsCreatingOrder(true);
@@ -185,14 +203,15 @@ const MyCart = () => {
         if (paymentMethod === 'VNPay' && data.paymentUrl) {
           window.location.href = data.paymentUrl;
         } else {
-          // Cash payment - order created successfully
-          alert('Order created successfully!');
+          // Cash payment - redirect to order detail with success banner
           setShowCheckoutModal(false);
-          navigate('/my-orders');
+          setShowOrderConfirmModal(false);
+          navigate(`/orders/${data.id}?created=true`);
         }
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to create order');
+      setCheckoutNotice({ type: 'error', message: err.response?.data?.message || 'Failed to create order' });
+    } finally {
       setIsCreatingOrder(false);
     }
   };
@@ -305,9 +324,20 @@ const MyCart = () => {
 
         {/* Checkout Modal */}
         {showCheckoutModal && renderModal(
-          <div className="modal-overlay checkout-modal-overlay" onClick={() => setShowCheckoutModal(false)}>
+          <div
+            className="modal-overlay checkout-modal-overlay"
+            onClick={() => {
+              setShowCheckoutModal(false);
+              setShowOrderConfirmModal(false);
+            }}
+          >
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Checkout</h2>
+              {checkoutNotice && (
+                <div className={`checkout-notice ${checkoutNotice.type}`}>
+                  {checkoutNotice.message}
+                </div>
+              )}
               <div className="checkout-form">
                 <div className="form-group">
                   <label>Phone Number *</label>
@@ -354,19 +384,52 @@ const MyCart = () => {
                 <div className="modal-actions">
                   <button
                     className="btn btn-secondary"
-                    onClick={() => setShowCheckoutModal(false)}
+                    onClick={() => {
+                      setShowCheckoutModal(false);
+                      setShowOrderConfirmModal(false);
+                    }}
                     disabled={isCreatingOrder}
                   >
                     Cancel
                   </button>
                   <button
                     className="btn"
-                    onClick={handleConfirmOrder}
+                    onClick={handleRequestConfirmOrder}
                     disabled={isCreatingOrder}
                   >
                     {isCreatingOrder ? 'Creating Order...' : 'Confirm Order'}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showOrderConfirmModal && renderModal(
+          <div
+            className="modal-overlay"
+            onClick={() => {
+              if (isCreatingOrder) return;
+              setShowOrderConfirmModal(false);
+            }}
+          >
+            <div className="modal-content confirm-modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Confirm Order</h2>
+              <p className="confirm-modal-message">
+                Are you sure you want to place this order with {paymentMethod === 'Cash' ? 'Cash on Delivery' : 'VNPay'}?
+              </p>
+              <p className="confirm-modal-message">Total: {formatVND(calculateTotal())}</p>
+              <div className="modal-actions">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowOrderConfirmModal(false)}
+                  disabled={isCreatingOrder}
+                >
+                  Cancel
+                </button>
+                <button className="btn" onClick={handleConfirmOrder} disabled={isCreatingOrder}>
+                  {isCreatingOrder ? 'Creating Order...' : 'Place Order'}
+                </button>
               </div>
             </div>
           </div>

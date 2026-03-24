@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { notifyGlobalError, sanitizeErrorMessage } from '../types/errors';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5013/api';
 
@@ -38,6 +39,25 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('authToken');
       window.location.href = '/login';
     }
+
+    const responseMessage = error.response?.data?.message;
+    const fallbackMessage =
+      responseMessage || error.message || 'An unexpected error occurred. Please try again.';
+    const sanitizedMessage = sanitizeErrorMessage(fallbackMessage);
+
+    if (error.response?.data && typeof error.response.data === 'object') {
+      error.response.data.message = sanitizedMessage;
+    }
+    error.message = sanitizedMessage;
+
+    const containsLocalhostDetails =
+      typeof fallbackMessage === 'string' &&
+      /localhost|127\.0\.0\.1|network error|failed to fetch|econnrefused|timeout/i.test(fallbackMessage);
+
+    if (containsLocalhostDetails) {
+      notifyGlobalError(sanitizedMessage);
+    }
+
     return Promise.reject(error);
   }
 );

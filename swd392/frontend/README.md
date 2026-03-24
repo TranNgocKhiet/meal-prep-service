@@ -36,14 +36,13 @@ npm install
 Create a `.env` file in the frontend directory:
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_BASE_URL=http://127.0.0.1:5000/api
 VITE_GOOGLE_CLIENT_ID=your_google_web_client_id.apps.googleusercontent.com
 ```
 
 For Google sign in, create an OAuth 2.0 Client ID of type `Web application` in Google Cloud Console and add your frontend URLs to `Authorized JavaScript origins`.
 Common local entries:
 
-- `http://localhost:5173`
 - `http://127.0.0.1:5173`
 
 If these origins are missing, Google sign in will fail with `origin is not allowed for the given client ID`.
@@ -56,7 +55,7 @@ Start the development server:
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173`
+The application will be available at `http://127.0.0.1:5173`
 
 ### Build
 

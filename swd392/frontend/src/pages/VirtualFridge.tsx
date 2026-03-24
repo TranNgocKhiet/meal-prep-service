@@ -37,6 +37,11 @@ const VirtualFridge = () => {
   const [searchResults, setSearchResults] = useState<Ingredient[]>([]);
   const [searchingIngredients, setSearchingIngredients] = useState(false);
   const [activeStatusFilter, setActiveStatusFilter] = useState<ItemStatusFilter>('all');
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [pendingDeleteItemId, setPendingDeleteItemId] = useState<string | null>(null);
+  const [deletingItem, setDeletingItem] = useState(false);
+  const [showUpdateConfirmModal, setShowUpdateConfirmModal] = useState(false);
+  const [updatingItem, setUpdatingItem] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -139,6 +144,15 @@ const VirtualFridge = () => {
       return;
     }
 
+    setShowUpdateConfirmModal(true);
+  };
+
+  const confirmUpdateItem = async () => {
+    if (!editingItem || updatingItem) {
+      return;
+    }
+
+    setUpdatingItem(true);
     try {
       const response = await apiClient.put(`/fridge/${editingItem.id}`, {
         quantity: parseFloat(formData.quantity),
@@ -149,24 +163,37 @@ const VirtualFridge = () => {
         await fetchFridgeItems();
         resetForm();
         setEditingItem(null);
+        setShowUpdateConfirmModal(false);
       }
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       alert(error.response?.data?.message || 'Failed to update item');
+    } finally {
+      setUpdatingItem(false);
     }
   };
 
-  const handleDeleteItem = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) {
+  const requestDeleteItem = (id: string) => {
+    setPendingDeleteItemId(id);
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleDeleteItem = async () => {
+    if (!pendingDeleteItemId || deletingItem) {
       return;
     }
 
+    setDeletingItem(true);
     try {
-      await apiClient.delete(`/fridge/${id}`);
-      setFridgeItems(fridgeItems.filter(item => item.id !== id));
+      await apiClient.delete(`/fridge/${pendingDeleteItemId}`);
+      setFridgeItems(fridgeItems.filter(item => item.id !== pendingDeleteItemId));
+      setShowDeleteConfirmModal(false);
+      setPendingDeleteItemId(null);
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to delete item');
+      setError(error.response?.data?.message || 'Failed to delete item');
+    } finally {
+      setDeletingItem(false);
     }
   };
 
@@ -208,6 +235,7 @@ const VirtualFridge = () => {
 
   const cancelEdit = () => {
     setEditingItem(null);
+    setShowUpdateConfirmModal(false);
     resetForm();
   };
 
@@ -451,6 +479,40 @@ const VirtualFridge = () => {
           </div>
         )}
 
+        {showUpdateConfirmModal && (
+          <div className="delete-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="update-fridge-item-title">
+            <div className="delete-modal-card">
+              <div className="delete-modal-header update-modal-header">
+                <h3 id="update-fridge-item-title">Confirm Update Item</h3>
+              </div>
+              <div className="delete-modal-body">
+                <p>Are you sure you want to save changes to this fridge item?</p>
+              </div>
+              <div className="delete-modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    if (updatingItem) return;
+                    setShowUpdateConfirmModal(false);
+                  }}
+                  disabled={updatingItem}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={confirmUpdateItem}
+                  disabled={updatingItem}
+                >
+                  {updatingItem ? 'Updating...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="search-bar">
           <input
             type="text"
@@ -564,7 +626,7 @@ const VirtualFridge = () => {
                     </button>
                     <button
                       className="btn-icon"
-                      onClick={() => handleDeleteItem(item.id)}
+                      onClick={() => requestDeleteItem(item.id)}
                       title="Delete"
                     >
                       🗑️
@@ -573,6 +635,42 @@ const VirtualFridge = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {showDeleteConfirmModal && (
+          <div className="delete-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-fridge-item-title">
+            <div className="delete-modal-card">
+              <div className="delete-modal-header">
+                <h3 id="delete-fridge-item-title">Confirm Delete Item</h3>
+              </div>
+              <div className="delete-modal-body">
+                <p>Are you sure you want to delete this item from your fridge?</p>
+                <p>This action cannot be undone.</p>
+              </div>
+              <div className="delete-modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    if (deletingItem) return;
+                    setShowDeleteConfirmModal(false);
+                    setPendingDeleteItemId(null);
+                  }}
+                  disabled={deletingItem}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={handleDeleteItem}
+                  disabled={deletingItem}
+                >
+                  {deletingItem ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

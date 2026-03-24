@@ -144,6 +144,7 @@ const OrderDetail = () => {
     if (statusLower.includes('pending')) return 'status-pending';
     if (statusLower.includes('confirmed')) return 'status-confirmed';
     if (statusLower.includes('preparing')) return 'status-preparing';
+    if (statusLower.includes('prepared')) return 'status-prepared';
     if (statusLower.includes('ready')) return 'status-ready';
     if (statusLower.includes('delivered')) return 'status-delivered';
     if (statusLower.includes('cancel')) return 'status-cancelled';

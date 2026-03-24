@@ -43,6 +43,7 @@ const DeliverySchedule = () => {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
   
@@ -57,8 +58,6 @@ const DeliverySchedule = () => {
   const [selectedSchedule, setSelectedSchedule] = useState<DeliverySchedule | null>(null);
   const [editingSchedule, setEditingSchedule] = useState<DeliverySchedule | null>(null);
   const [editingDeliveryTime, setEditingDeliveryTime] = useState('');
-  const [editingAddress, setEditingAddress] = useState('');
-  const [editingDriverContact, setEditingDriverContact] = useState('');
   const [editingDriver, setEditingDriver] = useState('');
   const [updating, setUpdating] = useState(false);
   
@@ -170,13 +169,80 @@ const DeliverySchedule = () => {
 
   // Convert ISO datetime to datetime-local format
   const toDateTimeLocalValue = (isoDate: string): string => {
+    const match = isoDate.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+    if (match) {
+      return `${match[1]}T${match[2]}`;
+    }
+
     const date = new Date(isoDate);
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const toApiDateTimeValue = (dateTimeLocal: string): string => {
+    return `${dateTimeLocal}:00`;
+  };
+
+  const getDatePart = (dateTimeValue: string): string => {
+    const match = dateTimeValue.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) {
+      return match[1];
+    }
+
+    const parsed = new Date(dateTimeValue);
+    if (Number.isNaN(parsed.getTime())) {
+      return '';
+    }
+
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatScheduleDateTime = (dateTimeValue: string): string => {
+    const match = dateTimeValue.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (match) {
+      const [_, year, month, day, hours, minutes] = match;
+      const localDate = new Date(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hours),
+        Number(minutes),
+        0,
+        0
+      );
+
+      return localDate.toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    const parsed = new Date(dateTimeValue);
+    if (Number.isNaN(parsed.getTime())) {
+      return 'N/A';
+    }
+
+    return parsed.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   // Filter schedules based on search and date range
@@ -188,7 +254,7 @@ const DeliverySchedule = () => {
         schedule.driverName.toLowerCase().includes(lowerSearchQuery) ||
         getRealAddress(schedule).toLowerCase().includes(lowerSearchQuery);
 
-      const scheduleDate = new Date(schedule.deliveryTime).toISOString().split('T')[0];
+      const scheduleDate = getDatePart(schedule.deliveryTime);
       const matchesDateFrom = !dateFrom || scheduleDate >= dateFrom;
       const matchesDateTo = !dateTo || scheduleDate <= dateTo;
 
@@ -225,17 +291,17 @@ const DeliverySchedule = () => {
     setEditingSchedule(schedule);
     setEditingDriver(schedule.driverId);
     setEditingDeliveryTime(toDateTimeLocalValue(schedule.deliveryTime));
-    setEditingAddress(getRealAddress(schedule));
-    setEditingDriverContact(schedule.driverContact);
     setShowViewModal(false);
     setShowEditModal(true);
   };
 
   const handleUpdateSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setSuccessMessage('');
 
-    if (!editingSchedule || !editingDriver || !editingDeliveryTime || !editingAddress || !editingDriverContact) {
-      alert('Please fill in all required fields');
+    if (!editingSchedule || !editingDriver || !editingDeliveryTime) {
+      setError('Please select a driver and delivery time');
       return;
     }
 
@@ -244,28 +310,29 @@ const DeliverySchedule = () => {
     minAllowedDate.setSeconds(0, 0);
 
     if (Number.isNaN(selectedDeliveryDate.getTime()) || selectedDeliveryDate < minAllowedDate) {
-      alert('Delivery time cannot be in the past');
+      setError('Delivery time cannot be in the past');
       return;
     }
 
     setUpdating(true);
     try {
+      const selectedDriverInfo = drivers.find((d) => d.id === editingDriver);
       const response = await apiClient.put(`/delivery-schedules/${editingSchedule.id}`, {
         driverId: editingDriver,
-        deliveryTime: new Date(editingDeliveryTime).toISOString(),
-        address: editingAddress,
-        driverContact: editingDriverContact
+        deliveryTime: toApiDateTimeValue(editingDeliveryTime),
+        address: getRealAddress(editingSchedule),
+        driverContact: selectedDriverInfo?.phoneNumber || editingSchedule.driverContact || ''
       });
 
       if (response.data.success) {
-        alert('Delivery schedule updated successfully');
+        setSuccessMessage('Delivery schedule updated successfully');
         setShowEditModal(false);
         setEditingSchedule(null);
         await fetchData();
       }
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to update delivery schedule');
+      setError(error.response?.data?.message || 'Failed to update delivery schedule');
     } finally {
       setUpdating(false);
     }
@@ -309,7 +376,7 @@ const DeliverySchedule = () => {
       const response = await apiClient.post('/delivery-schedules', {
         driverId: selectedDriver,
         orderId: selectedOrder,
-        deliveryTime: new Date(deliveryTime).toISOString(),
+        deliveryTime: toApiDateTimeValue(deliveryTime),
         address,
         driverContact
       });
@@ -369,6 +436,7 @@ const DeliverySchedule = () => {
         </div>
 
         {error && <div className="error-message">{error}</div>}
+        {successMessage && <div className="success-message">{successMessage}</div>}
 
         {/* Search and Filter Controls */}
         <div className="schedule-controls">
@@ -449,13 +517,7 @@ const DeliverySchedule = () => {
                       <div className="text-secondary">{schedule.driverEmail}</div>
                     </td>
                     <td>
-                      {new Date(schedule.deliveryTime).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {formatScheduleDateTime(schedule.deliveryTime)}
                     </td>
                     <td className="address-cell">{getRealAddress(schedule)}</td>
                     <td>{schedule.driverContact}</td>
@@ -626,13 +688,7 @@ const DeliverySchedule = () => {
                 <div className="detail-row">
                   <label>Delivery Time:</label>
                   <span>
-                    {new Date(selectedSchedule.deliveryTime).toLocaleString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                    {formatScheduleDateTime(selectedSchedule.deliveryTime)}
                   </span>
                 </div>
                 <div className="detail-row">
@@ -652,10 +708,10 @@ const DeliverySchedule = () => {
                   Close
                 </button>
                 <button
-                  className="btn btn-primary"
+                  className="btn"
                   onClick={() => handleOpenEditModal(selectedSchedule)}
                 >
-                  Edit
+                  Update Delivery Schedule
                 </button>
               </div>
             </div>
@@ -666,7 +722,7 @@ const DeliverySchedule = () => {
         {showEditModal && editingSchedule && (
           <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h2>Edit Delivery Schedule</h2>
+              <h2>Update Delivery Schedule</h2>
               <form onSubmit={handleUpdateSchedule}>
                 <div className="form-group">
                   <label>Order Number (Read-only)</label>
@@ -690,13 +746,7 @@ const DeliverySchedule = () => {
                   <label>Select Driver *</label>
                   <select
                     value={editingDriver}
-                    onChange={(e) => {
-                      setEditingDriver(e.target.value);
-                      const driver = drivers.find(d => d.id === e.target.value);
-                      if (driver && driver.phoneNumber) {
-                        setEditingDriverContact(driver.phoneNumber);
-                      }
-                    }}
+                    onChange={(e) => setEditingDriver(e.target.value)}
                     required
                   >
                     <option value="">-- Select Driver --</option>
@@ -719,27 +769,6 @@ const DeliverySchedule = () => {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label>Delivery Address *</label>
-                  <textarea
-                    value={editingAddress}
-                    onChange={(e) => setEditingAddress(e.target.value)}
-                    rows={3}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Driver Contact *</label>
-                  <input
-                    type="tel"
-                    value={editingDriverContact}
-                    onChange={(e) => setEditingDriverContact(e.target.value)}
-                    placeholder="0912345678"
-                    required
-                  />
-                </div>
-
                 <div className="modal-actions">
                   <button
                     type="button"
@@ -757,7 +786,7 @@ const DeliverySchedule = () => {
                     className="btn btn-primary"
                     disabled={updating}
                   >
-                    {updating ? 'Updating...' : 'Update Schedule'}
+                    {updating ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </form>

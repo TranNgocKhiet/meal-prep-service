@@ -27,7 +27,10 @@ const MyDeliverySchedule = () => {
   const [schedules, setSchedules] = useState<DeliverySchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [showStatusConfirmModal, setShowStatusConfirmModal] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ orderId: string; statusId: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -65,18 +68,27 @@ const MyDeliverySchedule = () => {
   };
 
   const handleStatusChange = async (orderId: string, newStatusId: number) => {
-    if (!window.confirm('Are you sure you want to update the delivery status?')) {
+    setError('');
+    setSuccessMessage('');
+    setPendingStatusChange({ orderId, statusId: newStatusId });
+    setShowStatusConfirmModal(true);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!pendingStatusChange) {
       return;
     }
 
-    setUpdatingStatus(orderId);
+    setUpdatingStatus(pendingStatusChange.orderId);
     try {
-      await apiClient.post(`/orders/${orderId}/update-status`, { statusId: newStatusId });
+      await apiClient.post(`/orders/${pendingStatusChange.orderId}/update-status`, { statusId: pendingStatusChange.statusId });
       await fetchMySchedules();
-      alert('Delivery status updated successfully');
+      setSuccessMessage('Delivery status updated successfully');
+      setShowStatusConfirmModal(false);
+      setPendingStatusChange(null);
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
-      alert(error.response?.data?.message || 'Failed to update delivery status');
+      setError(error.response?.data?.message || 'Failed to update delivery status');
     } finally {
       setUpdatingStatus(null);
     }
@@ -158,6 +170,7 @@ const MyDeliverySchedule = () => {
         </div>
 
         {error && <div className="error-message">{error}</div>}
+        {successMessage && <div className="success-message">{successMessage}</div>}
 
         {/* Search and Filter Controls */}
         <div className="schedule-controls">
@@ -283,6 +296,40 @@ const MyDeliverySchedule = () => {
               >
                 Next
               </button>
+            </div>
+          </div>
+        )}
+
+        {showStatusConfirmModal && (
+          <div className="modal-overlay" onClick={() => {
+            if (updatingStatus) return;
+            setShowStatusConfirmModal(false);
+            setPendingStatusChange(null);
+          }}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Confirm Status Update</h2>
+              <p className="confirm-update-message">Are you sure you want to update the delivery status?</p>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setShowStatusConfirmModal(false);
+                    setPendingStatusChange(null);
+                  }}
+                  disabled={!!updatingStatus}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={confirmStatusChange}
+                  disabled={!!updatingStatus}
+                >
+                  {updatingStatus ? 'Updating...' : 'Confirm'}
+                </button>
+              </div>
             </div>
           </div>
         )}
