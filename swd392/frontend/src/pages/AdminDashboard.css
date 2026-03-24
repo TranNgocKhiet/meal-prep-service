@@ -133,6 +133,16 @@
   overflow-x: auto;
 }
 
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 320px;
+}
+
+.chart-wrap--lg {
+  height: 360px;
+}
+
 .dashboard-table {
   width: 100%;
   border-collapse: collapse;
@@ -196,5 +206,10 @@
 
   .hero-side {
     text-align: left;
+  }
+
+  .chart-wrap,
+  .chart-wrap--lg {
+    height: 280px;
   }
 }

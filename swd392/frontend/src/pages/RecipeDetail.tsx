@@ -7,6 +7,7 @@ import './RecipeDetail.css';
 interface RecipeIngredient {
   ingredientId: string;
   ingredientName: string;
+  amount?: number;
   quantity: number;
   unit: string;
   isOptional: boolean;
@@ -14,6 +15,7 @@ interface RecipeIngredient {
 
 interface Recipe {
   id: string;
+  recipeName?: string;
   name: string;
   description: string;
   instructions: string;
@@ -123,7 +125,7 @@ const RecipeDetail = () => {
 
         <div className="recipe-detail-content">
           <div className="recipe-header">
-            <h1>{recipe.recipeName}</h1>
+            <h1>{recipe.recipeName ?? recipe.name}</h1>
             <button
               className={`favorite-btn-large ${recipe.isFavorite ? 'is-favorite' : ''}`}
               onClick={toggleFavorite}
@@ -175,7 +177,7 @@ const RecipeDetail = () => {
                 {recipe.ingredients.map((ing, index) => (
                   <li key={index}>
                     <span className="ingredient-quantity">
-                      {ing.amount}
+                      {ing.amount ?? ing.quantity} {ing.unit}
                     </span>
                     <span className="ingredient-name">{ing.ingredientName}</span>
                   </li>

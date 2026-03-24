@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import Chart from 'chart.js/auto';
 import apiClient from '../config/api';
 import './AdminDashboard.css';
 
@@ -112,6 +113,11 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [data, setData] = useState<DashboardData | null>(null);
 
+  const ordersRevenueCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const orderStatusCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const aiMealPlanCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const aiNutritionCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
   const topRevenueMonth = useMemo(() => {
     if (!data || data.monthlyOrderRevenue.length === 0) {
       return null;
@@ -155,6 +161,210 @@ const AdminDashboard = () => {
     fetchDashboard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mealPlanPage, nutritionPage, spendingPage, mealPage]);
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+
+    const charts: Chart[] = [];
+
+    if (ordersRevenueCanvasRef.current) {
+      charts.push(new Chart(ordersRevenueCanvasRef.current, {
+        type: 'line',
+        data: {
+          labels: data.monthlyOrderRevenue.map((x) => x.label),
+          datasets: [
+            {
+              label: 'Revenue',
+              data: data.monthlyOrderRevenue.map((x) => x.revenue),
+              borderColor: '#22B14C',
+              backgroundColor: 'rgba(34,177,76,0.15)',
+              yAxisID: 'y',
+              tension: 0.35
+            },
+            {
+              label: 'Orders',
+              data: data.monthlyOrderRevenue.map((x) => x.orders),
+              borderColor: '#0D6EFD',
+              backgroundColor: 'rgba(13,110,253,0.15)',
+              yAxisID: 'y1',
+              tension: 0.35
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#e2e8f0'
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#cbd5e1' },
+              grid: { color: 'rgba(255,255,255,0.08)' }
+            },
+            y: {
+              ticks: { color: '#cbd5e1' },
+              grid: { color: 'rgba(255,255,255,0.08)' }
+            },
+            y1: {
+              position: 'right',
+              ticks: { color: '#cbd5e1' },
+              grid: { drawOnChartArea: false }
+            }
+          }
+        }
+      }));
+    }
+
+    if (orderStatusCanvasRef.current) {
+      charts.push(new Chart(orderStatusCanvasRef.current, {
+        type: 'bar',
+        data: {
+          labels: data.monthlyOrderStatusCounts.map((x) => x.label),
+          datasets: [
+            {
+              label: 'Failed',
+              data: data.monthlyOrderStatusCounts.map((x) => x.failedCount),
+              backgroundColor: 'rgba(220,53,69,0.7)',
+              borderColor: 'rgba(220,53,69,1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Canceled',
+              data: data.monthlyOrderStatusCounts.map((x) => x.canceledCount),
+              backgroundColor: 'rgba(255,193,7,0.7)',
+              borderColor: 'rgba(255,193,7,1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Customer Received',
+              data: data.monthlyOrderStatusCounts.map((x) => x.customerReceivedCount),
+              backgroundColor: 'rgba(34,177,76,0.7)',
+              borderColor: 'rgba(34,177,76,1)',
+              borderWidth: 1
+            },
+            {
+              label: 'Customer Rejected',
+              data: data.monthlyOrderStatusCounts.map((x) => x.customerRejectedCount),
+              backgroundColor: 'rgba(13,110,253,0.7)',
+              borderColor: 'rgba(13,110,253,1)',
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#e2e8f0'
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#cbd5e1' },
+              grid: { color: 'rgba(255,255,255,0.08)' }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#cbd5e1', precision: 0 },
+              grid: { color: 'rgba(255,255,255,0.08)' }
+            }
+          }
+        }
+      }));
+    }
+
+    if (aiMealPlanCanvasRef.current) {
+      charts.push(new Chart(aiMealPlanCanvasRef.current, {
+        type: 'line',
+        data: {
+          labels: data.monthlyAiMealPlanUsage.map((x) => x.label),
+          datasets: [
+            {
+              label: 'Meal Plan Uses',
+              data: data.monthlyAiMealPlanUsage.map((x) => x.count),
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245,158,11,0.15)',
+              tension: 0.35
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#e2e8f0'
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#cbd5e1' },
+              grid: { color: 'rgba(255,255,255,0.08)' }
+            },
+            y: {
+              ticks: { color: '#cbd5e1' },
+              grid: { color: 'rgba(255,255,255,0.08)' }
+            }
+          }
+        }
+      }));
+    }
+
+    if (aiNutritionCanvasRef.current) {
+      charts.push(new Chart(aiNutritionCanvasRef.current, {
+        type: 'line',
+        data: {
+          labels: data.monthlyAiNutritionUsage.map((x) => x.label),
+          datasets: [
+            {
+              label: 'Nutrition Uses',
+              data: data.monthlyAiNutritionUsage.map((x) => x.count),
+              borderColor: '#8b5cf6',
+              backgroundColor: 'rgba(139,92,246,0.15)',
+              tension: 0.35
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#e2e8f0'
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#cbd5e1' },
+              grid: { color: 'rgba(255,255,255,0.08)' }
+            },
+            y: {
+              ticks: { color: '#cbd5e1' },
+              grid: { color: 'rgba(255,255,255,0.08)' }
+            }
+          }
+        }
+      }));
+    }
+
+    return () => {
+      charts.forEach((chart) => chart.destroy());
+    };
+  }, [data]);
 
   const applyInterval = () => {
     setMealPlanPage(1);
@@ -239,7 +449,37 @@ const AdminDashboard = () => {
       </section>
 
       <section className="trend-card">
-        <h3>Monthly orders and revenue</h3>
+        <h3>Orders and revenue trend</h3>
+        <div className="chart-wrap chart-wrap--lg">
+          <canvas ref={ordersRevenueCanvasRef} />
+        </div>
+      </section>
+
+      <section className="trend-grid">
+        <article className="trend-card">
+          <h3>Order status count</h3>
+          <div className="chart-wrap">
+            <canvas ref={orderStatusCanvasRef} />
+          </div>
+        </article>
+
+        <article className="trend-card">
+          <h3>AI meal plan usage trend</h3>
+          <div className="chart-wrap">
+            <canvas ref={aiMealPlanCanvasRef} />
+          </div>
+        </article>
+
+        <article className="trend-card">
+          <h3>AI nutrition usage trend</h3>
+          <div className="chart-wrap">
+            <canvas ref={aiNutritionCanvasRef} />
+          </div>
+        </article>
+      </section>
+
+      <section className="trend-card">
+        <h3>Monthly data table</h3>
         <div className="trend-table-wrap">
           <table className="dashboard-table">
             <thead>
@@ -247,73 +487,27 @@ const AdminDashboard = () => {
                 <th>Month</th>
                 <th>Revenue (VND)</th>
                 <th>Orders</th>
+                <th>Failed</th>
+                <th>Canceled</th>
+                <th>Received</th>
+                <th>Rejected</th>
               </tr>
             </thead>
             <tbody>
-              {data.monthlyOrderRevenue.map((item) => (
+              {data.monthlyOrderRevenue.map((item, index) => (
                 <tr key={item.label}>
                   <td>{item.label}</td>
                   <td>{item.revenue.toLocaleString()}</td>
                   <td>{item.orders.toLocaleString()}</td>
+                  <td>{data.monthlyOrderStatusCounts[index]?.failedCount ?? 0}</td>
+                  <td>{data.monthlyOrderStatusCounts[index]?.canceledCount ?? 0}</td>
+                  <td>{data.monthlyOrderStatusCounts[index]?.customerReceivedCount ?? 0}</td>
+                  <td>{data.monthlyOrderStatusCounts[index]?.customerRejectedCount ?? 0}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section className="trend-grid">
-        <article className="trend-card">
-          <h3>Order status count</h3>
-          <div className="trend-table-wrap">
-            <table className="dashboard-table">
-              <thead>
-                <tr>
-                  <th>Month</th>
-                  <th>Failed</th>
-                  <th>Canceled</th>
-                  <th>Received</th>
-                  <th>Rejected</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.monthlyOrderStatusCounts.map((item) => (
-                  <tr key={item.label}>
-                    <td>{item.label}</td>
-                    <td>{item.failedCount}</td>
-                    <td>{item.canceledCount}</td>
-                    <td>{item.customerReceivedCount}</td>
-                    <td>{item.customerRejectedCount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
-
-        <article className="trend-card">
-          <h3>AI usage trend</h3>
-          <div className="trend-table-wrap">
-            <table className="dashboard-table">
-              <thead>
-                <tr>
-                  <th>Month</th>
-                  <th>AI Meal Plans</th>
-                  <th>AI Nutrition</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.monthlyAiMealPlanUsage.map((item, index) => (
-                  <tr key={item.label}>
-                    <td>{item.label}</td>
-                    <td>{item.count}</td>
-                    <td>{data.monthlyAiNutritionUsage[index]?.count ?? 0}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
       </section>
 
       <section className="filter-card">

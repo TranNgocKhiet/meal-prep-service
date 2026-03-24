@@ -43,6 +43,7 @@ interface Meal {
 }
 
 interface MealPlanDay {
+  id: string;
   dayNumber: number;
   date: string;
   meals: Meal[];

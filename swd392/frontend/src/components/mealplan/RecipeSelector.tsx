@@ -40,7 +40,7 @@ const RecipeSelector = ({ maxSelection, selectedRecipeIds, onConfirm, onCancel }
   const [showAllergyWarning, setShowAllergyWarning] = useState(false);
   const [allergyRecipe, setAllergyRecipe] = useState<Recipe | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Don't fetch recipes on mount

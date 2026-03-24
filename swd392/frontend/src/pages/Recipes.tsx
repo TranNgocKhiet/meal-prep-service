@@ -14,6 +14,7 @@ interface RecipeIngredient {
 
 interface Recipe {
   id: string;
+  recipeName?: string;
   name: string;
   description: string;
   instructions: string;
@@ -255,7 +256,7 @@ const Recipes = () => {
               {recipes.map((recipe) => (
                 <div key={recipe.id} className="recipe-card">
                   <div className="recipe-content">
-                    <h3>{highlightSearchTerm(recipe.recipeName)}</h3>
+                    <h3>{highlightSearchTerm(recipe.recipeName ?? recipe.name)}</h3>
                     <p className="recipe-description">
                       {highlightSearchTerm(recipe.instructions)}
                     </p>
