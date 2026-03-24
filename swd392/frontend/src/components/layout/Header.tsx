@@ -168,7 +168,6 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
                           <li><Link to="/admin/nutrients" onClick={closeManagementDropdown}>Nutrients</Link></li>
                           <li><Link to="/feedback" onClick={closeManagementDropdown}>Feedback</Link></li>
                           <li><Link to="/admin/ai-credit-packages" onClick={closeManagementDropdown}>AI Credit Packages</Link></li>
-                          <li><Link to="/admin/subscription-packages" onClick={closeManagementDropdown}>Subscription Packages</Link></li>
                         </ul>
                       </li>
                       <li><Link to="/admin/system-config">System Configuration</Link></li>
