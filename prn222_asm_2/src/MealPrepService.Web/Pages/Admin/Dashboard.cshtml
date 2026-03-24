@@ -47,7 +47,7 @@
                 <div class="col-md-6">
                     <div class="card dashboard-card h-100">
                         <div class="card-body">
-                            <h6 class="text-uppercase text-muted">Revenue compare to last year</h6>
+                            <h6 class="text-uppercase text-muted">Revenue compare to last month</h6>
                             <h4 class="@(Model.RevenueChangeOverview.IsIncrease ? "text-success" : "text-danger")">
                                 <i class="bi @(Model.RevenueChangeOverview.IsIncrease ? "bi-arrow-up-right" : "bi-arrow-down-right")"></i>
                                 $@Math.Abs(Model.RevenueChangeOverview.Difference).ToString("N2")
