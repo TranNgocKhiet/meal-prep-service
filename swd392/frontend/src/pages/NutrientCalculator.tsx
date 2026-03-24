@@ -6,6 +6,7 @@ import AILoadingOverlay from '../components/ai/AILoadingOverlay';
 import './NutrientCalculator.css';
 
 interface IngredientInput {
+  id: string;
   ingredientName: string;
   quantity: string;
   unit: string;
@@ -26,6 +27,54 @@ interface CustomMealNutritionResponse {
 }
 
 const parseStructuredAdvice = (rawText: string) => {
+  const pickFirstText = (value: unknown): string | null => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed || null;
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const found = pickFirstText(item);
+        if (found) {
+          return found;
+        }
+      }
+      return null;
+    }
+
+    if (value && typeof value === 'object') {
+      const record = value as Record<string, unknown>;
+      const priorityKeys = [
+        'summary',
+        'health_advice',
+        'advice',
+        'bestConsumptionAdvice',
+        'message',
+        'note',
+        'overallNote'
+      ];
+
+      for (const key of priorityKeys) {
+        if (key in record) {
+          const found = pickFirstText(record[key]);
+          if (found) {
+            return found;
+          }
+        }
+      }
+
+      for (const nestedValue of Object.values(record)) {
+        const found = pickFirstText(nestedValue);
+        if (found) {
+          return found;
+        }
+      }
+    }
+
+    return null;
+  };
+
   const text = (rawText || '').trim();
   if (!text) {
     return '';
@@ -42,25 +91,9 @@ const parseStructuredAdvice = (rawText: string) => {
     try {
       const parsed = JSON.parse(withoutFence);
 
-      if (typeof parsed === 'string') {
-        return parsed.trim();
-      }
-
-      if (parsed && typeof parsed === 'object') {
-        const candidateKeys = ['health_advice', 'advice', 'bestConsumptionAdvice', 'message', 'note'];
-        for (const key of candidateKeys) {
-          const value = (parsed as Record<string, unknown>)[key];
-          if (typeof value === 'string' && value.trim()) {
-            return value.trim();
-          }
-        }
-
-        const firstString = Object.values(parsed as Record<string, unknown>)
-          .find((value) => typeof value === 'string' && value.trim()) as string | undefined;
-
-        if (firstString) {
-          return firstString.trim();
-        }
+      const extractedText = pickFirstText(parsed);
+      if (extractedText) {
+        return extractedText;
       }
     } catch {
       return withoutFence;
@@ -90,9 +123,16 @@ const createOverallInsight = (result: CustomMealNutritionResponse) => {
 };
 
 const NutrientCalculator = () => {
+  const createIngredientRow = (): IngredientInput => ({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    ingredientName: '',
+    quantity: '',
+    unit: ''
+  });
+
   const [mealDescription, setMealDescription] = useState('');
   const [ingredients, setIngredients] = useState<IngredientInput[]>([
-    { ingredientName: '', quantity: '', unit: '' }
+    createIngredientRow()
   ]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
@@ -159,7 +199,7 @@ const NutrientCalculator = () => {
   }, [mealDescription, ingredients]);
 
   const addIngredientRow = () => {
-    setIngredients((prev) => [...prev, { ingredientName: '', quantity: '', unit: '' }]);
+    setIngredients((prev) => [...prev, createIngredientRow()]);
   };
 
   const removeIngredientRow = (index: number) => {
@@ -416,7 +456,7 @@ const NutrientCalculator = () => {
               </thead>
               <tbody>
                 {ingredients.map((ingredient, index) => (
-                  <tr key={`${index}-${ingredient.ingredientName}`}>
+                  <tr key={ingredient.id}>
                     <td>
                       <input
                         type="text"

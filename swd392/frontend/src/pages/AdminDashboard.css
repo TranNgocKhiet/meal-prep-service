@@ -63,6 +63,19 @@
   align-items: end;
 }
 
+.interval-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 42px;
+  margin-bottom: 0.8rem;
+  gap: 0.7rem;
+}
+
+.interval-card-header h3 {
+  margin: 0;
+}
+
 .dashboard-tab-btn:hover {
   color: #fff;
   border-color: rgba(34, 197, 94, 0.55);

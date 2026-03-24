@@ -941,7 +941,7 @@ const AdminDashboard = () => {
 
           <section className="interval-row">
             <article className="filter-card">
-              <div className="trend-card-header">
+              <div className="interval-card-header">
                 <h3>Date interval</h3>
                 <button onClick={applyInterval} className="btn-success btn-compact">Apply Interval</button>
               </div>
@@ -958,7 +958,9 @@ const AdminDashboard = () => {
             </article>
 
             <article className="filter-card">
-              <h3>Compare interval</h3>
+              <div className="interval-card-header">
+                <h3>Compare interval</h3>
+              </div>
               <div className="interval-filter-grid">
                 <div>
                   <label>From date</label>
@@ -1080,7 +1082,7 @@ const AdminDashboard = () => {
                       id="topMealsQuantityCount"
                       type="number"
                       min={2}
-                      max={20}
+                      max={10}
                       value={topMealsQuantityCount}
                       onChange={(e) => {
                         const parsed = Number(e.target.value);
@@ -1116,59 +1118,7 @@ const AdminDashboard = () => {
               )}
             </article>
 
-            <article className="trend-card">
-              <div className="trend-card-header">
-                <h3>Top {topMealsRevenueCount} meals by revenue (%)</h3>
-                <div className="pie-chart-header-actions">
-                  <button
-                    type="button"
-                    className="btn-primary btn-compact"
-                    disabled={compareLoading}
-                    onClick={() => switchChartComparison('topMealsRevenuePie', !comparisonMode.topMealsRevenuePie)}
-                  >
-                    {comparisonMode.topMealsRevenuePie ? 'Hide Comparison' : 'Apply Comparison'}
-                  </button>
-                  <div className="pie-top-count-control">
-                    <label htmlFor="topMealsRevenueCount">Top</label>
-                    <input
-                      id="topMealsRevenueCount"
-                      type="number"
-                      min={2}
-                      max={20}
-                      value={topMealsRevenueCount}
-                      onChange={(e) => {
-                        const parsed = Number(e.target.value);
-                        if (!Number.isNaN(parsed)) {
-                          setTopMealsRevenueCount(Math.max(2, Math.min(20, parsed)));
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-              <p className="compare-caption">Based on selected date interval.</p>
-              {(data.topMealsByRevenueInRange?.length ?? 0) > 0 || (data.topMealsOrdered?.length ?? 0) > 0 ? (
-                <div className="chart-wrap chart-wrap--md">
-                  <canvas ref={topMealsRevenuePieCanvasRef} />
-                </div>
-              ) : (
-                <p className="compare-caption">No meal data found in this date interval.</p>
-              )}
-              {comparisonMode.topMealsRevenuePie && (
-                <>
-                  <p className="compare-caption">
-                    Comparison from past interval: {formatRangeLabel(compareFromDate, compareToDate)}
-                  </p>
-                  {(compareData?.topMealsByRevenueInRange?.length ?? 0) > 0 || (compareData?.topMealsOrdered?.length ?? 0) > 0 ? (
-                    <div className="chart-wrap chart-wrap--md">
-                      <canvas ref={topMealsRevenuePieCompareCanvasRef} />
-                    </div>
-                  ) : (
-                    <p className="compare-caption">No meal data found for the comparison interval.</p>
-                  )}
-                </>
-              )}
-            </article>
+            
           </section>
         </>
       )}
