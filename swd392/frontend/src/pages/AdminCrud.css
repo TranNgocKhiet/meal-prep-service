@@ -101,20 +101,23 @@
   height: 36px;
   border: 1px solid #e2e8f0;
   background: #ffffff;
-  color: #2d3748;
+  color: #1f2937;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  text-decoration: none;
 }
 
 .admin-page-btn:hover {
   border-color: var(--color-primary);
+  color: #111827;
 }
 
 .admin-page-btn.active {
   background: var(--color-primary);
   color: #ffffff;
   border-color: var(--color-primary);
+  text-decoration: none;
 }
 
 .badge {

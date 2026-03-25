@@ -338,20 +338,23 @@
   height: 38px;
   border: 1px solid var(--color-border);
   background: #fff;
-  color: var(--color-text-primary);
+  color: #1f2937;
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   font-weight: 600;
+  text-decoration: none;
 }
 
 .fridge-page-btn:hover {
   border-color: var(--color-primary);
+  color: #111827;
 }
 
 .fridge-page-btn.active {
   background: var(--color-primary);
   color: #fff;
   border-color: var(--color-primary);
+  text-decoration: none;
 }
 
 .fridge-item {
