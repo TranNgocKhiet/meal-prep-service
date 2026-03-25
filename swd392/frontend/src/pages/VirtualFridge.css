@@ -308,6 +308,52 @@
   gap: var(--spacing-md);
 }
 
+.fridge-pagination-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.fridge-pagination {
+  margin-top: var(--spacing-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.fridge-pagination-pages {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fridge-page-btn {
+  min-width: 38px;
+  height: 38px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-text-primary);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.fridge-page-btn:hover {
+  border-color: var(--color-primary);
+}
+
+.fridge-page-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
 .fridge-item {
   background-color: var(--color-secondary);
   border: 2px solid var(--color-border);
@@ -524,6 +570,15 @@
   .item-footer {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .fridge-pagination-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fridge-pagination {
+    justify-content: flex-start;
   }
 
   .item-actions {

@@ -42,6 +42,8 @@ const AdminAccounts = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Account | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const { user } = useAuth();
   const [formData, setFormData] = useState<AccountFormData>({
     email: '',
@@ -75,6 +77,21 @@ const AdminAccounts = () => {
 
     setFiltered(result);
   }, [searchTerm, items, selectedRoleFilter, user]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedRoleFilter, items.length]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const pageStartIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const paginatedAccounts = filtered.slice(pageStartIndex, pageStartIndex + itemsPerPage);
+
+  useEffect(() => {
+    if (safeCurrentPage !== currentPage) {
+      setCurrentPage(safeCurrentPage);
+    }
+  }, [currentPage, safeCurrentPage]);
 
   const fetchItems = async () => {
     try {
@@ -237,7 +254,7 @@ const AdminAccounts = () => {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((item) => (
+            {paginatedAccounts.map((item) => (
               <tr key={item.id}>
                 <td>{item.email}</td>
                 <td>{item.fullName}</td>
@@ -261,9 +278,56 @@ const AdminAccounts = () => {
                 </td>
               </tr>
             ))}
+            {paginatedAccounts.length === 0 && (
+              <tr>
+                <td colSpan={6} className="empty-row">No accounts found.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+
+      <div className="admin-pagination-summary">
+        <span>
+          Showing {filtered.length === 0 ? 0 : pageStartIndex + 1}-{Math.min(pageStartIndex + itemsPerPage, filtered.length)} of {filtered.length} accounts
+        </span>
+        {totalPages > 1 && <span>Page {safeCurrentPage} of {totalPages}</span>}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="admin-pagination" role="navigation" aria-label="Account pages">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            disabled={safeCurrentPage === 1}
+          >
+            Previous
+          </button>
+
+          <div className="admin-pagination-pages">
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+              <button
+                key={page}
+                type="button"
+                className={`admin-page-btn ${page === safeCurrentPage ? 'active' : ''}`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={safeCurrentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {showModal && (
         <div className="modal-overlay">

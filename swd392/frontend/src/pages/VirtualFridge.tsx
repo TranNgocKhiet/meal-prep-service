@@ -42,6 +42,8 @@ const VirtualFridge = () => {
   const [deletingItem, setDeletingItem] = useState(false);
   const [showUpdateConfirmModal, setShowUpdateConfirmModal] = useState(false);
   const [updatingItem, setUpdatingItem] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -296,6 +298,21 @@ const VirtualFridge = () => {
     const dateB = new Date(b.expiryDate).getTime();
     return dateA - dateB;
   });
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeStatusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedItems.length / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const pageStartIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const paginatedItems = sortedItems.slice(pageStartIndex, pageStartIndex + itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage !== safeCurrentPage) {
+      setCurrentPage(safeCurrentPage);
+    }
+  }, [currentPage, safeCurrentPage]);
 
   const expiringItems = fridgeItems.filter(item => !item.isExpired && item.daysUntilExpiry <= 3);
 
@@ -594,8 +611,20 @@ const VirtualFridge = () => {
             </button>
           </div>
         ) : (
-          <div className="fridge-items-list">
-            {sortedItems.map((item) => (
+          <>
+            <div className="fridge-pagination-summary">
+              <span>
+                Showing {sortedItems.length === 0 ? 0 : pageStartIndex + 1}-{Math.min(pageStartIndex + itemsPerPage, sortedItems.length)} of {sortedItems.length} items
+              </span>
+              {totalPages > 1 && (
+                <span>
+                  Page {safeCurrentPage} of {totalPages}
+                </span>
+              )}
+            </div>
+
+            <div className="fridge-items-list">
+              {paginatedItems.map((item) => (
               <div key={item.id} className={`fridge-item ${getExpiryClass(item)}`}>
                 <div className="item-main">
                   <div className="item-info">
@@ -634,8 +663,44 @@ const VirtualFridge = () => {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="fridge-pagination" role="navigation" aria-label="Fridge item pages">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={safeCurrentPage === 1}
+                >
+                  Previous
+                </button>
+
+                <div className="fridge-pagination-pages">
+                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      className={`fridge-page-btn ${page === safeCurrentPage ? 'active' : ''}`}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={safeCurrentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {showDeleteConfirmModal && (
