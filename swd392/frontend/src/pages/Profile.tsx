@@ -4,6 +4,19 @@ import { useAuth } from '../hooks/useAuth';
 import apiClient from '../config/api';
 import './Profile.css';
 
+interface AccountDto {
+  id?: string;
+  email: string;
+  password?: string;
+  fullName: string;
+  phoneNumber: string;
+  roleId: number;
+  currentCredits: number;
+  isActive: boolean;
+  lastLoginAt?: string;
+  googleAuthId?: string;
+}
+
 const Profile = () => {
   const { user, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -11,9 +24,11 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     fullName: '',
     phoneNumber: ''
   });
@@ -23,6 +38,7 @@ const Profile = () => {
       setFormData({
         email: user.email || '',
         password: '',
+        confirmPassword: '',
         fullName: user.fullName || '',
         phoneNumber: user.phoneNumber || ''
       });
@@ -41,6 +57,7 @@ const Profile = () => {
       setFormData({
         email: user.email || '',
         password: '',
+        confirmPassword: '',
         fullName: user.fullName || '',
         phoneNumber: user.phoneNumber || ''
       });
@@ -49,15 +66,34 @@ const Profile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
     setSuccessMessage('');
 
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      setError('Password and confirm password do not match');
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      const updateData = {
+      const currentAccountResponse = await apiClient.get(`/admin/accounts/${user?.id}`);
+      const currentAccount = currentAccountResponse.data?.data as AccountDto | undefined;
+
+      if (!currentAccount) {
+        throw new Error('Unable to load current profile data. Please try again.');
+      }
+
+      const updateData: AccountDto = {
+        id: currentAccount.id,
         email: formData.email,
         fullName: formData.fullName,
         phoneNumber: formData.phoneNumber,
+        roleId: currentAccount.roleId,
+        currentCredits: currentAccount.currentCredits,
+        isActive: currentAccount.isActive,
+        lastLoginAt: currentAccount.lastLoginAt,
+        googleAuthId: currentAccount.googleAuthId,
         ...(formData.password && { password: formData.password })
       };
 
@@ -66,7 +102,7 @@ const Profile = () => {
       if (response.data.success) {
         setSuccessMessage('Profile updated successfully');
         setIsEditing(false);
-        setFormData({ ...formData, password: '' });
+        setFormData({ ...formData, password: '', confirmPassword: '' });
         await refreshUser();
         setTimeout(() => setSuccessMessage(''), 3000);
       }
@@ -141,6 +177,38 @@ const Profile = () => {
               </div>
 
               <div className="form-group">
+                <label>Confirm Password</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    placeholder="Re-enter new password"
+                    disabled={isLoading || !formData.password}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                    disabled={isLoading || !formData.password}
+                  >
+                    {showConfirmPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="form-group">
                 <label>Full Name *</label>
                 <input
                   type="text"
@@ -181,10 +249,6 @@ const Profile = () => {
               <div className="info-item">
                 <label>Phone Number</label>
                 <p>{user?.phoneNumber || 'Not provided'}</p>
-              </div>
-              <div className="info-item">
-                <label>Role</label>
-                <p>{user?.roleName}</p>
               </div>
             </div>
           )}
