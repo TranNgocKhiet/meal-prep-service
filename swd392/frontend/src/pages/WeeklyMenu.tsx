@@ -196,11 +196,15 @@ const WeeklyMenu = () => {
 
       <div className="weekly-menu-list">
         {weekDays.map((day) => {
-          const menu = getMenuForDate(day);
-          const sortedMeals = menu?.menuMeals
-            ? [...menu.menuMeals].sort((a, b) => a.mealTypeId - b.mealTypeId)
+          // Get all menus for this day and merge them
+          const dateKey = getLocalDateString(day);
+          const menusForDay = menus.filter((menu) => getDatePart(menu.menuDate) === dateKey);
+          const allMealsForDay = menusForDay.flatMap(m => m.menuMeals);
+          const visibleMeals = allMealsForDay.filter((meal) => getRecipeNames(meal).length > 0);
+          const sortedMeals = visibleMeals.length > 0
+            ? [...visibleMeals].sort((a, b) => a.mealTypeId - b.mealTypeId)
             : [];
-          const isPastDate = getLocalDateString(day) < getLocalDateString(new Date());
+          const isPastDate = dateKey < getLocalDateString(new Date());
 
           return (
             <div key={getLocalDateString(day)} className="day-menu">
@@ -209,7 +213,7 @@ const WeeklyMenu = () => {
                 <span className="day-date">{day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
               </div>
 
-              {!menu || sortedMeals.length === 0 ? (
+              {sortedMeals.length === 0 ? (
                 <div className="no-day-menu">No menu for this date</div>
               ) : (
                 <div className="meals-horizontal">

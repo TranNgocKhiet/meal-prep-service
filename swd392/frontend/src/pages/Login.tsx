@@ -132,6 +132,10 @@ const Login = () => {
           />
         </div>
 
+        <Link to="/" className="btn-return-home">
+          Return to Home
+        </Link>
+
         <p className="login-footer">
           Don't have an account? <Link to="/register">Sign up</Link>
         </p>

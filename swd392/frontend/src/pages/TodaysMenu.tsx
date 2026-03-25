@@ -111,7 +111,15 @@ const TodaysMenu = () => {
       const response = await apiClient.get(`/dailymenus?date=${today}`);
       
       if (response.data.success && response.data.data.length > 0) {
-        setMenu(response.data.data[0]);
+        // Merge all menus for the same day into a single menu with all meals
+        const menus = response.data.data as DailyMenu[];
+        const mergedMenu: DailyMenu = {
+          id: menus[0].id,
+          menuDate: menus[0].menuDate,
+          statusId: menus[0].statusId,
+          menuMeals: menus.flatMap(m => m.menuMeals)
+        };
+        setMenu(mergedMenu);
       } else {
         setMenu(null);
       }
@@ -150,7 +158,13 @@ const TodaysMenu = () => {
     return <div className="container"><div className="error-message">{error}</div></div>;
   }
 
-  if (!menu || menu.menuMeals.length === 0) {
+  const visibleMeals = menu
+    ? menu.menuMeals
+      .filter((meal) => getRecipeNames(meal).length > 0)
+      .sort((a, b) => a.mealTypeId - b.mealTypeId)
+    : [];
+
+  if (!menu || visibleMeals.length === 0) {
     return (
       <div className="container">
         <div className="todays-menu-header">
@@ -170,15 +184,18 @@ const TodaysMenu = () => {
       </div>
 
       <div className="meals-grid">
-        {menu.menuMeals.sort((a, b) => a.mealTypeId - b.mealTypeId).map((meal) => (
+        {visibleMeals.map((meal) => {
+          const recipeNames = getRecipeNames(meal);
+
+          return (
           <div key={meal.id} className="meal-card">
             <div className="meal-header">
               <h3 style={{ color: '#000' }}>{getMealTypeName(meal.mealTypeId)}</h3>
               <span className="meal-price" style={{ color: '#000' }}>{formatVND(meal.price)}</span>
             </div>
             <div className="meal-recipes-list">
-              {getRecipeNames(meal).length > 0 ? (
-                getRecipeNames(meal).map((recipeName, index) => (
+              {recipeNames.length > 0 ? (
+                recipeNames.map((recipeName, index) => (
                   <span key={`${meal.id}-recipe-${index}`} className="recipe-chip" title={recipeName}>
                     {recipeName}
                   </span>
@@ -189,20 +206,20 @@ const TodaysMenu = () => {
             </div>
             <div className="meal-nutrition">
               <div className="nutrition-item">
-                <span className="nutrition-label" style={{ color: '#666' }}>Calories</span>
-                <span className="nutrition-value" style={{ color: '#000' }}>{meal.totalCalories.toFixed(0)} kcal</span>
+                <span className="nutrition-label" style={{ color: '#ffffff' }}>Calories</span>
+                <span className="nutrition-value" style={{ color: '#ffffff' }}>{meal.totalCalories.toFixed(0)} kcal</span>
               </div>
               <div className="nutrition-item">
-                <span className="nutrition-label" style={{ color: '#666' }}>Protein</span>
-                <span className="nutrition-value" style={{ color: '#000' }}>{meal.proteinG.toFixed(1)}g</span>
+                <span className="nutrition-label" style={{ color: '#ffffff' }}>Protein</span>
+                <span className="nutrition-value" style={{ color: '#ffffff' }}>{meal.proteinG.toFixed(1)}g</span>
               </div>
               <div className="nutrition-item">
-                <span className="nutrition-label" style={{ color: '#666' }}>Carbs</span>
-                <span className="nutrition-value" style={{ color: '#000' }}>{meal.carbsG.toFixed(1)}g</span>
+                <span className="nutrition-label" style={{ color: '#ffffff' }}>Carbs</span>
+                <span className="nutrition-value" style={{ color: '#ffffff' }}>{meal.carbsG.toFixed(1)}g</span>
               </div>
               <div className="nutrition-item">
-                <span className="nutrition-label" style={{ color: '#666' }}>Fat</span>
-                <span className="nutrition-value" style={{ color: '#000' }}>{meal.fatG.toFixed(1)}g</span>
+                <span className="nutrition-label" style={{ color: '#ffffff' }}>Fat</span>
+                <span className="nutrition-value" style={{ color: '#ffffff' }}>{meal.fatG.toFixed(1)}g</span>
               </div>
             </div>
             <div className="meal-footer">
@@ -220,7 +237,8 @@ const TodaysMenu = () => {
               )}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {showAddSuccessModal && (

@@ -18,10 +18,11 @@
 }
 
 .meals-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   gap: 1.5rem;
   margin-top: 2rem;
+  width: 100%;
 }
 
 .meal-card {
@@ -32,6 +33,10 @@
   transition:
     transform 0.2s,
     box-shadow 0.2s;
+  min-width: 0 !important;
+  min-height: fit-content;
+  width: auto !important;
+  flex-shrink: 0 !important;
 }
 
 .meal-card:hover {
@@ -159,6 +164,12 @@
   padding: 3rem;
   font-size: 1.1rem;
   color: #718096;
+}
+
+@media (max-width: 1023px) and (min-width: 769px) {
+  .meals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {

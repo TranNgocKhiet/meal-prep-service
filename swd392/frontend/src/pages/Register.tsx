@@ -224,6 +224,10 @@ const Register = () => {
           />
         </div>
 
+        <Link to="/" className="btn-return-home">
+          Return to Home
+        </Link>
+
         <p className="register-footer">
           Already have an account? <Link to="/login">Sign in</Link>
         </p>

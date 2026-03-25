@@ -64,6 +64,7 @@
   flex: 1;
   justify-content: space-between;
   align-items: center;
+  min-width: 0;
 }
 
 .nav-list {
@@ -74,6 +75,7 @@
   margin: 0;
   padding: 0;
   flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .nav-list a {
@@ -127,6 +129,19 @@
 .dropdown-toggle:hover {
   background-color: #d3d3d3;
   color: #000000;
+}
+
+/* Keep the brand and admin navigation in a single row on desktop by compacting admin links. */
+@media (min-width: 1024px) {
+  .nav-list-admin {
+    gap: var(--spacing-xs);
+  }
+
+  .nav-list-admin a,
+  .nav-list-admin .dropdown-toggle {
+    padding: var(--spacing-xs) var(--spacing-xs);
+    font-size: var(--font-size-xs);
+  }
 }
 
 .dropdown-arrow {

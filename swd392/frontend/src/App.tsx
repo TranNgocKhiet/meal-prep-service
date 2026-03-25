@@ -65,16 +65,8 @@ function AppRoutes() {
       
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/todays-menu" element={
-          <ProtectedRoute>
-            <TodaysMenu />
-          </ProtectedRoute>
-        } />
-        <Route path="/weekly-menu" element={
-          <ProtectedRoute>
-            <WeeklyMenu />
-          </ProtectedRoute>
-        } />
+        <Route path="/todays-menu" element={<TodaysMenu />} />
+        <Route path="/weekly-menu" element={<WeeklyMenu />} />
         <Route path="/cart" element={
           <ProtectedRoute>
             <MyCart />

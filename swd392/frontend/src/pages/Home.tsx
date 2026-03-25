@@ -26,7 +26,7 @@ const Home = () => {
               <p>Plan your meals, manage your fridge, and order ingredients with ease</p>
               <div className="hero-actions">
                 <Link to="/register" className="btn-primary">Get Started</Link>
-                <Link to="/login" className="btn-secondary">Sign In</Link>
+                <Link to="/login" className="btn-primary">Sign In</Link>
               </div>
             </>
           )}

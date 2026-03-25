@@ -91,7 +91,7 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
           <nav className={`header-nav ${isMobileMenuOpen ? 'open' : ''}`}>
             {isAuthenticated ? (
               <>
-                <ul className="nav-list">
+                <ul className={`nav-list ${isAdmin ? 'nav-list-admin' : ''}`}>
                   {/* Common menu items for all roles */}
                   <li><Link to="/">Home</Link></li>
                   <li><Link to="/todays-menu">Today's Menu</Link></li>
@@ -222,10 +222,17 @@ const Header = ({ onMenuToggle }: HeaderProps) => {
                 </div>
               </>
             ) : (
-              <div className="header-actions">
-                <Link to="/login" className="btn-login">Login</Link>
-                <Link to="/register" className="btn-register">Sign Up</Link>
-              </div>
+              <>
+                <ul className="nav-list">
+                  <li><Link to="/">Home</Link></li>
+                  <li><Link to="/todays-menu">Today's Menu</Link></li>
+                  <li><Link to="/weekly-menu">Weekly's Menu</Link></li>
+                </ul>
+                <div className="header-actions">
+                  <Link to="/login" className="btn-login">Login</Link>
+                  <Link to="/register" className="btn-register">Sign Up</Link>
+                </div>
+              </>
             )}
           </nav>
         </div>
