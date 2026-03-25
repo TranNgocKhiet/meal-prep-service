@@ -17,6 +17,25 @@ interface MealPlan {
   createdAt: string;
 }
 
+const formatDate = (date: string) => new Date(date).toLocaleDateString();
+
+const getStatusMeta = (plan: MealPlan) => {
+  if (plan.isActive) {
+    return { label: 'Active', className: 'status-active' };
+  }
+
+  const rawStatus = plan.status?.toLowerCase() || '';
+  if (rawStatus.includes('complete')) {
+    return { label: 'Completed', className: 'status-completed' };
+  }
+
+  if (rawStatus.includes('pending')) {
+    return { label: 'Pending', className: 'status-pending' };
+  }
+
+  return { label: 'Inactive', className: 'status-inactive' };
+};
+
 const MealPlans = () => {
   const { user } = useAuth();
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
@@ -145,71 +164,70 @@ const MealPlans = () => {
           </div>
         ) : (
           <div className="meal-plans-grid">
-            {mealPlans.map((plan) => (
+            {mealPlans.map((plan) => {
+              const status = getStatusMeta(plan);
+
+              return (
               <div key={plan.id} className="meal-plan-card">
                 <div className="card-header">
-                  <h3 style={{ color: '#000' }}>{plan.name}</h3>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    {plan.isAiGenerated && (
-                      <span className="ai-badge">AI Generated</span>
-                    )}
+                  <div className="card-title-wrap">
+                    <h3 className="meal-plan-title">{plan.name || 'Untitled Meal Plan'}</h3>
+                    <div className="badge-row">
+                      <span className={`status-badge ${status.className}`}>
+                        {status.label}
+                      </span>
+                      <span className={`meta-badge ${plan.isAiGenerated ? 'meta-badge-ai' : 'meta-badge-manual'}`}>
+                        {plan.isAiGenerated ? 'AI Plan' : 'Manual Plan'}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="card-body">
                   <div className="plan-info">
                     <div className="info-item">
-                      <span className="label" style={{ color: '#666' }}>Duration:</span>
-                      <span className="value" style={{ color: '#000' }}>{plan.durationDays} days</span>
+                      <span className="label">Duration</span>
+                      <span className="value">{plan.durationDays} days</span>
                     </div>
                     <div className="info-item">
-                      <span className="label" style={{ color: '#666' }}>Start Date:</span>
-                      <span className="value" style={{ color: '#000' }}>
-                        {new Date(plan.startDate).toLocaleDateString()}
-                      </span>
+                      <span className="label">Start Date</span>
+                      <span className="value">{formatDate(plan.startDate)}</span>
                     </div>
                     <div className="info-item">
-                      <span className="label" style={{ color: '#666' }}>End Date:</span>
-                      <span className="value" style={{ color: '#000' }}>
-                        {new Date(plan.endDate).toLocaleDateString()}
-                      </span>
+                      <span className="label">End Date</span>
+                      <span className="value">{formatDate(plan.endDate)}</span>
                     </div>
-                    <div className="info-item">
-                      <span className="label" style={{ color: '#666' }}>Status:</span>
-                      <span className={`status-badge ${plan.isActive ? 'status-active' : 'status-inactive'}`}>
-                        {plan.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
+                  </div>
+
+                  <div className="plan-meta-row" aria-label="Plan metadata">
+                    <span className="meta-badge">Created {formatDate(plan.createdAt)}</span>
+                    <span className="meta-badge">{plan.durationDays >= 7 ? 'Long-term' : 'Short-term'}</span>
+                    {plan.isAiGenerated && <span className="meta-badge meta-badge-ai">AI Suggested</span>}
                   </div>
                 </div>
                 <div className="card-actions">
                   <button
-                    className={`btn ${plan.isActive ? 'btn-warning' : 'btn-success'}`}
+                    className={`btn ${plan.isActive ? 'btn-secondary' : 'btn-success'}`}
                     onClick={() => handleSetActive(plan.id)}
-                    style={{
-                      backgroundColor: plan.isActive ? '#ffc107' : '#28a745',
-                      color: plan.isActive ? '#000' : '#fff',
-                      border: 'none', width: '5vw', height: '2vh'
-                    }}
+                    disabled={plan.isActive}
                   >
-                    {plan.isActive ? 'Deactivate' : 'Active'}
+                    {plan.isActive ? 'Active Now' : 'Set Active'}
                   </button>
                   <button
-                    className="btn"
+                    className="btn btn-detail"
                     onClick={() => navigate(`/meal-plans/${plan.id}`)}
-                    style = {{width: '5vw', height: '2vh', backgroundColor: '#808080'}}
                   >
                     Details
                   </button>
                   <button
                     className="btn btn-danger"
                     onClick={() => openDeleteModal(plan)}
-                    style = {{width: '5vw', height: '2vh'}}
                   >
                     Delete
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
