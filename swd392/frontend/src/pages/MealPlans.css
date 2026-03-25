@@ -129,37 +129,58 @@
 
 .meal-plans-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: var(--spacing-lg);
 }
 
 .meal-plan-card {
   background-color: var(--color-secondary);
   border: 1px solid var(--color-border);
+  border-top: 4px solid var(--color-primary);
   border-radius: var(--border-radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--transition-base);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
 }
 
 .meal-plan-card:hover {
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .card-header {
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+}
+
+.card-title-wrap {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-md);
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
 .card-header h3 {
   margin: 0;
   color: var(--color-text-primary);
   font-size: var(--font-size-xl);
-  flex: 1;
+  line-height: 1.3;
+}
+
+.meal-plan-title {
+  color: #111827;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  word-break: break-word;
+}
+
+.meal-plan-card .card-header .meal-plan-title {
+  color: #111827 !important;
+  opacity: 1 !important;
+}
+
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .ai-badge {
@@ -173,52 +194,59 @@
 }
 
 .card-body {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-lg);
 }
 
 .plan-info {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 .info-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--spacing-sm);
 }
 
 .info-item .label {
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
+  font-weight: 500;
 }
 
 .info-item .value {
   color: var(--color-text-primary);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .status-badge {
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: 6px 10px;
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-xs);
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .status-active {
   background-color: #28a745;
-  color: #000;
+  color: #ffffff;
 }
 
 .status-inactive {
   background-color: #dc3545;
-  color: #000;
+  color: #ffffff;
 }
 
 .status-completed {
-  background-color: #d1ecf1;
-  color: #0c5460;
+  background-color: #17a2b8;
+  color: #ffffff;
 }
 
 .status-pending {
@@ -226,12 +254,43 @@
   color: #856404;
 }
 
+.plan-meta-row {
+  margin-top: var(--spacing-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #5b6471;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.meta-badge-ai {
+  background: #eef8f0;
+  border-color: #b5e4c3;
+  color: #1f7a3d;
+}
+
+.meta-badge-manual {
+  background: #f5f7fa;
+  border-color: #dce4ec;
+  color: #4a5568;
+}
+
 .card-actions {
   padding: var(--spacing-lg);
   border-top: 1px solid var(--color-border);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .card-actions .btn {
@@ -278,6 +337,24 @@
 
 .btn-danger:hover:not(:disabled) {
   background-color: #c82333;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: #ffffff;
+}
+
+.btn-success:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.btn-detail {
+  background-color: #6c757d;
+  color: #ffffff;
+}
+
+.btn-detail:hover:not(:disabled) {
+  background-color: #5a6268;
 }
 
 .btn-sm {
@@ -362,6 +439,11 @@
 
   .card-actions {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .card-actions .btn {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm);
   }
 }
 
