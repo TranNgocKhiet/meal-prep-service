@@ -255,19 +255,10 @@
   gap: 0.55rem;
 }
 
-.add-row-btn,
-.analyze-btn,
-.remove-row-btn {
-  border: 0;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.add-row-btn {
-  background: color-mix(in srgb, var(--color-primary) 12%, white);
-  color: var(--color-primary-dark);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 34%, white);
-  padding: 0.55rem 0.9rem;
+.coming-soon-content h1 {
+  font-size: 2.5rem;
+  color: #ffffff;
+  margin-bottom: var(--spacing-md);
   font-weight: 700;
 }
 

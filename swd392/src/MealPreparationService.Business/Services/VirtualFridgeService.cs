@@ -192,6 +192,8 @@ public class VirtualFridgeService : IVirtualFridgeService
     {
         _logger.LogInformation("Generating grocery list for user {UserId}", userId);
 
+        var today = _dateTimeService.Now.Date;
+
         // Get active meal plans
         var activeMealPlans = await _unitOfWork.MealPlans.GetByUserIdAndStatusAsync(userId, 1);
         if (!activeMealPlans.Any())
@@ -200,23 +202,42 @@ public class VirtualFridgeService : IVirtualFridgeService
             return new GroceryListDto { Items = new List<GroceryListItemDto>(), TotalEstimatedCost = 0, TotalItems = 0 };
         }
 
-        var activeMealPlan = activeMealPlans.First();
-        
-        // Get meal plan with details
-        var mealPlanWithDetails = await _unitOfWork.MealPlans.GetByIdWithDetailsAsync(activeMealPlan.Id);
-        if (mealPlanWithDetails == null || !mealPlanWithDetails.Meals.Any())
+        // Only keep meal plans that are currently valid by date range (not expired and already started).
+        var validMealPlans = activeMealPlans
+            .Where(mp => mp.StartDate.Date <= today && mp.EndDate.Date >= today)
+            .ToList();
+
+        if (!validMealPlans.Any())
         {
-            _logger.LogWarning("No meals found in active meal plan for user {UserId}", userId);
+            _logger.LogInformation("No currently valid active meal plans found for user {UserId}", userId);
             return new GroceryListDto { Items = new List<GroceryListItemDto>(), TotalEstimatedCost = 0, TotalItems = 0 };
         }
 
-        // Get unfinished meals
-        var unfinishedMeals = mealPlanWithDetails.Meals.Where(m => !m.MealFinished).ToList();
-        _logger.LogInformation("Found {Count} unfinished meals", unfinishedMeals.Count);
+        var unfinishedMeals = new List<Meal>();
+
+        foreach (var mealPlan in validMealPlans)
+        {
+            var mealPlanWithDetails = await _unitOfWork.MealPlans.GetByIdWithDetailsAsync(mealPlan.Id);
+            if (mealPlanWithDetails == null || !mealPlanWithDetails.Meals.Any())
+            {
+                continue;
+            }
+
+            var unfinishedMealsInPlan = mealPlanWithDetails.Meals
+                .Where(m => !m.MealFinished && m.ServerDate.Date >= today)
+                .ToList();
+
+            if (unfinishedMealsInPlan.Any())
+            {
+                unfinishedMeals.AddRange(unfinishedMealsInPlan);
+            }
+        }
+
+        _logger.LogInformation("Found {Count} unfinished meals in valid meal plans", unfinishedMeals.Count);
 
         if (!unfinishedMeals.Any())
         {
-            _logger.LogInformation("No unfinished meals found for user {UserId}", userId);
+            _logger.LogInformation("No unfinished meals found in valid meal plans for user {UserId}", userId);
             return new GroceryListDto { Items = new List<GroceryListItemDto>(), TotalEstimatedCost = 0, TotalItems = 0 };
         }
 

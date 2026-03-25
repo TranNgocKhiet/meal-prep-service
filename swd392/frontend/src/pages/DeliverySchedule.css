@@ -180,7 +180,9 @@
   border-radius: var(--border-radius-md);
   margin-bottom: var(--spacing-lg);
 }
-
+.confirm-update-message{
+  color: #000;
+}
 @media (max-width: 768px) {
   .schedules-table {
     overflow-x: auto;

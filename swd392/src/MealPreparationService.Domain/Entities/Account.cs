@@ -27,6 +27,7 @@ public class Account : BaseEntity
     public ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
     public ICollection<AIcreditTransaction> AIcreditTransactions { get; set; } = new List<AIcreditTransaction>();
     public ICollection<AIServiceUsageLog> AIServiceUsageLogs { get; set; } = new List<AIServiceUsageLog>();
+    public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 }
 
 

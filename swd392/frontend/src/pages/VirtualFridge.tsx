@@ -335,7 +335,7 @@ const VirtualFridge = () => {
           <div className="header-actions">
             <button
               className="btn btn-warning"
-              onClick={() => navigate('/grocery-list')}
+              onClick={() => navigate('/grocery-list', { state: { refreshAt: Date.now() } })}
             >
               Create Grocery List
             </button>

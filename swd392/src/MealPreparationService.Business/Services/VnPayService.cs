@@ -63,7 +63,7 @@ public class VnPayService : IVnPayService
             _logger.LogInformation("VNPay: Received payment request - OrderId: {OrderId}, Amount: {Amount}", 
                 request.OrderId, request.Amount);
             
-            // FIX 2: Bắt lỗi IPv6 ở Localhost, chuyển thành IPv4 an toàn
+            // FIX 2: Bắt lỗi IPv6 ở loopback, chuyển thành IPv4 an toàn
             var ipAddress = string.IsNullOrWhiteSpace(request.IpAddress) || request.IpAddress.Contains("::1") 
                 ? "127.0.0.1" : request.IpAddress;
 

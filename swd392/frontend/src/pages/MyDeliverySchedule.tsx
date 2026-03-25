@@ -308,7 +308,7 @@ const MyDeliverySchedule = () => {
           }}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h2>Confirm Status Update</h2>
-              <p>Are you sure you want to update the delivery status?</p>
+              <p className="confirm-update-message">Are you sure you want to update the delivery status?</p>
               <div className="modal-actions">
                 <button
                   type="button"

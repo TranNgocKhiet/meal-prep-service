@@ -22,12 +22,15 @@ interface Recipe {
 }
 
 interface RecipeIngredient {
-  ingredient: {
-    id: string;
-    name: string;
-    unit: string;
+  ingredient?: {
+    id?: string;
+    name?: string;
+    unit?: string;
   };
-  amount: number;
+  ingredientName?: string;
+  amount?: number;
+  quantity?: number;
+  unit?: string;
 }
 
 interface Meal {
@@ -96,6 +99,25 @@ const MealPlanDetail = () => {
       case 3: return 'Dinner';
       default: return 'Unknown';
     }
+  };
+
+  const getDayHeaderClass = (dateValue: string) => {
+    const datePart = dateValue.split('T')[0];
+    const [year, month, day] = datePart.split('-').map(Number);
+    const headerDate = new Date(year, month - 1, day);
+
+    const today = new Date();
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    if (headerDate < todayOnly) {
+      return 'day-header-past';
+    }
+
+    if (headerDate.getTime() === todayOnly.getTime()) {
+      return 'day-header-today';
+    }
+
+    return 'day-header-future';
   };
 
   const fetchMealPlan = async () => {
@@ -293,6 +315,33 @@ const MealPlanDetail = () => {
     }
   };
 
+  const getMealCardClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'finished':
+        return 'meal-card meal-card-finished';
+      case 'expired':
+        return 'meal-card meal-card-expired';
+      default:
+        return 'meal-card';
+    }
+  };
+
+  const getIngredientDisplay = (ingredient: RecipeIngredient) => {
+    const name = ingredient.ingredient?.name || ingredient.ingredientName || 'Unknown ingredient';
+    const amount = ingredient.amount ?? ingredient.quantity;
+    const unit = ingredient.ingredient?.unit || ingredient.unit;
+
+    if (amount !== undefined && unit) {
+      return `${amount} ${unit} ${name}`;
+    }
+
+    if (amount !== undefined) {
+      return `${amount} ${name}`;
+    }
+
+    return name;
+  };
+
   if (loading) {
     return (
       <Container>
@@ -416,9 +465,9 @@ const MealPlanDetail = () => {
           <h2>Daily Schedule</h2>
           {mealPlan.days.map((day) => (
             <div key={day.dayNumber} className="day-section">
-              <div className="day-header">
-                <h3 style={{color : '#ffffff'}}>Day {day.dayNumber}</h3>
-                <span className="day-date" style={{color : '#ffffff'}}>
+              <div className={`day-header ${getDayHeaderClass(day.date)}`}>
+                <h3 className="day-title">Day {day.dayNumber}</h3>
+                <span className="day-date">
                   {new Date(day.date).toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
@@ -429,13 +478,18 @@ const MealPlanDetail = () => {
 
               <div className="meals-list">
                 {day.meals.map((meal) => (
-                  <div key={meal.id} className="meal-card">
+                  <div key={meal.id} className={getMealCardClass(meal.status)}>
                     <div className="meal-card-header">
                       <div className="meal-info">
                         <h4>{getMealTypeName(meal.mealTypeId)}</h4>
                         {meal.recipes && meal.recipes.length > 0 && (
                           <span className="recipe-count">
                             {meal.recipes.length} recipe{meal.recipes.length > 1 ? 's' : ''}
+                          </span>
+                        )}
+                        {meal.status && (
+                          <span className={getStatusBadgeClass(meal.status)}>
+                            {meal.status}
                           </span>
                         )}
                       </div>
@@ -525,18 +579,20 @@ const MealPlanDetail = () => {
                               </div>
 
                               <div className="recipe-content">
-                                {recipe.ingredients && recipe.ingredients.length > 0 && (
-                                  <div className="recipe-section">
-                                    <h6>Ingredients</h6>
+                                <div className="recipe-section">
+                                  <h6>Ingredients</h6>
+                                  {recipe.ingredients && recipe.ingredients.length > 0 ? (
                                     <ul className="ingredients-list">
                                       {recipe.ingredients.map((ing, idx) => (
-                                        <li key={idx}>
-                                          {ing.amount} {ing.ingredient.unit} {ing.ingredient.name}
+                                        <li key={ing.ingredient?.id || `${recipe.id}-${idx}`}>
+                                          {getIngredientDisplay(ing)}
                                         </li>
                                       ))}
                                     </ul>
-                                  </div>
-                                )}
+                                  ) : (
+                                    <p className="instructions">No ingredient data available.</p>
+                                  )}
+                                </div>
 
                                 <div className="recipe-section">
                                   <h6>Instructions</h6>
